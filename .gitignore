@@ -9,3 +9,21 @@ buildNumber.properties
 .mvn/timing.properties
 # https://github.com/takari/maven-wrapper#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar
+
+# ors
+*ors.run
+
+cgiar_provider
+graphs
+target
+build/
+logs/
+cgiar_cache
+/files/*.csv
+!/files/population_hannover.csv
+src/main/files/*.pbf
+!src/main/files/hannover.pbf
+
+# vs-code
+.vscode
+
