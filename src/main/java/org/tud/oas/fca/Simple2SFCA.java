@@ -52,7 +52,7 @@ public class Simple2SFCA {
                 for (PopulationPoint p : points) {
                     if (p.getPoint().within(iso)) {
                         int index = p.getAttributes().getIndex();
-                        weight += population_weights[index] * range_factor * range;
+                        weight += population_weights[index] * range_factor;
 
                         if (inverted_mapping[index] == null) {
                             inverted_mapping[index] = new ArrayList<FacilityReference>(4);
@@ -65,7 +65,7 @@ public class Simple2SFCA {
                 facility_weights[f] = 0;
             }
             else {
-                facility_weights[f] = max_range/weight;
+                facility_weights[f] = 1/weight;
             }
         }
 
@@ -76,13 +76,10 @@ public class Simple2SFCA {
                 population_weights[p] = weight;
             }
             else {
+                weight = 0;
                 for (FacilityReference ref : refs) {
-                    double range = ref.range;
-                    double range_factor = range_factors.get(ranges.indexOf(range));
-                    float new_weight = (float)(facility_weights[ref.index] * ref.range * range_factor);
-                    if (new_weight > weight) {
-                        weight = new_weight;
-                    }
+                    double range_factor = range_factors.get(ranges.indexOf((double)ref.range));
+                    weight += (float)(facility_weights[ref.index] * range_factor);
                 }
                 population_weights[p] = weight;
             }
