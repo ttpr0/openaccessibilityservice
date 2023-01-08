@@ -14,11 +14,17 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+
 @SpringBootApplication
 public class OpenAccessibiltyService {
+	static final Logger logger = LoggerFactory.getLogger(OpenAccessibiltyService.class);
 
 	public static void main(String[] args) throws Exception {
+		logger.error("load Routing Graph");
 		RoutingProfileManager.getInstance();
+		logger.info("load Population data");
 		PopulationManager.loadPopulation("files/population_hannover.csv");
 		SpringApplication.run(OpenAccessibiltyService.class, args);
 
