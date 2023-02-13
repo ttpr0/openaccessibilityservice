@@ -15,16 +15,33 @@ public final class PopulationLoader {
 		String del = ";";
 		String line = reader.readLine();
 		String[] tokens = line.split(del);
+        int index_ew = -1;
+        int index_geom = -1;
+        int index_geom_utm = -1;
+        for (int i=0; i < tokens.length; i++) {
+            String token = tokens[i];
+            if (token.equals("EW_GESAMT")) {
+                index_ew = i;
+            }
+            if (token.equals("GEOM")) {
+                index_geom = i;
+            }
+            if (token.equals("GEOM_UTM")) {
+                index_geom_utm = i;
+            }
+        }
+        System.out.println(index_ew + "," + index_geom + "," + index_geom_utm);
         Population population = new Population(10000);
         WKBReader geom_reader = new WKBReader();
 
 		while ((line = reader.readLine()) != null)
 		{
 			tokens = line.split(del);
-            int count = (int)Double.parseDouble(tokens[23].replace(",", "."));
+            int count = (int)Double.parseDouble(tokens[index_ew].replace(",", "."));
             PopulationAttributes attributes = new PopulationAttributes(count);
-            Point point = (Point)geom_reader.read(WKBReader.hexToBytes(tokens[32]));
-            population.addPopulationPoint(point, attributes);
+            Point point = (Point)geom_reader.read(WKBReader.hexToBytes(tokens[index_geom]));
+            Point utm_point = (Point)geom_reader.read(WKBReader.hexToBytes(tokens[index_geom_utm]));
+            population.addPopulationPoint(point, (float)utm_point.getX(), (float)utm_point.getY(), attributes);
 		}
 
 		reader.close();

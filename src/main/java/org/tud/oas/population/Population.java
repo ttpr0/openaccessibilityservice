@@ -11,6 +11,8 @@ import java.util.ArrayList;
 public class Population {
     public KdTree index;
 
+    public List<PopulationPoint> p_points;
+
     public List<Point> points;
 
     public List<PopulationAttributes> attributes;
@@ -19,18 +21,20 @@ public class Population {
         this.index = new KdTree();
         this.points = new ArrayList<Point>(initial_size);
         this.attributes = new ArrayList<PopulationAttributes>(initial_size);
+        this.p_points = new ArrayList<PopulationPoint>(initial_size);
     }
 
-    public void addPopulationPoint(Point point, PopulationAttributes attributes) {
+    public void addPopulationPoint(Point point, float x, float y, PopulationAttributes attributes) {
         int index = this.points.size();
         attributes.setIndex(index);
         this.points.add(point);
         this.attributes.add(attributes);
+        this.p_points.add(new PopulationPoint(point, x, y, attributes));
         this.index.insert(point.getCoordinate(), attributes);
     }
 
     public PopulationPoint getPoint(int index) {
-        return new PopulationPoint(this.points.get(index), this.attributes.get(index));
+        return this.p_points.get(index);
     }
 
     public int getPointCount() {
@@ -43,7 +47,7 @@ public class Population {
         this.index.query(envelope, (KdNode node) -> {
             PopulationAttributes data = (PopulationAttributes)node.getData();
             int index = data.getIndex();
-            points.add(new PopulationPoint(this.points.get(index), this.attributes.get(index)));
+            points.add(this.p_points.get(index));
         });
 
         return points;

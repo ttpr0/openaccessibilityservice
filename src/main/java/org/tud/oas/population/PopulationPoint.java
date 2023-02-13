@@ -4,12 +4,16 @@ import com.vividsolutions.jts.geom.Point;
 
 public class PopulationPoint {
     private Point point;
+    private float x;
+    private float y;
     private PopulationAttributes attributes;
     private int weight;
     
-    public PopulationPoint(Point point, PopulationAttributes attributes) {
+    public PopulationPoint(Point point, float x, float y, PopulationAttributes attributes) {
         this.point = point;
         this.attributes = attributes;
+        this.x = x;
+        this.y = y;
     }
 
     public Point getPoint() {
@@ -34,5 +38,21 @@ public class PopulationPoint {
 
     public void setWeight(int weight) {
         this.weight = weight;
+    }
+
+    public float getX() {
+        return x;
+    }
+
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
+    public void setY(float y) {
+        this.y = y;
     }
 }
