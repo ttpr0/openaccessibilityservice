@@ -1,4 +1,4 @@
-package org.tud.oas.api;
+package org.tud.oas.api.fca;
 
 import org.heigit.ors.isorasters.GeoJsonFeature;
 import org.heigit.ors.isorasters.GeoJsonPoint;

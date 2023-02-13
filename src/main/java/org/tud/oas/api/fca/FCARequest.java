@@ -1,4 +1,4 @@
-package org.tud.oas.api;
+package org.tud.oas.api.fca;
 
 import java.util.List;
 

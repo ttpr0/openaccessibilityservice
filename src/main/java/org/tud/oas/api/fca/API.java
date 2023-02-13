@@ -1,4 +1,4 @@
-package org.tud.oas.api;
+package org.tud.oas.api.fca;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,18 +9,11 @@ import org.tud.oas.fca.Simple2SFCA;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationManager;
 
-import ch.qos.logback.core.encoder.EchoEncoder;
-
 @RestController
-@RequestMapping("/v1/test")
+@RequestMapping("/v1/fca")
 public class API {
 
-    @GetMapping("/get")
-    public String getTest() {
-        return "hello world";
-    }
-
-    @PostMapping("/fca")
+    @PostMapping
     public FCAGeoJSONResponse calculateFCA(@RequestBody FCARequest request) throws Exception {
         Population population = PopulationManager.getPopulation();
 
