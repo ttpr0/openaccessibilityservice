@@ -1,11 +1,11 @@
 package org.tud.oas.fca;
 
-import org.tud.oas.ors.Isochrones;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationAttributes;
 import org.tud.oas.population.PopulationPoint;
-import org.heigit.ors.isochrones.Isochrone;
-import org.heigit.ors.isochrones.IsochroneMap;
+import org.tud.oas.routing.IsochroneCollection;
+import org.tud.oas.routing.Isochrone;
+import org.tud.oas.routing.IRoutingProvider;
 
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Simple2SFCA {
-    public static float[] calc2SFCA(Population population, Double[][] facilities, List<Double> ranges, List<Double> range_factors) throws Exception {
+    public static float[] calc2SFCA(Population population, Double[][] facilities, List<Double> ranges, List<Double> range_factors, IRoutingProvider provider) throws Exception {
         float[] population_weights = new float[population.getPointCount()];
         float[] facility_weights = new float[facilities.length];
         for (PopulationAttributes attr : population.attributes) {
@@ -31,7 +31,7 @@ public class Simple2SFCA {
         for (int f=0; f<facilities.length; f++) {
             locations[0][0] = facilities[f][0];
             locations[0][1] = facilities[f][1];
-            IsochroneMap isochrones = Isochrones.requestIsochrones(locations, ranges).getIsochrone(0);
+            IsochroneCollection isochrones = provider.requestIsochrones(locations, ranges).get(0);
 
             float weight = 0;
             for (int i=0; i< isochrones.getIsochronesCount(); i++) {

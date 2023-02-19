@@ -1,11 +1,11 @@
 package org.tud.oas.accessibility;
 
-import org.tud.oas.ors.Isochrones;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationAttributes;
 import org.tud.oas.population.PopulationPoint;
-import org.heigit.ors.isochrones.Isochrone;
-import org.heigit.ors.isochrones.IsochroneMap;
+import org.tud.oas.routing.IRoutingProvider;
+import org.tud.oas.routing.IsochroneCollection;
+import org.tud.oas.routing.Isochrone;
 
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 
 public class SimpleAccessibility {
 
-    public static Accessibility calcAccessibility(Population population, Double[][] facilities, List<Double> ranges) throws Exception {
+    public static Accessibility calcAccessibility(Population population, Double[][] facilities, List<Double> ranges, IRoutingProvider provider) throws Exception {
         float[] population_weights = new float[population.getPointCount()];
         float[] facility_weights = new float[facilities.length];
         for (PopulationAttributes attr : population.attributes) {
@@ -37,7 +37,7 @@ public class SimpleAccessibility {
         for (int f=0; f<facilities.length; f++) {
             locations[0][0] = facilities[f][0];
             locations[0][1] = facilities[f][1];
-            IsochroneMap isochrones = Isochrones.requestIsochrones(locations, ranges).getIsochrone(0);
+            IsochroneCollection isochrones = provider.requestIsochrones(locations, ranges).get(0);
 
             for (int i=0; i< isochrones.getIsochronesCount(); i++) {
                 Isochrone isochrone = isochrones.getIsochrone(i);

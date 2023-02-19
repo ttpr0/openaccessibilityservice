@@ -5,9 +5,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import org.tud.oas.fca.Simple2SFCA;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationManager;
+import org.tud.oas.routing.IRoutingProvider;
+import org.tud.oas.routing.RoutingManager;
 
 @RestController
 @RequestMapping("/v1/fca")
@@ -16,8 +19,9 @@ public class API {
     @PostMapping
     public FCAGeoJSONResponse calculateFCA(@RequestBody FCARequest request) throws Exception {
         Population population = PopulationManager.getPopulation();
+        IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
-		float[] weights = Simple2SFCA.calc2SFCA(population, request.getLocations(), request.getRanges(), request.getFactors());
+		float[] weights = Simple2SFCA.calc2SFCA(population, request.getLocations(), request.getRanges(), request.getFactors(), provider);
     
         float max_weight = 0;
         for (float w : weights) {

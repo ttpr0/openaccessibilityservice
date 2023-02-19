@@ -9,6 +9,9 @@ import org.tud.oas.fca.Simple2SFCA;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationLoader;
 import org.tud.oas.population.PopulationManager;
+import org.tud.oas.routing.EmbeddedORS;
+import org.tud.oas.routing.ORSProvider;
+import org.tud.oas.routing.RoutingManager;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -22,10 +25,9 @@ public class OpenAccessibiltyService {
 	static final Logger logger = LoggerFactory.getLogger(OpenAccessibiltyService.class);
 
 	public static void main(String[] args) throws Exception {
-		logger.error("load Routing Graph");
-		RoutingProfileManager.getInstance();
-		logger.info("load Population data");
-		PopulationManager.loadPopulation("files/population_hannover.csv");
+		RoutingManager.addRoutingProvider(new EmbeddedORS());
+		// RoutingManager.addRoutingProvider(new ORSProvider());
+		PopulationManager.loadPopulation("files/population_hannover_2.csv");
 		SpringApplication.run(OpenAccessibiltyService.class, args);
 
 		// Population population = PopulationManager.getPopulation();

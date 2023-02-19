@@ -7,12 +7,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import org.tud.oas.accessibility.Accessibility;
 import org.tud.oas.accessibility.PopulationAccessibility;
 import org.tud.oas.accessibility.SimpleAccessibility;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationManager;
 import org.tud.oas.population.PopulationPoint;
+import org.tud.oas.routing.IRoutingProvider;
+import org.tud.oas.routing.RoutingManager;
 
 @RestController
 @RequestMapping("/v1/accessibility")
@@ -21,8 +24,9 @@ public class AccessibilityController {
     @PostMapping
     public GridResponse calculateFCA(@RequestBody AccessibilityRequest request) throws Exception {
         Population population = PopulationManager.getPopulation();
+        IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
-		Accessibility accessibility = SimpleAccessibility.calcAccessibility(population, request.getLocations(), request.getRanges());
+		Accessibility accessibility = SimpleAccessibility.calcAccessibility(population, request.getLocations(), request.getRanges(), provider);
 
         List<Feature> features = new ArrayList<Feature>();
         float minx = 1000000000;
