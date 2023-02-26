@@ -1,5 +1,7 @@
 package org.tud.oas.accessibility;
 
+import org.tud.oas.api.accessibility.GridFeature;
+import org.tud.oas.api.accessibility.GridResponse;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationAttributes;
 import org.tud.oas.population.PopulationPoint;
@@ -17,8 +19,16 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class SimpleAccessibility {
+    private Population population;
+    private IRoutingProvider provider;
+    private Accessibility accessibility;
 
-    public static Accessibility calcAccessibility(Population population, Double[][] facilities, List<Double> ranges, IRoutingProvider provider) throws Exception {
+    public SimpleAccessibility(Population population, IRoutingProvider provider) {
+        this.population = population;
+        this.provider = provider;
+    }
+
+    public void calcAccessibility(Double[][] facilities, List<Double> ranges) throws Exception {
         float[] population_weights = new float[population.getPointCount()];
         float[] facility_weights = new float[facilities.length];
         for (PopulationAttributes attr : population.attributes) {
@@ -67,7 +77,54 @@ public class SimpleAccessibility {
             }
         }
 
-        return new Accessibility(accessibilities, catchments);
+        this.accessibility = new Accessibility(accessibilities, catchments);
+    }
+
+    public GridResponse buildResponse() {
+        List<GridFeature> features = new ArrayList<GridFeature>();
+        float minx = 1000000000;
+        float maxx = -1;
+        float miny = 1000000000;
+        float maxy = -1;
+        for (int i=0; i< population.getPointCount(); i++) {
+            PopulationPoint p = population.getPoint(i);
+            PopulationAccessibility feature = accessibility.accessibilities[i];
+            if (p.getX() < minx) {
+                minx = p.getX();
+            }
+            if (p.getX() > maxx) {
+                maxx = p.getX();
+            }
+            if (p.getY() < miny) {
+                miny = p.getY();
+            }
+            if (p.getY() > maxy) {
+                maxy = p.getY();
+            }
+            feature.ranges.sort((Integer a, Integer b) -> {
+                return a - b;
+            });
+            SimpleValue value = new SimpleValue(-9999, -9999, -9999);
+            if (feature.ranges.size() > 0){
+                value.first = feature.ranges.get(0);
+            }
+            if (feature.ranges.size() > 1){
+                value.second = feature.ranges.get(1);
+            }
+            if (feature.ranges.size() > 2){
+                value.third = feature.ranges.get(2);
+            }
+            features.add(new GridFeature(p.getX(), p.getY(), value));
+        }
+        float[] extend = {minx-50, miny-50, maxx+50, maxy+50};
+
+        float dx = extend[2] - extend[0];
+        float dy = extend[3] - extend[1];
+        int[] size = {(int)(dx/100), (int)(dy/100)};
+
+        String crs = "EPSG:25832";
+
+        return new GridResponse(features, crs, extend, size);
     }
 }
 
@@ -90,5 +147,17 @@ class FacilityCatchment {
 
     void addRangeRef(double range, int count) {
         this.population_counts.add(new RangeRef(range, count));
+    }
+}
+
+class SimpleValue {
+    public int first;
+    public int second;
+    public int third;
+
+    public SimpleValue(int first, int second, int third) {
+        this.first = first;
+        this.second = second;
+        this.third = third;
     }
 }
