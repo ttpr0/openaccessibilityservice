@@ -22,15 +22,16 @@ import java.util.HashMap;
 public class GravityAccessibility {
     private Population population;
     private IRoutingProvider provider;
+
+    private float[] population_weights;
+    private float max_population;
     private float[] accessibility;
     private float[] weighted_accessibility;
 
     public GravityAccessibility(Population population, IRoutingProvider provider) {
         this.population = population;
         this.provider = provider;
-    }
 
-    public void calcAccessibility(Double[][] facilities, List<Double> ranges, List<Double> factors) throws Exception {
         float[] population_weights = new float[population.getPointCount()];
         float max_pop = 0;
         for (PopulationAttributes attr : population.attributes) {
@@ -44,6 +45,20 @@ public class GravityAccessibility {
                 max_pop = pop_weight;
             }
         }
+
+        this.population_weights = population_weights;
+        this.max_population = max_pop;
+    }
+
+    public float[] getAccessibility() {
+        return this.accessibility;
+    }
+
+    public float[] getWeightedAccessibility() {
+        return this.weighted_accessibility;
+    }
+
+    public void calcAccessibility(Double[][] facilities, List<Double> ranges, List<Double> factors) throws Exception {
         float[] accessibilities = new float[population.getPointCount()];
         float[] weighted_accessibilities = new float[population.getPointCount()];
         boolean[] visited = new boolean[population.getPointCount()];
@@ -100,7 +115,7 @@ public class GravityAccessibility {
             }
             else {
                 accessibilities[i] = accessibilities[i] * 100 / max_value;
-                weighted_accessibilities[i] = accessibilities[i] * population_weights[i] / max_pop;
+                weighted_accessibilities[i] = accessibilities[i] * population_weights[i] / max_population;
             }
         }
         this.accessibility = accessibilities;
