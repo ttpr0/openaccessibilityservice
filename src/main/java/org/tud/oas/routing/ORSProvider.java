@@ -29,6 +29,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ORSProvider implements IRoutingProvider {
+    private final String url;
+
+    public ORSProvider(String url) {
+        this.url = url;
+    }
 
     @Override
     public List<IsochroneCollection> requestIsochrones(Double[][] locations, List<Double> ranges) {
@@ -43,7 +48,7 @@ public class ORSProvider implements IRoutingProvider {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String req = objectMapper.writeValueAsString(request);
-            String response = Util.sendPOST("http://localhost:8082/v2/isochrones/driving-car/geojson", req);
+            String response = Util.sendPOST(this.url + "/v2/isochrones/driving-car/geojson", req);
     
             List<IsochroneCollection> iso_colls = new ArrayList<IsochroneCollection>(locations.length);
     

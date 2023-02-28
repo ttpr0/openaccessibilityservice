@@ -23,7 +23,7 @@ public class OpenAccessibiltyService {
 	static final Logger logger = LoggerFactory.getLogger(OpenAccessibiltyService.class);
 
 	public static void main(String[] args) throws Exception {
-		RoutingManager.addRoutingProvider(new ORSProvider());
+		RoutingManager.addRoutingProvider(new ORSProvider("http://172.26.62.41:8080/ors"));
 		// RoutingManager.addRoutingProvider(new ORSProvider());
 		PopulationManager.loadPopulation("files/population_hannover.csv");
 		SpringApplication.run(OpenAccessibiltyService.class, args);
