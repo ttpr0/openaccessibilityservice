@@ -8,7 +8,9 @@ COPY pom.xml /oas/pom.xml
 COPY .mvn /oas/.mvn
 COPY mvnw /oas/mvnw
 
-RUN mvnw package
+Run chmod +x ./mvnw  
+
+RUN ./mvnw package
 
 EXPOSE 5000
 
