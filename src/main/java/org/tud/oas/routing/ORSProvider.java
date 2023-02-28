@@ -17,7 +17,16 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpRequest.Builder;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,11 +48,11 @@ public class ORSProvider implements IRoutingProvider {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String req = objectMapper.writeValueAsString(request);
-            String response = Util.sendPOST(req);
+            String response = Util.sendPOST("http://localhost:8082/v2/isochrones/driving-car/geojson", req);
 
             System.out.println(response);
     
-            var iso_colls = new ArrayList<IsochroneCollection>(locations.length);
+            List<IsochroneCollection> iso_colls = new ArrayList<IsochroneCollection>(locations.length);
     
             JsonNode tree = objectMapper.readTree(response);
             JsonNode features = tree.get("features");
@@ -74,25 +83,18 @@ public class ORSProvider implements IRoutingProvider {
 }
 
 class Util {
-    static String sendPOST(String request_body) throws Exception {
-        URL obj = new URL("http://localhost:8082/v2/isochrones/driving-car/geojson");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-        con.setDoOutput(true);
+    private static BodyHandler<String> bodyHandler = BodyHandlers.ofString();
+    private static HttpClient client = HttpClient.newHttpClient();
 
-        try(OutputStream os = con.getOutputStream()) {
-            byte[] input = request_body.getBytes("utf-8");
-            os.write(input, 0, input.length);			
-        }
+    static String sendPOST(String url, String request_body) throws Exception {
+        Builder builder = HttpRequest.newBuilder();
+        builder.uri(new URI(url));
+        builder.header("Content-Type", "application/json");
+        builder.POST(BodyPublishers.ofString(request_body));
+        HttpRequest request = builder.build();
 
-        try(BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"))) {
-            StringBuilder response = new StringBuilder();
-            String responseLine = null;
-            while ((responseLine = br.readLine()) != null) {
-                response.append(responseLine.trim());
-            }
-            return response.toString();
-        }
+        HttpResponse<String> response = client.send(request, bodyHandler);
+
+        return response.body();
     }
 }
