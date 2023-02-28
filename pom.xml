@@ -35,8 +35,8 @@
 
 		<dependency>
 			<groupId>com.vividsolutions</groupId>
-			<artifactId>jts</artifactId>
-			<version>1.13</version>
+			<artifactId>jts-core</artifactId>
+			<version>1.14.0</version>
 		</dependency>
 	</dependencies>
 
@@ -44,29 +44,47 @@
 	    <finalName>oas</finalName>
         <sourceDirectory>src/main/java</sourceDirectory>
 
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>resources/locales/*.resources</include>
-                    <include>logs/*</include>
-                    <include>resources/version.properties</include>
-                    <include>application.properties</include>
-                    <include>resources/services/locations/categories.txt</include>
-                    <include>resources/services/routing/speed_limits/*.*</include>
-                    <include>META-INF/services/*.*</include>
-                    <include>app.config*</include>
-                    <include>ors-config*.json</include>
-                </includes>
-            </resource>
-        </resources>
-
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>
+								${project.build.directory}/libs
+							</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>libs/</classpathPrefix>
+							<mainClass>
+								org.tud.oas.OpenAccessibiltyService
+							</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- <plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>${spring.version}</version>
-			</plugin>
+			</plugin> -->
 		</plugins>
 	</build>
 
