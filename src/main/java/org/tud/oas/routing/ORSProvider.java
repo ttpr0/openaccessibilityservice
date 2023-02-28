@@ -1,10 +1,5 @@
 package org.tud.oas.routing;
 
-import org.heigit.ors.api.requests.isochrones.IsochronesRequest;
-import org.heigit.ors.api.requests.isochrones.IsochronesRequestEnums;
-import org.heigit.ors.api.requests.common.APIEnums;
-import org.heigit.ors.api.requests.common.APIEnums.Profile;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -38,19 +33,17 @@ public class ORSProvider implements IRoutingProvider {
     @Override
     public List<IsochroneCollection> requestIsochrones(Double[][] locations, List<Double> ranges) {
         Map<String, Object> request = new HashMap();
-        request.put("locations", locations);
-        request.put("location_type",  IsochronesRequestEnums.LocationType.DESTINATION);
+        request.put("locations", locations);    
+        request.put("location_type",  "destination");
         request.put("range", ranges);
-        request.put("range_type", IsochronesRequestEnums.RangeType.TIME);
-        request.put("units", APIEnums.Units.METRES);
+        request.put("range_type", "time");
+        request.put("units", "m");
         request.put("smoothing", 5.0);
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String req = objectMapper.writeValueAsString(request);
             String response = Util.sendPOST("http://localhost:8082/v2/isochrones/driving-car/geojson", req);
-
-            System.out.println(response);
     
             List<IsochroneCollection> iso_colls = new ArrayList<IsochroneCollection>(locations.length);
     
