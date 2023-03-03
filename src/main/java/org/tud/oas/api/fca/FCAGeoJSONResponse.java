@@ -1,7 +1,5 @@
 package org.tud.oas.api.fca;
 
-import org.heigit.ors.isorasters.GeoJsonFeature;
-import org.heigit.ors.isorasters.GeoJsonPoint;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationPoint;
 
