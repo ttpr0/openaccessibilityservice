@@ -2,8 +2,8 @@ package org.tud.oas.population;
 
 import java.io.FileReader;
 
-import com.vividsolutions.jts.io.WKBReader;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.io.WKBReader;
+import org.locationtech.jts.geom.Point;
 
 import java.io.BufferedReader;
 

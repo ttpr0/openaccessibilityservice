@@ -1,6 +1,6 @@
 package org.tud.oas.population;
 
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 
 public class PopulationPoint {
     private Point point;

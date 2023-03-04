@@ -2,7 +2,6 @@ package org.tud.oas;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import com.vividsolutions.jts.geom.Coordinate;
 
 import org.tud.oas.fca.Simple2SFCA;
 import org.tud.oas.population.Population;
