@@ -12,6 +12,7 @@ import org.tud.oas.routing.Isochrone;
 
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.simplify.PolygonHullSimplifier;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
@@ -94,13 +95,15 @@ public class GravityAccessibility {
             Envelope env = iso.getEnvelopeInternal();
             List<PopulationPoint> points = population.getPointsInEnvelop(env);
 
+            Geometry geom = new PolygonHullSimplifier(iso, false).getResult();
+
             for (PopulationPoint p : points) {
                 PopulationAttributes attr = p.getAttributes();
                 int index = attr.getIndex();
                 if (visited[index]) {
                     continue;
                 }
-                if (p.getPoint().within(iso)) {
+                if (p.getPoint().within(geom)) {
                     accessibilities[index] += factor / range;
                     if (accessibilities[index] > max_value) {
                         max_value = accessibilities[index];
