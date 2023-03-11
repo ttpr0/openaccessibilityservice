@@ -139,6 +139,50 @@ public class GravityAccessibility {
         this.weighted_accessibility = weighted_accessibilities;
     }
 
+    public void calcAccessibility2(Double[][] facilities, List<Double> ranges, List<Double> factors) throws Exception {
+        float[] accessibilities = new float[population.getPointCount()];
+        float[] weighted_accessibilities = new float[population.getPointCount()];
+
+        List<IsoRaster> iso_rasters = provider.requestIsoRasters(facilities, ranges.get(ranges.size()-1));
+
+        float max_value = 0;
+        for (IsoRaster raster : iso_rasters) {
+            double[] extend = raster.getExtend();
+            Envelope env = new Envelope(extend[0], extend[2], extend[1], extend[3]);
+            List<PopulationPoint> points = population.getPointsInEnvelop(env);
+
+            for (PopulationPoint p : points) {
+                PopulationAttributes attr = p.getAttributes();
+                int index = attr.getIndex();
+                int range = raster.getValueAtCoordinate(p.getPoint().getCoordinate());
+                if (range != -1) {
+                    for (int i=0; i<ranges.size(); i++) {
+                        if (range <= ranges.get(i)) {
+                            accessibilities[index] += factors.get(i);
+                            if (accessibilities[index] > max_value) {
+                                max_value = accessibilities[index];
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int i=0; i<accessibilities.length; i++) {
+            if (accessibilities[i] == 0) {
+                accessibilities[i] = -9999;
+                weighted_accessibilities[i] = -9999;
+            }
+            else {
+                accessibilities[i] = accessibilities[i] * 100 / max_value;
+                weighted_accessibilities[i] = accessibilities[i] * population_weights[i] / max_population;
+            }
+        }
+        this.accessibility = accessibilities;
+        this.weighted_accessibility = weighted_accessibilities;
+    }
+
     public GridResponse buildResponse() {
         List<GridFeature> features = new ArrayList<GridFeature>();
         float minx = 1000000000;
