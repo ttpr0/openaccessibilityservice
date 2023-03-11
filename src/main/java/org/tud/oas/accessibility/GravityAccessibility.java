@@ -18,6 +18,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -66,11 +67,23 @@ public class GravityAccessibility {
         boolean[] visited = new boolean[population.getPointCount()];
 
         HashMap<Double, Geometry> polygons = new HashMap<Double, Geometry>(ranges.size());
-        Double[][] locations = new Double[1][2];
+
+        // Double[][] locations = new Double[1][2];
+        // for (int f=0; f<facilities.length; f++) {
+        //     locations[0][0] = facilities[f][0];
+        //     locations[0][1] = facilities[f][1];
+        //     List<IsochroneCollection> isochrones_coll = provider.requestIsochrones(locations, ranges);
+        //     if (isochrones_coll == null) {
+        //         continue;
+        //     }
+        //     IsochroneCollection isochrones = isochrones_coll.get(0);
+
+        BlockingQueue<IsochroneCollection> collection = provider.requestIsochronesStream(facilities, ranges);
         for (int f=0; f<facilities.length; f++) {
-            locations[0][0] = facilities[f][0];
-            locations[0][1] = facilities[f][1];
-            IsochroneCollection isochrones = provider.requestIsochrones(locations, ranges).get(0);
+            IsochroneCollection isochrones = collection.take();
+            if (isochrones.getIsochrones() == null) {
+                continue;
+            }
 
             for (int i=0; i< isochrones.getIsochronesCount(); i++) {
                 Isochrone isochrone = isochrones.getIsochrone(i);
