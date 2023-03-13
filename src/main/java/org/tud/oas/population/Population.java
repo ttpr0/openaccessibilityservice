@@ -60,4 +60,8 @@ public class Population {
 
         return points;
     }
+
+    public PopulationView getPopulationView(Envelope envelope) {
+        return new PopulationView(this, envelope);
+    }
 }
