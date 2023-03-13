@@ -41,7 +41,7 @@ public final class PopulationLoader {
             PopulationAttributes attributes = new PopulationAttributes(count);
             Point point = (Point)geom_reader.read(WKBReader.hexToBytes(tokens[index_geom]));
             Point utm_point = (Point)geom_reader.read(WKBReader.hexToBytes(tokens[index_geom_utm]));
-            population.addPopulationPoint(point, (float)utm_point.getX(), (float)utm_point.getY(), attributes);
+            population.addPopulationPoint(point.getCoordinate(), utm_point.getCoordinate(), attributes);
 		}
 
 		reader.close();

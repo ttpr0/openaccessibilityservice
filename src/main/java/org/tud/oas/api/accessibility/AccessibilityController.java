@@ -17,7 +17,6 @@ import org.tud.oas.accessibility.PopulationAccessibility;
 import org.tud.oas.accessibility.SimpleAccessibility;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationManager;
-import org.tud.oas.population.PopulationPoint;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingManager;
 
@@ -47,10 +46,14 @@ public class AccessibilityController {
         Population population = PopulationManager.getPopulation();
         IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
+        long start = System.currentTimeMillis();
         GravityAccessibility gravity = new GravityAccessibility(population, provider);
 
 		gravity.calcAccessibility(request.getLocations(), request.getRanges(), request.getFactors());
-        
+        long end = System.currentTimeMillis();
+
+        System.out.println("time: " + (end - start));
+
         return gravity.buildResponse();
     }
 

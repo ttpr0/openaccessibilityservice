@@ -4,7 +4,6 @@ import org.tud.oas.api.accessibility.GridFeature;
 import org.tud.oas.api.accessibility.GridResponse;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationAttributes;
-import org.tud.oas.population.PopulationPoint;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.IsochroneCollection;
 import org.tud.oas.routing.Isochrone;
@@ -12,6 +11,8 @@ import org.tud.oas.routing.Isochrone;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Location;
+import org.locationtech.jts.algorithm.locate.SimplePointInAreaLocator;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
 
@@ -62,12 +63,13 @@ public class SimpleAccessibility {
                     iso = outer.difference(inner);
                 }
                 Envelope env = iso.getEnvelopeInternal();
-                List<PopulationPoint> points = population.getPointsInEnvelop(env);
+                List<Integer> points = population.getPointsInEnvelop(env);
                 int population_count = 0;
-                for (PopulationPoint p : points) {
-                    if (p.getPoint().within(iso)) {
-                        PopulationAttributes attr = p.getAttributes();
-                        int index = attr.getIndex();
+                for (Integer index : points) {
+                    Coordinate p = population.getPoint(index);
+                    int location = SimplePointInAreaLocator.locate(p, iso);
+                    if (location == Location.INTERIOR) {
+                        PopulationAttributes attr = population.getAttributes(index);
 
                         accessibilities[index].addRange((int)range);
                         population_count += attr.getPopulationCount();
@@ -87,19 +89,19 @@ public class SimpleAccessibility {
         float miny = 1000000000;
         float maxy = -1;
         for (int i=0; i< population.getPointCount(); i++) {
-            PopulationPoint p = population.getPoint(i);
+            Coordinate p = population.getUTMPoint(i);
             PopulationAccessibility feature = accessibility.accessibilities[i];
             if (p.getX() < minx) {
-                minx = p.getX();
+                minx = (float)p.getX();
             }
             if (p.getX() > maxx) {
-                maxx = p.getX();
+                maxx = (float)p.getX();
             }
             if (p.getY() < miny) {
-                miny = p.getY();
+                miny = (float)p.getY();
             }
             if (p.getY() > maxy) {
-                maxy = p.getY();
+                maxy = (float)p.getY();
             }
             feature.ranges.sort((Integer a, Integer b) -> {
                 return a - b;
@@ -114,7 +116,7 @@ public class SimpleAccessibility {
             if (feature.ranges.size() > 2){
                 value.third = feature.ranges.get(2);
             }
-            features.add(new GridFeature(p.getX(), p.getY(), value));
+            features.add(new GridFeature((float)p.getX(), (float)p.getY(), value));
         }
         float[] extend = {minx-50, miny-50, maxx+50, maxy+50};
 
