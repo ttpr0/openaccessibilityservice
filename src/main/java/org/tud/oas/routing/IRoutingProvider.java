@@ -9,4 +9,6 @@ public interface IRoutingProvider {
     BlockingQueue<IsochroneCollection> requestIsochronesStream(Double[][] locations, List<Double> ranges);
 
     List<IsoRaster> requestIsoRasters(Double[][] locations, double max_range);
+
+    BlockingQueue<IsoRaster> requestIsoRasterStream(Double[][] locations, double max_range);
 }

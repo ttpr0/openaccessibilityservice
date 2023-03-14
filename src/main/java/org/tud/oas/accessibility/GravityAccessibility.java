@@ -115,7 +115,7 @@ public class GravityAccessibility {
                     } else {
                         access = accessibilities.get(index);
                     }
-                    accessibilities.get(index).access += factor / range;
+                    accessibilities.get(index).access += factor;
                     if (access.access > max_value) {
                         max_value = access.access;
                     }
@@ -125,63 +125,76 @@ public class GravityAccessibility {
             System.out.println("Time: " + (end - start));
         }
 
-        for (int i=0; i<accessibilities.size(); i++) {
-            Access access = accessibilities.get(i);
+        for (Integer key : accessibilities.keySet()) {
+            Access access = accessibilities.get(key);
             if (access.access == 0) {
                 access.access = -9999;
                 access.weighted_access = -9999;
             }
             else {
                 access.access = access.access * 100 / max_value;
-                access.weighted_access = access.access * this.population.attributes.get(i).getPopulationCount() / max_population;
+                access.weighted_access = access.access * this.population.attributes.get(key).getPopulationCount() / max_population;
             }
         }
         this.accessibility = accessibilities;
     }
 
-    // public void calcAccessibility2(Double[][] facilities, List<Double> ranges, List<Double> factors) throws Exception {
-    //     float[] accessibilities = new float[population.getPointCount()];
-    //     float[] weighted_accessibilities = new float[population.getPointCount()];
+    public void calcAccessibility2(Double[][] facilities, List<Double> ranges, List<Double> factors) throws Exception {
+        Map<Integer, Access> accessibilities = new HashMap<Integer, Access>(10000);
 
-    //     List<IsoRaster> iso_rasters = provider.requestIsoRasters(facilities, ranges.get(ranges.size()-1));
+        BlockingQueue<IsoRaster> collection = provider.requestIsoRasterStream(facilities, ranges.get(ranges.size()-1));
 
-    //     float max_value = 0;
-    //     for (IsoRaster raster : iso_rasters) {
-    //         double[] extend = raster.getExtend();
-    //         Envelope env = new Envelope(extend[0], extend[2], extend[1], extend[3]);
-    //         List<PopulationPoint> points = population.getPointsInEnvelop(env);
+        float max_value = 0;
+        for (int f=0; f<facilities.length; f++) {
+            IsoRaster raster = collection.take();
+            if (raster.getEnvelope() == null) {
+                continue;
+            }
+            double[][] extend = raster.getEnvelope();
+            Envelope env = new Envelope(extend[0][0], extend[3][0], extend[2][1], extend[1][1]);
+            List<Integer> points = population.getPointsInEnvelop(env);
 
-    //         for (PopulationPoint p : points) {
-    //             PopulationAttributes attr = p.getAttributes();
-    //             int index = attr.getIndex();
-    //             int range = raster.getValueAtCoordinate(p.getPoint().getCoordinate());
-    //             if (range != -1) {
-    //                 for (int i=0; i<ranges.size(); i++) {
-    //                     if (range <= ranges.get(i)) {
-    //                         accessibilities[index] += factors.get(i);
-    //                         if (accessibilities[index] > max_value) {
-    //                             max_value = accessibilities[index];
-    //                         }
-    //                         break;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
+            long start = System.currentTimeMillis();
+            for (Integer index : points) {
+                PopulationAttributes attr = population.getAttributes(index);
+                Coordinate p = population.getUTMPoint(index);
+                int range = raster.getValueAtCoordinate(p);
+                if (range != -1) {
+                    Access access;
+                    if (!accessibilities.containsKey(index)) {
+                        access = new Access();
+                        accessibilities.put(index, access);
+                    } else {
+                        access = accessibilities.get(index);
+                    }
+                    for (int i=0; i<ranges.size(); i++) {
+                        if (range <= ranges.get(i)) {
+                            access.access += factors.get(i);
+                            if (access.access > max_value) {
+                                max_value = access.access;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            long end = System.currentTimeMillis();
+            System.out.println("time: " + (end - start));
+        }
 
-    //     for (int i=0; i<accessibilities.length; i++) {
-    //         if (accessibilities[i] == 0) {
-    //             accessibilities[i] = -9999;
-    //             weighted_accessibilities[i] = -9999;
-    //         }
-    //         else {
-    //             accessibilities[i] = accessibilities[i] * 100 / max_value;
-    //             weighted_accessibilities[i] = accessibilities[i] * population_weights[i] / max_population;
-    //         }
-    //     }
-    //     this.accessibility = accessibilities;
-    //     this.weighted_accessibility = weighted_accessibilities;
-    // }
+        for (Integer index : accessibilities.keySet()) {
+            Access access = accessibilities.get(index);
+            if (access.access == 0) {
+                access.access = -9999;
+                access.weighted_access = -9999;
+            }
+            else {
+                access.access = access.access * 100 / max_value;
+                access.weighted_access = access.access * this.population.attributes.get(index).getPopulationCount() / max_population;
+            }
+        }
+        this.accessibility = accessibilities;
+    }
 
     public GridResponse buildResponse() {
         List<GridFeature> features = new ArrayList<GridFeature>();

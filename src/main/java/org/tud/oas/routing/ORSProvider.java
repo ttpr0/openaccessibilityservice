@@ -176,8 +176,51 @@ public class ORSProvider implements IRoutingProvider {
             return iso_rasters;
         }
         catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
+    }
+
+    public BlockingQueue<IsoRaster> requestIsoRasterStream(Double[][] locations, double max_range) {
+        
+        BlockingQueue<IsoRaster> iso_rasters = new ArrayBlockingQueue(10);
+        
+        for (int i=0; i<locations.length; i++) {
+            final int index = i;
+            executor.submit(() -> {
+                Map<String, Object> request = new HashMap();
+                request.put("location_type",  "destination");
+                double[] ranges = { max_range };
+                request.put("range", ranges);
+                request.put("range_type", "time");
+                request.put("units", "m");
+                request.put("consumer_type", "node_based");
+                request.put("crs", "25832");
+                request.put("precession", 1000);
+
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+
+                    double[][] locs = {{0, 0}};
+                    locs[0][0] = locations[index][0];
+                    locs[0][1] = locations[index][1];
+                    request.put("locations", locs);
+                    String req = objectMapper.writeValueAsString(request);
+
+                    String response = Util.sendPOST(this.url + "/v2/isoraster/driving-car", req);
+
+                    IsoRaster raster = objectMapper.readValue(response, IsoRaster.class);
+                    raster.constructIndex();
+
+                    iso_rasters.put(raster);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        return iso_rasters;
     }
 }
 
