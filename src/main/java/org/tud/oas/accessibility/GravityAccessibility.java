@@ -4,6 +4,7 @@ import org.tud.oas.api.accessibility.GridFeature;
 import org.tud.oas.api.accessibility.GridResponse;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationAttributes;
+import org.tud.oas.population.PopulationView;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.IsoRaster;
 import org.tud.oas.routing.IsochroneCollection;
@@ -32,13 +33,13 @@ class Access {
 }
 
 public class GravityAccessibility {
-    private Population population;
+    private PopulationView population;
     private IRoutingProvider provider;
 
     private float max_population;
     private Map<Integer, Access> accessibility;
 
-    public GravityAccessibility(Population population, IRoutingProvider provider) {
+    public GravityAccessibility(PopulationView population, IRoutingProvider provider) {
         this.population = population;
         this.provider = provider;
 
@@ -82,7 +83,9 @@ public class GravityAccessibility {
                 }
                 else {
                     Geometry geometry = polygons.get(range);
-                    polygons.put(range, geometry.union(isochrone.getGeometry()));
+                    Geometry union = geometry.union(isochrone.getGeometry());
+                    Geometry geom = new PolygonHullSimplifier(union, false).getResult();
+                    polygons.put(range, geom);
                 }
             }
         }
@@ -104,7 +107,7 @@ public class GravityAccessibility {
                 if (visited.contains(index)) {
                     continue;
                 }
-                Coordinate p = population.getPoint(index);
+                Coordinate p = population.getCoordinate(index);
                 int location = SimplePointInAreaLocator.locate(p, geom);
                 if (location == Location.INTERIOR) {
                 // if (p.getPoint().within(geom)) {
@@ -133,7 +136,7 @@ public class GravityAccessibility {
             }
             else {
                 access.access = access.access * 100 / max_value;
-                access.weighted_access = access.access * this.population.attributes.get(key).getPopulationCount() / max_population;
+                access.weighted_access = access.access * this.population.getAttributes(key).getPopulationCount() / max_population;
             }
         }
         this.accessibility = accessibilities;
@@ -157,7 +160,7 @@ public class GravityAccessibility {
             long start = System.currentTimeMillis();
             for (Integer index : points) {
                 PopulationAttributes attr = population.getAttributes(index);
-                Coordinate p = population.getUTMPoint(index);
+                Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 int range = raster.getValueAtCoordinate(p);
                 if (range != -1) {
                     Access access;
@@ -190,7 +193,7 @@ public class GravityAccessibility {
             }
             else {
                 access.access = access.access * 100 / max_value;
-                access.weighted_access = access.access * this.population.attributes.get(index).getPopulationCount() / max_population;
+                access.weighted_access = access.access * this.population.getAttributes(index).getPopulationCount() / max_population;
             }
         }
         this.accessibility = accessibilities;
@@ -202,10 +205,12 @@ public class GravityAccessibility {
         float maxx = -1;
         float miny = 1000000000;
         float maxy = -1;
-        for (int i=0; i< population.getPointCount(); i++) {
-            Coordinate p = population.getUTMPoint(i);
-            if (this.accessibility.containsKey(i)) {
-                Access access = this.accessibility.get(i);
+        List<Integer> indices = population.getAllPoints();
+        for (int i=0; i< indices.size(); i++) {
+            int index = indices.get(i);
+            Coordinate p = population.getCoordinate(index, "EPSG:25832");
+            if (this.accessibility.containsKey(index)) {
+                Access access = this.accessibility.get(index);
                 GravityValue value = new GravityValue(access.access, access.weighted_access);
                 features.add(new GridFeature((float)p.getX(), (float)p.getY(), value));
             } else {

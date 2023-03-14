@@ -3,6 +3,7 @@ package org.tud.oas.api.accessibility;
 import java.util.HashMap;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.locationtech.jts.geom.Envelope;
 
@@ -11,6 +12,9 @@ public class MultiCriteriaRequest {
     private HashMap<String, InfrastructureParams> infrastructures;
 
     @JsonProperty("envelop")
+    private double[] envelop;
+
+    @JsonIgnore
     private Envelope envelope;
 
     public HashMap<String, InfrastructureParams> getInfrastructures() {
@@ -22,11 +26,22 @@ public class MultiCriteriaRequest {
     }
 
     public Envelope getEnvelope() {
+        if (this.envelope == null) {
+            this.envelope = new Envelope(this.envelop[0], this.envelop[2], this.envelop[1], this.envelop[3]);
+        }
         return envelope;
     }
 
     public void setEnvelope(Envelope envelope) {
         this.envelope = envelope;
+    }
+
+    public double[] getEnvelop() {
+        return envelop;
+    }
+
+    public void setEnvelop(double[] envelop) {
+        this.envelop = envelop;
     }
 }
 

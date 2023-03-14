@@ -10,45 +10,26 @@ import org.tud.oas.api.accessibility.GridFeature;
 import org.tud.oas.api.accessibility.GridResponse;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationAttributes;
+import org.tud.oas.population.PopulationView;
 
 public class MultiCriteraAccessibility {
-    private Population population;
+    private PopulationView population;
     private GravityAccessibility gravity;
 
-    private float[] population_weights;
     private float max_population;
     private float max_value;
     private float max_weighted_value;
 
-    private HashMap<String, Float>[] accessibilities;
+    private Map<Integer, HashMap<String, Float>> accessibilities;
 
-    public MultiCriteraAccessibility(Population population, GravityAccessibility gravity) {
+    public MultiCriteraAccessibility(PopulationView population, GravityAccessibility gravity) {
         this.population = population;
         this.gravity = gravity;
 
-        float[] population_weights = new float[population.getPointCount()];
-        float max_pop = 0;
-        for (PopulationAttributes attr : population.attributes) {
-            int pop_weight = attr.getPopulationCount();
-            if (pop_weight == 0) {
-                pop_weight = 1;
-            }
-            int index = attr.getIndex();
-            population_weights[index] = pop_weight;
-            if (pop_weight > max_pop) {
-                max_pop = pop_weight;
-            }
-        }
-
-        this.population_weights = population_weights;
+        float max_pop = 100;
         this.max_population = max_pop;
 
-        this.accessibilities = new HashMap[population.getPointCount()];
-        for (int i = 0; i < accessibilities.length; i++) {
-            this.accessibilities[i] = new HashMap<String, Float>();
-            this.accessibilities[i].put("multiCritera", 0.0f);
-            this.accessibilities[i].put("multiCritera_weighted", 0.0f);
-        }
+        this.accessibilities = new HashMap(10000);
     }
 
     public void addAccessibility(String name, Double[][] facilities, List<Double> ranges, List<Double> factors, double weight) throws Exception {
@@ -58,19 +39,28 @@ public class MultiCriteraAccessibility {
         Access defaultAccess = new Access();
         defaultAccess.access = -9999;
         defaultAccess.weighted_access = -9999;
-        for (int i=0; i<accessibilities.length; i++) {
-            Access access = accessibility.getOrDefault(i, defaultAccess);
-            accessibilities[i].put(name, access.access);
-            accessibilities[i].put(name + "_weighted", access.weighted_access);
+        for (Integer index : accessibility.keySet()) {
+            Access access = accessibility.getOrDefault(index, defaultAccess);
+            HashMap<String, Float> multi_access;
+            if (!this.accessibilities.containsKey(index)) {
+                this.accessibilities.put(index, new HashMap<String, Float>());
+                multi_access = this.accessibilities.get(index);
+                multi_access.put("multiCritera", 0.0f);
+                multi_access.put("multiCritera_weighted", 0.0f);
+            } else {
+                multi_access = this.accessibilities.get(index);
+            }
+            multi_access.put(name, access.access);
+            multi_access.put(name + "_weighted", access.weighted_access);
             if (access.access == -9999) {
                 continue;
             }
-            float temp = accessibilities[i].get("multiCritera");
-            float weighted_temp = accessibilities[i].get("multiCritera_weighted");
+            float temp = multi_access.get("multiCritera");
+            float weighted_temp = multi_access.get("multiCritera_weighted");
             float new_value = temp + access.access;
-            float new_weighted_value = weighted_temp + access.access * population.attributes.get(i).getPopulationCount() / max_population;
-            accessibilities[i].put("multiCritera", new_value);
-            accessibilities[i].put("multiCritera_weighted", new_weighted_value);
+            float new_weighted_value = weighted_temp + access.access * population.getAttributes(index).getPopulationCount() / max_population;
+            multi_access.put("multiCritera", new_value);
+            multi_access.put("multiCritera_weighted", new_weighted_value);
             if (new_value > max_value) {
                 max_value = new_value;
             }
@@ -81,16 +71,17 @@ public class MultiCriteraAccessibility {
     }
 
     public void calcAccessibility() {
-        for (int i=0; i<accessibilities.length; i++) {
-            float temp = accessibilities[i].get("multiCritera");
-            float weighted_temp = accessibilities[i].get("multiCritera_weighted");
+        for (Integer index : this.accessibilities.keySet()) {
+            HashMap<String, Float> multi_access = this.accessibilities.get(index);
+            float temp = multi_access.get("multiCritera");
+            float weighted_temp = multi_access.get("multiCritera_weighted");
             if (temp == 0.0) {
-                accessibilities[i].put("multiCritera", -9999.0f);
-                accessibilities[i].put("multiCritera_weighted", -9999.0f);
+                multi_access.put("multiCritera", -9999.0f);
+                multi_access.put("multiCritera_weighted", -9999.0f);
             }
             else {
-                accessibilities[i].put("multiCritera", temp * 100 / max_value);
-                accessibilities[i].put("multiCritera_weighted", weighted_temp * 100 / max_weighted_value);
+                multi_access.put("multiCritera", temp * 100 / max_value);
+                multi_access.put("multiCritera_weighted", weighted_temp * 100 / max_weighted_value);
             }
         }
     }
@@ -101,9 +92,18 @@ public class MultiCriteraAccessibility {
         float maxx = -1;
         float miny = 1000000000;
         float maxy = -1;
-        for (int i=0; i< population.getPointCount(); i++) {
-            Coordinate p = population.getUTMPoint(i);
-            HashMap<String, Float> values = this.accessibilities[i];
+        List<Integer> indices = population.getAllPoints();
+        for (int index : indices) {
+            Coordinate p = population.getCoordinate(index, "EPSG:25832");
+            HashMap<String, Float> values;
+            if (this.accessibilities.containsKey(index)) {
+                values = this.accessibilities.get(index);
+            } else {
+                values = new HashMap<String, Float>();
+                values.put("multiCritera", -9999.0f);
+                values.put("multiCritera_weighted", -9999.0f);
+            }
+
             if (p.getX() < minx) {
                 minx = (float)p.getX();
             }

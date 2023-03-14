@@ -17,6 +17,7 @@ import org.tud.oas.accessibility.PopulationAccessibility;
 import org.tud.oas.accessibility.SimpleAccessibility;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationManager;
+import org.tud.oas.population.PopulationView;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingManager;
 
@@ -45,9 +46,10 @@ public class AccessibilityController {
     public GridResponse calcGravityGrid(@RequestBody GravityAccessibilityRequest request) throws Exception {
         Population population = PopulationManager.getPopulation();
         IRoutingProvider provider = RoutingManager.getRoutingProvider();
+        PopulationView view = population.getPopulationView(request.getEnvelop());
 
         long start = System.currentTimeMillis();
-        GravityAccessibility gravity = new GravityAccessibility(population, provider);
+        GravityAccessibility gravity = new GravityAccessibility(view, provider);
 
 		gravity.calcAccessibility(request.getLocations(), request.getRanges(), request.getFactors());
         long end = System.currentTimeMillis();
@@ -61,10 +63,11 @@ public class AccessibilityController {
     public GridResponse calcMultiCriteriaGrid(@RequestBody MultiCriteriaRequest request) throws Exception {
         Population population = PopulationManager.getPopulation();
         IRoutingProvider provider = RoutingManager.getRoutingProvider();
+        PopulationView view = population.getPopulationView(request.getEnvelope());
 
-        GravityAccessibility gravity = new GravityAccessibility(population, provider);
+        GravityAccessibility gravity = new GravityAccessibility(view, provider);
 
-        MultiCriteraAccessibility multiCriteria = new MultiCriteraAccessibility(population, gravity);
+        MultiCriteraAccessibility multiCriteria = new MultiCriteraAccessibility(view, gravity);
 
         for (Map.Entry<String, InfrastructureParams> entry : request.getInfrastructures().entrySet()) {
             InfrastructureParams value = entry.getValue();

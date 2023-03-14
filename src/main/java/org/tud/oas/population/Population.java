@@ -4,6 +4,7 @@ import org.locationtech.jts.index.kdtree.KdNode;
 import org.locationtech.jts.index.kdtree.KdTree;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 
 import java.util.List;
@@ -63,5 +64,9 @@ public class Population {
 
     public PopulationView getPopulationView(Envelope envelope) {
         return new PopulationView(this, envelope);
+    }
+
+    public PopulationView getPopulationView(Geometry area) {
+        return new PopulationView(this, area);
     }
 }
