@@ -8,7 +8,7 @@ COPY pom.xml /oas/pom.xml
 COPY .mvn /oas/.mvn
 COPY mvnw /oas/mvnw
 
-Run chmod +x ./mvnw  
+RUN chmod +x ./mvnw  
 
 RUN ./mvnw package
 
