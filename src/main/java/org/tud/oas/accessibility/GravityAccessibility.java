@@ -4,7 +4,7 @@ import org.tud.oas.api.accessibility.GridFeature;
 import org.tud.oas.api.accessibility.GridResponse;
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationAttributes;
-import org.tud.oas.population.PopulationPoint;
+import org.tud.oas.population.PopulationView;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.IsoRaster;
 import org.tud.oas.routing.IsochroneCollection;
@@ -14,57 +14,46 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.simplify.PolygonHullSimplifier;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Location;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.algorithm.locate.SimplePointInAreaLocator;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+
+class Access {
+    public float access;
+    public float weighted_access;
+}
 
 public class GravityAccessibility {
-    private Population population;
+    private PopulationView population;
     private IRoutingProvider provider;
 
-    private float[] population_weights;
     private float max_population;
-    private float[] accessibility;
-    private float[] weighted_accessibility;
+    private Map<Integer, Access> accessibility;
 
-    public GravityAccessibility(Population population, IRoutingProvider provider) {
+    public GravityAccessibility(PopulationView population, IRoutingProvider provider) {
         this.population = population;
         this.provider = provider;
 
-        float[] population_weights = new float[population.getPointCount()];
-        float max_pop = 0;
-        for (PopulationAttributes attr : population.attributes) {
-            int pop_weight = attr.getPopulationCount();
-            if (pop_weight == 0) {
-                pop_weight = 1;
-            }
-            int index = attr.getIndex();
-            population_weights[index] = pop_weight;
-            if (pop_weight > max_pop) {
-                max_pop = pop_weight;
-            }
-        }
-
-        this.population_weights = population_weights;
-        this.max_population = max_pop;
+        this.max_population = 100;
+        this.accessibility = new HashMap<Integer, Access>();
     }
 
-    public float[] getAccessibility() {
+    public Map<Integer, Access> getAccessibility() {
         return this.accessibility;
     }
 
-    public float[] getWeightedAccessibility() {
-        return this.weighted_accessibility;
-    }
-
     public void calcAccessibility(Double[][] facilities, List<Double> ranges, List<Double> factors) throws Exception {
-        float[] accessibilities = new float[population.getPointCount()];
-        float[] weighted_accessibilities = new float[population.getPointCount()];
-        boolean[] visited = new boolean[population.getPointCount()];
+        Set<Boolean> visited = new HashSet<Boolean>(10000);
+        Map<Integer, Access> accessibilities = new HashMap<Integer, Access>(10000);
 
         HashMap<Double, Geometry> polygons = new HashMap<Double, Geometry>(ranges.size());
 
@@ -94,7 +83,9 @@ public class GravityAccessibility {
                 }
                 else {
                     Geometry geometry = polygons.get(range);
-                    polygons.put(range, geometry.union(isochrone.getGeometry()));
+                    Geometry union = geometry.union(isochrone.getGeometry());
+                    Geometry geom = new PolygonHullSimplifier(union, false).getResult();
+                    polygons.put(range, geom);
                 }
             }
         }
@@ -106,37 +97,104 @@ public class GravityAccessibility {
             Geometry iso = polygons.get(range);
 
             Envelope env = iso.getEnvelopeInternal();
-            List<PopulationPoint> points = population.getPointsInEnvelop(env);
+            List<Integer> points = population.getPointsInEnvelop(env);
 
             Geometry geom = new PolygonHullSimplifier(iso, false).getResult();
 
-            for (PopulationPoint p : points) {
-                PopulationAttributes attr = p.getAttributes();
-                int index = attr.getIndex();
-                if (visited[index]) {
+            long start = System.currentTimeMillis();
+            for (Integer index : points) {
+                if (visited.contains(index)) {
                     continue;
                 }
-                if (p.getPoint().within(geom)) {
-                    accessibilities[index] += factor / range;
-                    if (accessibilities[index] > max_value) {
-                        max_value = accessibilities[index];
+                Coordinate p = population.getCoordinate(index);
+                int location = SimplePointInAreaLocator.locate(p, geom);
+                if (location == Location.INTERIOR) {
+                // if (p.getPoint().within(geom)) {
+                    Access access;
+                    if (!accessibilities.containsKey(index)) {
+                        access = new Access();
+                        accessibilities.put(index, access);
+                    } else {
+                        access = accessibilities.get(index);
+                    }
+                    accessibilities.get(index).access += factor;
+                    if (access.access > max_value) {
+                        max_value = access.access;
                     }
                 }
             }
+            long end = System.currentTimeMillis();
+            System.out.println("Time: " + (end - start));
         }
 
-        for (int i=0; i<accessibilities.length; i++) {
-            if (accessibilities[i] == 0) {
-                accessibilities[i] = -9999;
-                weighted_accessibilities[i] = -9999;
+        for (Integer key : accessibilities.keySet()) {
+            Access access = accessibilities.get(key);
+            if (access.access == 0) {
+                access.access = -9999;
+                access.weighted_access = -9999;
             }
             else {
-                accessibilities[i] = accessibilities[i] * 100 / max_value;
-                weighted_accessibilities[i] = accessibilities[i] * population_weights[i] / max_population;
+                access.access = access.access * 100 / max_value;
+                access.weighted_access = access.access * this.population.getPopulationCount(key) / max_population;
             }
         }
         this.accessibility = accessibilities;
-        this.weighted_accessibility = weighted_accessibilities;
+    }
+
+    public void calcAccessibility2(Double[][] facilities, List<Double> ranges, List<Double> factors) throws Exception {
+        Map<Integer, Access> accessibilities = new HashMap<Integer, Access>(10000);
+
+        BlockingQueue<IsoRaster> collection = provider.requestIsoRasterStream(facilities, ranges.get(ranges.size()-1));
+
+        float max_value = 0;
+        for (int f=0; f<facilities.length; f++) {
+            IsoRaster raster = collection.take();
+            if (raster.getEnvelope() == null) {
+                continue;
+            }
+            double[][] extend = raster.getEnvelope();
+            Envelope env = new Envelope(extend[0][0], extend[3][0], extend[2][1], extend[1][1]);
+            List<Integer> points = population.getPointsInEnvelop(env);
+
+            long start = System.currentTimeMillis();
+            for (Integer index : points) {
+                Coordinate p = population.getCoordinate(index, "EPSG:25832");
+                int range = raster.getValueAtCoordinate(p);
+                if (range != -1) {
+                    Access access;
+                    if (!accessibilities.containsKey(index)) {
+                        access = new Access();
+                        accessibilities.put(index, access);
+                    } else {
+                        access = accessibilities.get(index);
+                    }
+                    for (int i=0; i<ranges.size(); i++) {
+                        if (range <= ranges.get(i)) {
+                            access.access += factors.get(i);
+                            if (access.access > max_value) {
+                                max_value = access.access;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            long end = System.currentTimeMillis();
+            System.out.println("time: " + (end - start));
+        }
+
+        for (Integer index : accessibilities.keySet()) {
+            Access access = accessibilities.get(index);
+            if (access.access == 0) {
+                access.access = -9999;
+                access.weighted_access = -9999;
+            }
+            else {
+                access.access = access.access * 100 / max_value;
+                access.weighted_access = access.access * this.population.getPopulationCount(index) / max_population;
+            }
+        }
+        this.accessibility = accessibilities;
     }
 
     public GridResponse buildResponse() {
@@ -145,24 +203,30 @@ public class GravityAccessibility {
         float maxx = -1;
         float miny = 1000000000;
         float maxy = -1;
-        for (int i=0; i< population.getPointCount(); i++) {
-            PopulationPoint p = population.getPoint(i);
-            float access = this.accessibility[i];
-            float weighted_access = this.weighted_accessibility[i];
+        List<Integer> indices = population.getAllPoints();
+        for (int i=0; i< indices.size(); i++) {
+            int index = indices.get(i);
+            Coordinate p = population.getCoordinate(index, "EPSG:25832");
+            if (this.accessibility.containsKey(index)) {
+                Access access = this.accessibility.get(index);
+                GravityValue value = new GravityValue(access.access, access.weighted_access);
+                features.add(new GridFeature((float)p.getX(), (float)p.getY(), value));
+            } else {
+                GravityValue value = new GravityValue(-9999, -9999);
+                features.add(new GridFeature((float)p.getX(), (float)p.getY(), value));
+            }
             if (p.getX() < minx) {
-                minx = p.getX();
+                minx = (float)p.getX();
             }
             if (p.getX() > maxx) {
-                maxx = p.getX();
+                maxx = (float)p.getX();
             }
             if (p.getY() < miny) {
-                miny = p.getY();
+                miny = (float)p.getY();
             }
             if (p.getY() > maxy) {
-                maxy = p.getY();
+                maxy = (float)p.getY();
             }
-            GravityValue value = new GravityValue(access, weighted_access);
-            features.add(new GridFeature(p.getX(), p.getY(), value));
         }
         float[] extend = {minx-50, miny-50, maxx+50, maxy+50};
 

@@ -1,7 +1,7 @@
 package org.tud.oas.api.fca;
 
+import org.locationtech.jts.geom.Coordinate;
 import org.tud.oas.population.Population;
-import org.tud.oas.population.PopulationPoint;
 
 public class FCAGeoJSONResponse {
     public String type = "FeatureCollection"; 
@@ -12,8 +12,8 @@ public class FCAGeoJSONResponse {
         GeoJsonFeature[] points = new GeoJsonPoint[weights.length];
         for (int i=0; i<points.length; i++) 
         {
-            PopulationPoint p = population.getPoint(i);
-            points[i] = new GeoJsonPoint((int)weights[i], p.getPoint().getCoordinate());
+            Coordinate p = population.getPoint(i);
+            points[i] = new GeoJsonPoint((int)weights[i], p);
         }
         this.features = points;
     }

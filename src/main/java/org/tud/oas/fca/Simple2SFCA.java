@@ -2,7 +2,6 @@ package org.tud.oas.fca;
 
 import org.tud.oas.population.Population;
 import org.tud.oas.population.PopulationAttributes;
-import org.tud.oas.population.PopulationPoint;
 import org.tud.oas.routing.IsochroneCollection;
 import org.tud.oas.routing.Isochrone;
 import org.tud.oas.routing.IRoutingProvider;
@@ -10,8 +9,10 @@ import org.tud.oas.routing.IRoutingProvider;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Location;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.algorithm.locate.SimplePointInAreaLocator;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -48,10 +49,11 @@ public class Simple2SFCA {
                     iso = outer.difference(inner);
                 }
                 Envelope env = iso.getEnvelopeInternal();
-                List<PopulationPoint> points = population.getPointsInEnvelop(env);
-                for (PopulationPoint p : points) {
-                    if (p.getPoint().within(iso)) {
-                        int index = p.getAttributes().getIndex();
+                List<Integer> points = population.getPointsInEnvelop(env);
+                for (Integer index : points) {
+                    Coordinate p = population.getPoint(index);
+                    int location = SimplePointInAreaLocator.locate(p, iso);
+                    if (location == Location.INTERIOR) {
                         weight += population_weights[index] * range_factor;
 
                         if (inverted_mapping[index] == null) {
