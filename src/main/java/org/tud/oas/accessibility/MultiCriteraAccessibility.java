@@ -58,7 +58,7 @@ public class MultiCriteraAccessibility {
             float temp = multi_access.get("multiCritera");
             float weighted_temp = multi_access.get("multiCritera_weighted");
             float new_value = temp + access.access;
-            float new_weighted_value = weighted_temp + access.access * population.getAttributes(index).getPopulationCount() / max_population;
+            float new_weighted_value = weighted_temp + access.access * population.getPopulationCount(index) / max_population;
             multi_access.put("multiCritera", new_value);
             multi_access.put("multiCritera_weighted", new_weighted_value);
             if (new_value > max_value) {

@@ -103,7 +103,6 @@ public class GravityAccessibility {
 
             long start = System.currentTimeMillis();
             for (Integer index : points) {
-                PopulationAttributes attr = population.getAttributes(index);
                 if (visited.contains(index)) {
                     continue;
                 }
@@ -136,7 +135,7 @@ public class GravityAccessibility {
             }
             else {
                 access.access = access.access * 100 / max_value;
-                access.weighted_access = access.access * this.population.getAttributes(key).getPopulationCount() / max_population;
+                access.weighted_access = access.access * this.population.getPopulationCount(key) / max_population;
             }
         }
         this.accessibility = accessibilities;
@@ -159,7 +158,6 @@ public class GravityAccessibility {
 
             long start = System.currentTimeMillis();
             for (Integer index : points) {
-                PopulationAttributes attr = population.getAttributes(index);
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 int range = raster.getValueAtCoordinate(p);
                 if (range != -1) {
@@ -193,7 +191,7 @@ public class GravityAccessibility {
             }
             else {
                 access.access = access.access * 100 / max_value;
-                access.weighted_access = access.access * this.population.getAttributes(index).getPopulationCount() / max_population;
+                access.weighted_access = access.access * this.population.getPopulationCount(index) / max_population;
             }
         }
         this.accessibility = accessibilities;

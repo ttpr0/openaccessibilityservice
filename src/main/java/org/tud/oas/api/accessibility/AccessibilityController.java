@@ -65,6 +65,9 @@ public class AccessibilityController {
         IRoutingProvider provider = RoutingManager.getRoutingProvider();
         PopulationView view = population.getPopulationView(request.getEnvelope());
 
+        view.setPopulationType(request.getPopulationType());
+        view.setPopulationIndizes(request.getPopulationIndizes());
+
         GravityAccessibility gravity = new GravityAccessibility(view, provider);
 
         MultiCriteraAccessibility multiCriteria = new MultiCriteraAccessibility(view, gravity);

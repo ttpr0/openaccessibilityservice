@@ -14,6 +14,12 @@ public class MultiCriteriaRequest {
     @JsonProperty("envelop")
     private double[] envelop;
 
+    @JsonProperty("population_type")
+    private String populationType;
+
+    @JsonProperty("population_indizes")
+    private int[] populationIndizes;
+
     @JsonIgnore
     private Envelope envelope;
 
@@ -42,6 +48,22 @@ public class MultiCriteriaRequest {
 
     public void setEnvelop(double[] envelop) {
         this.envelop = envelop;
+    }
+
+    public String getPopulationType() {
+        return populationType;
+    }
+
+    public void setPopulationType(String populationType) {
+        this.populationType = populationType;
+    }
+
+    public int[] getPopulationIndizes() {
+        return populationIndizes;
+    }
+
+    public void setPopulationIndizes(int[] populationIndizes) {
+        this.populationIndizes = populationIndizes;
     }
 }
 

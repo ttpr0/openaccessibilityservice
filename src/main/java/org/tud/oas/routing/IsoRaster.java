@@ -25,7 +25,7 @@ public class IsoRaster {
     @JsonProperty("size")
     public int[] size;
 
-    @JsonProperty("envelop")
+    @JsonProperty("envelope")
     public double[][] envelop;
 
     @JsonProperty("features")

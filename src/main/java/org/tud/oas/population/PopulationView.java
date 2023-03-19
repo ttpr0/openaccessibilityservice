@@ -14,11 +14,22 @@ public class PopulationView {
     Population population;
     Geometry area;
     Envelope envelope;
+    String population_type;
+    int[] population_indizes;
 
     public PopulationView(Population population, Envelope envelope) {
         this.population = population;
         this.envelope = envelope;
         this.area = null;
+        this.population_type = "standard_all";
+    }
+
+    public PopulationView(Population population, Envelope envelope, String population_type, int[] population_indizes) {
+        this.population = population;
+        this.envelope = envelope;
+        this.area = null;
+        this.population_type = population_type;
+        this.population_indizes = population_indizes;
     }
 
     public PopulationView(Population population, Geometry area) {
@@ -29,10 +40,6 @@ public class PopulationView {
 
     public Envelope getEnvelope() {
         return this.envelope;
-    }
-
-    public PopulationAttributes getAttributes(int index) {
-        return this.population.attributes.get(index);
     }
 
     public Coordinate getCoordinate(int index) {
@@ -46,6 +53,20 @@ public class PopulationView {
             return this.population.utm_points.get(index);
         }
         return new Coordinate(0, 0);
+    }
+
+    public int getPopulationCount(int index) {
+        PopulationAttributes attrs = this.population.attributes.get(index);
+        if (this.population_type == null || this.population_type.equals("standard_all")) {
+            return attrs.getPopulationCount();
+        } 
+        if (this.population_type.equals("standard")) {
+            return attrs.getStandardPopulation(population_indizes);
+        }
+        if (this.population_type.equals("kita_schul")) {
+            return attrs.getKitaSchulPopulation(population_indizes);
+        }
+        return 0;
     }
 
     public List<Integer> getAllPoints() {
@@ -81,5 +102,21 @@ public class PopulationView {
         });
 
         return points;
+    }
+
+    public String getPopulationType() {
+        return population_type;
+    }
+
+    public void setPopulationType(String population_type) {
+        this.population_type = population_type;
+    }
+
+    public int[] getPopulationIndizes() {
+        return population_indizes;
+    }
+
+    public void setPopulationIndizes(int[] population_indizes) {
+        this.population_indizes = population_indizes;
     }
 }
