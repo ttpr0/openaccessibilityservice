@@ -1,29 +1,32 @@
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
-# https://github.com/takari/maven-wrapper#usage-without-binary-jar
-.mvn/wrapper/maven-wrapper.jar
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
 
-# ors
-*ors.run
-
-cgiar_provider
-graphs
-target
-build/
-logs/
-cgiar_cache
-/files/*.csv
-!/files/population_hannover.csv
-src/main/files/*.pbf
-!src/main/files/hannover.pbf
-
-# vs-code
+# Visual Studio Code
 .vscode
 
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Visual Studio
+.vs/
