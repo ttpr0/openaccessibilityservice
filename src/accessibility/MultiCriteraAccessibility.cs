@@ -28,6 +28,11 @@ namespace DVAN.Accessibility
             this.accessibilities = new Dictionary<int, Dictionary<string, float>>(10000);
         }
 
+        public Dictionary<int, Dictionary<string, float>> getAccessibilities()
+        {
+            return this.accessibilities;
+        }
+
         public async Task addAccessibility(String name, Double[][] facilities, List<Double> ranges, List<Double> factors, double weight)
         {
             await gravity.calcAccessibility(facilities, ranges, factors);
@@ -67,7 +72,7 @@ namespace DVAN.Accessibility
             }
         }
 
-        public void calcAccessibility() 
+        public void calcAccessibility()
         {
             foreach (int index in this.accessibilities.Keys) {
                 Dictionary<string, float> multi_access = this.accessibilities[index];
@@ -82,50 +87,6 @@ namespace DVAN.Accessibility
                     multi_access["multiCritera_weighted"] = weighted_temp * 100 / max_weighted_value;
                 }
             }
-        }
-
-        public GridResponse buildResponse() 
-        {
-            List<GridFeature> features = new List<GridFeature>();
-            float minx = 1000000000;
-            float maxx = -1;
-            float miny = 1000000000;
-            float maxy = -1;
-            List<int> indices = population.getAllPoints();
-            foreach (int index in indices) {
-                Coordinate p = population.getCoordinate(index, "EPSG:25832");
-                Dictionary<string, float> values;
-                if (this.accessibilities.ContainsKey(index)) {
-                    values = this.accessibilities[index];
-                } else {
-                    values = new Dictionary<string, float>();
-                    values["multiCritera"] = -9999.0f;
-                    values["multiCritera_weighted"] = -9999.0f;
-                }
-
-                if (p.X < minx) {
-                    minx = (float)p.X;
-                }
-                if (p.X > maxx) {
-                    maxx = (float)p.X;
-                }
-                if (p.Y < miny) {
-                    miny = (float)p.Y;
-                }
-                if (p.Y > maxy) {
-                    maxy = (float)p.Y;
-                }
-                features.Add(new GridFeature((float)p.X, (float)p.Y, values));
-            }
-            float[] extend = {minx-50, miny-50, maxx+50, maxy+50};
-
-            float dx = extend[2] - extend[0];
-            float dy = extend[3] - extend[1];
-            int[] size = {(int)(dx/100), (int)(dy/100)};
-
-            String crs = "EPSG:25832";
-
-            return new GridResponse(features, crs, extend, size);
         }
     }
 }
