@@ -3,7 +3,9 @@ using System.Collections.Generic;
 
 namespace DVAN.API
 {
-    public class GridResponse {
+    public class GridResponse 
+    {
+        public Guid? id { get; set; }
         public String crs { get; set; }
         public float[] extend { get; set; }
         public int[] size { get; set; } 

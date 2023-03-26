@@ -9,32 +9,38 @@ namespace DVAN.Population
     public class PopulationView {
         PopulationContainer population;
         Geometry? area;
-        Envelope envelope;
+        Envelope? envelope;
         String population_type;
-        int[] population_indizes;
+        int[]? population_indizes;
 
-        public PopulationView(PopulationContainer population, Envelope envelope) {
+        public PopulationView(PopulationContainer population, Envelope? envelope) {
             this.population = population;
             this.envelope = envelope;
             this.area = null;
             this.population_type = "standard_all";
         }
 
-        public PopulationView(PopulationContainer population, Envelope envelope, String population_type, int[] population_indizes) {
+        public PopulationView(PopulationContainer population, Envelope? envelope, String population_type, int[]? population_indizes) {
             this.population = population;
             this.envelope = envelope;
             this.area = null;
+            if (population_indizes == null && population_type != "standard_all") {
+                throw new ArgumentException("invalid arguments passed to constructor");
+            }
             this.population_type = population_type;
             this.population_indizes = population_indizes;
         }
 
-        public PopulationView(PopulationContainer population, Geometry area) {
+        public PopulationView(PopulationContainer population, Geometry? area) {
             this.population = population;
-            this.area = area;
-            this.envelope = area.EnvelopeInternal;
+            if (area != null) {
+                this.area = area;
+                this.envelope = area.EnvelopeInternal;
+            }
+            this.population_type = "standard_all";
         }
 
-        public Envelope getEnvelope() {
+        public Envelope? getEnvelope() {
             return this.envelope;
         }
 
@@ -81,7 +87,10 @@ namespace DVAN.Population
 
         public List<int> getPointsInEnvelop(Envelope envelope) {
             List<int> points = new List<int>(100);
-
+            
+            if (this.envelope == null) {
+                return points;
+            }
             Envelope env = this.envelope.Intersection(envelope);
             if (env == null) {
                 return points;
@@ -114,7 +123,7 @@ namespace DVAN.Population
             this.population_type = population_type;
         }
 
-        public int[] getPopulationIndizes() {
+        public int[]? getPopulationIndizes() {
             return population_indizes;
         }
 
