@@ -48,7 +48,7 @@ namespace DVAN.API
                 var index = population_indices[i];
                 reverse_indizes[index] = i;
             }
-            var session = new NearestQuerySession { 
+            var session = new NearestQuerySession {
                 id = id,
                 accessibilities = accessibility,
                 population_indizes = population_indices,
@@ -106,21 +106,25 @@ namespace DVAN.API
                 return new ErrorResponse("nearest_query/statistics", "no active session found");
             }
             var session = sessions[request.id];
+            if (session.computed_values == null) {
+                return new ErrorResponse("nearest_query/statistics", "no current computed result found");
+            }
+            var parameters = session.parameters;
             var reverse_indices = session.reverse_indizes;
             var computed_values = session.computed_values;
             var range_max = session.parameters.range_max;
             PopulationContainer population = PopulationManager.getPopulation();
-            PopulationView view;
+            PopulationView view = population.getPopulationView(parameters.envelope);
+            List<int> indizes;
             if (request.envelop == null) {
-                Envelope? envelope = null;
-                view = population.getPopulationView(envelope);
-            } else {
+                indizes = view.getAllPoints();
+            }
+            else {
                 var envelope = new Envelope(request.envelop[0], request.envelop[2], request.envelop[1], request.envelop[3]);
-                view = population.getPopulationView(envelope);
+                indizes = view.getPointsInEnvelop(envelope);
             }
 
-            var (counts, mean, std, median, min, max) = NearestQuery.buildStatisticsResponse(computed_values, view, reverse_indices, range_max);
-            session.computed_values = computed_values;
+            var (counts, mean, std, median, min, max) = NearestQuery.buildStatisticsResponse(computed_values, indizes, reverse_indices, range_max);
 
             return new {
                 counts = counts,

@@ -16,14 +16,8 @@ namespace DVAN.API
 {
     [ApiController]
     [Route("/v1/accessibility/simple")]
-    public class SimpleAccessibilityController {
-
-        [HttpPost]
-        public async Task<GridResponse> calcGrid([FromBody] SimpleAccessibilityRequest request)
-        {
-            return await this.calcSimpleGrid(request);
-        }
-
+    public class SimpleAccessibilityController
+    {
         [HttpPost]
         public async Task<GridResponse> calcSimpleGrid([FromBody] SimpleAccessibilityRequest request)
         {
@@ -34,7 +28,7 @@ namespace DVAN.API
             SimpleAccessibility simple = new SimpleAccessibility(view, provider);
 
             await simple.calcAccessibility(request.facility_locations, request.ranges);
-            
+
             var response = this.buildResponse(view, simple.getAccessibilities());
 
             return response;
@@ -48,13 +42,14 @@ namespace DVAN.API
             float miny = 1000000000;
             float maxy = -1;
             List<int> indices = population.getAllPoints();
-            for (int i=0; i< indices.Count; i++) {
+            for (int i = 0; i < indices.Count; i++) {
                 int index = indices[i];
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 List<RangeRef> ranges;
                 if (accessibilities.ContainsKey(index)) {
                     ranges = accessibilities[index];
-                } else {
+                }
+                else {
                     ranges = new List<RangeRef>();
                 }
                 if (p.X < minx) {
@@ -73,34 +68,36 @@ namespace DVAN.API
                     return (int)(a.range - b.range);
                 });
                 SimpleValue value = new SimpleValue(-9999, -9999, -9999);
-                if (ranges.Count > 0){
+                if (ranges.Count > 0) {
                     value.first = (int)ranges[0].range;
                 }
-                if (ranges.Count > 1){
+                if (ranges.Count > 1) {
                     value.second = (int)ranges[1].range;
                 }
-                if (ranges.Count > 2){
+                if (ranges.Count > 2) {
                     value.third = (int)ranges[2].range;
                 }
                 features.Add(new GridFeature((float)p.X, (float)p.Y, value));
             }
-            float[] extend = {minx-50, miny-50, maxx+50, maxy+50};
+            float[] extend = { minx - 50, miny - 50, maxx + 50, maxy + 50 };
 
             float dx = extend[2] - extend[0];
             float dy = extend[3] - extend[1];
-            int[] size = {(int)(dx/100), (int)(dy/100)};
+            int[] size = { (int)(dx / 100), (int)(dy / 100) };
 
             String crs = "EPSG:25832";
 
             return new GridResponse(features, crs, extend, size);
         }
 
-        class SimpleValue {
+        class SimpleValue
+        {
             public int first { get; set; }
             public int second { get; set; }
             public int third { get; set; }
 
-            public SimpleValue(int first, int second, int third) {
+            public SimpleValue(int first, int second, int third)
+            {
                 this.first = first;
                 this.second = second;
                 this.third = third;
