@@ -6,6 +6,7 @@ using DVAN.Routing;
 using DVAN.Population;
 using NetTopologySuite.Algorithm.Locate;
 using NetTopologySuite.Geometries;
+using System.Threading.Tasks.Dataflow;
 
 namespace DVAN.Accessibility
 {
@@ -16,7 +17,7 @@ namespace DVAN.Accessibility
         private Dictionary<int, List<RangeRef>> accessibilities;
         private FacilityCatchment[] catchments;
 
-        public SimpleAccessibility(PopulationView population, IRoutingProvider provider) 
+        public SimpleAccessibility(PopulationView population, IRoutingProvider provider)
         {
             this.population = population;
             this.provider = provider;
@@ -35,22 +36,36 @@ namespace DVAN.Accessibility
             for (int i = 0; i < catchments.Length; i++) {
                 catchments[i] = new FacilityCatchment();
             }
-            Double[][] locations = new Double[1][];
-            for (int f=0; f<facilities.Length; f++) {
-                locations[0][0] = facilities[f][0];
-                locations[0][1] = facilities[f][1];
-                IsochroneCollection isochrones = (await provider.requestIsochrones(locations, ranges))[0];
 
-                for (int i=0; i< isochrones.getIsochronesCount(); i++) {
+            var collection = provider.requestIsochronesStream(facilities, ranges);
+            for (int f = 0; f < facilities.Length; f++) {
+                var isochrones = await collection.ReceiveAsync();
+                if (isochrones == null) {
+                    continue;
+                }
+
+                // double[][] locations = new double[1][];
+                // locations[0] = new double[] { 0, 0 };
+                // for (int f = 0; f < facilities.Length; f++) {
+                //     locations[0][0] = facilities[f][0];
+                //     locations[0][1] = facilities[f][1];
+
+                //     var iso_list = await provider.requestIsochrones(locations, ranges);
+                //     if (iso_list == null) {
+                //         continue;
+                //     }
+                //     var isochrones = iso_list[0];
+
+                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
                     Isochrone isochrone = isochrones.getIsochrone(i);
                     double range = isochrone.getValue();
                     Geometry iso;
                     Geometry outer = isochrone.getGeometry();
-                    if (i==0) {
+                    if (i == 0) {
                         iso = outer;
                     }
                     else {
-                        Geometry inner = isochrones.getIsochrone(i-1).getGeometry();
+                        Geometry inner = isochrones.getIsochrone(i - 1).getGeometry();
                         iso = outer.Difference(inner);
                     }
                     Envelope env = iso.EnvelopeInternal;
@@ -60,6 +75,14 @@ namespace DVAN.Accessibility
                         Coordinate p = population.getCoordinate(index);
                         var location = SimplePointInAreaLocator.Locate(p, iso);
                         if (location == Location.Interior) {
+                            List<RangeRef> access;
+                            if (!accessibilities.ContainsKey(index)) {
+                                access = new List<RangeRef>();
+                                accessibilities[index] = access;
+                            }
+                            else {
+                                access = accessibilities[index];
+                            }
                             accessibilities[index].Add(new RangeRef((int)range, f));
                             population_count += population.getPopulationCount(index);
                         }
@@ -73,24 +96,29 @@ namespace DVAN.Accessibility
         }
     }
 
-    public struct RangeRef {
+    public struct RangeRef
+    {
         public double range;
         public int index;
 
-        public RangeRef(double range, int count) {
+        public RangeRef(double range, int count)
+        {
             this.range = range;
             this.index = count;
         }
     }
 
-    public class FacilityCatchment {
+    public class FacilityCatchment
+    {
         List<RangeRef> population_counts;
 
-        public FacilityCatchment() {
+        public FacilityCatchment()
+        {
             this.population_counts = new List<RangeRef>();
         }
 
-        public void addRangeRef(double range, int count) {
+        public void addRangeRef(double range, int count)
+        {
             this.population_counts.Add(new RangeRef(range, count));
         }
     }
