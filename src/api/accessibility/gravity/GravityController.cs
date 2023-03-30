@@ -16,7 +16,7 @@ namespace DVAN.API
 {
     [ApiController]
     [Route("/v1/accessibility/gravity")]
-    public class GravityController 
+    public class GravityController
     {
         private ILogger logger;
 
@@ -45,7 +45,7 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildResponse(PopulationView population, Dictionary<int, Access> accessibility) 
+        GridResponse buildResponse(PopulationView population, Dictionary<int, Access> accessibility)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
@@ -53,14 +53,15 @@ namespace DVAN.API
             float miny = 1000000000;
             float maxy = -1;
             List<int> indices = population.getAllPoints();
-            for (int i=0; i< indices.Count; i++) {
+            for (int i = 0; i < indices.Count; i++) {
                 int index = indices[i];
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 if (accessibility.ContainsKey(index)) {
                     Access access = accessibility[index];
                     GravityValue value = new GravityValue(access.access, access.weighted_access);
                     features.Add(new GridFeature((float)p.X, (float)p.Y, value));
-                } else {
+                }
+                else {
                     GravityValue value = new GravityValue(-9999, -9999);
                     features.Add(new GridFeature((float)p.X, (float)p.Y, value));
                 }
@@ -77,11 +78,11 @@ namespace DVAN.API
                     maxy = (float)p.Y;
                 }
             }
-            float[] extend = {minx-50, miny-50, maxx+50, maxy+50};
+            float[] extend = { minx - 50, miny - 50, maxx + 50, maxy + 50 };
 
             float dx = extend[2] - extend[0];
             float dy = extend[3] - extend[1];
-            int[] size = {(int)(dx/100), (int)(dy/100)};
+            int[] size = { (int)(dx / 100), (int)(dy / 100) };
 
             String crs = "EPSG:25832";
 
@@ -93,7 +94,8 @@ namespace DVAN.API
             public float unweighted { get; set; }
             public float weighted { get; set; }
 
-            public GravityValue(float unweighted, float weighted) {
+            public GravityValue(float unweighted, float weighted)
+            {
                 this.unweighted = unweighted;
                 this.weighted = weighted;
             }

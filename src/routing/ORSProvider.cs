@@ -9,17 +9,19 @@ using NetTopologySuite.Geometries;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace DVAN.Routing 
+namespace DVAN.Routing
 {
-    public class ORSProvider : IRoutingProvider 
+    public class ORSProvider : IRoutingProvider
     {
         private string url;
 
-        public ORSProvider(String url) {
+        public ORSProvider(String url)
+        {
             this.url = url;
         }
 
-        async public Task<List<IsochroneCollection>> requestIsochrones(Double[][] locations, List<Double> ranges) {
+        async public Task<List<IsochroneCollection>> requestIsochrones(Double[][] locations, List<Double> ranges)
+        {
             var request = new Dictionary<string, object> {
                 ["locations"] = locations,
                 ["location_type"] = "destination",
@@ -37,8 +39,7 @@ namespace DVAN.Routing
 
                 var isoColls = new List<IsochroneCollection>(locations.Length);
 
-                var jsonOptions = new JsonSerializerOptions
-                {
+                var jsonOptions = new JsonSerializerOptions {
                     PropertyNameCaseInsensitive = true
                 };
 
@@ -50,13 +51,11 @@ namespace DVAN.Routing
                 Envelope envelope = null;
                 Coordinate center = new Coordinate(0, 0);
                 var geomFactory = new GeometryFactory();
-                foreach (var feature in features.EnumerateArray())
-                {
+                foreach (var feature in features.EnumerateArray()) {
                     var coords = feature.GetProperty("geometry").GetProperty("coordinates");
                     var polygon = JsonSerializer.Deserialize<double[][][]>(coords.GetRawText())[0];
                     var coordinates = new Coordinate[polygon.Length];
-                    for (var i = 0; i < polygon.Length; i++)
-                    {
+                    for (var i = 0; i < polygon.Length; i++) {
                         coordinates[i] = new Coordinate(polygon[i][0], polygon[i][1]);
                     }
 
@@ -70,15 +69,15 @@ namespace DVAN.Routing
 
                 return isoColls;
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 return null;
             }
         }
 
-        public ISourceBlock<IsochroneCollection?> requestIsochronesStream(Double[][] locations, List<Double> ranges) {
+        public ISourceBlock<IsochroneCollection?> requestIsochronesStream(Double[][] locations, List<Double> ranges)
+        {
             var buffer = new BufferBlock<IsochroneCollection>();
-            for (int i=0; i<locations.Length; i++) {
+            for (int i = 0; i < locations.Length; i++) {
                 int index = i;
                 Task.Run(async () => {
                     var request = new Dictionary<string, object> {
@@ -90,8 +89,7 @@ namespace DVAN.Routing
                     };
                     double[][] locs = new double[1][];
                     locs[0] = new double[] { locations[index][0], locations[index][1] };
-                    request["locations"] =  locs;
-                    Console.WriteLine(index);
+                    request["locations"] = locs;
 
                     try {
                         var jsonRequest = JsonSerializer.Serialize(request);
@@ -109,13 +107,11 @@ namespace DVAN.Routing
                         Envelope envelope = null;
                         Coordinate center = new Coordinate(0, 0);
                         var geomFactory = new GeometryFactory();
-                        foreach (var feature in features.EnumerateArray())
-                        {
+                        foreach (var feature in features.EnumerateArray()) {
                             var coords = feature.GetProperty("geometry").GetProperty("coordinates");
                             var polygon = JsonSerializer.Deserialize<double[][][]>(coords.GetRawText())[0];
                             var coordinates = new Coordinate[polygon.Length];
-                            for (var i = 0; i < polygon.Length; i++)
-                            {
+                            for (var i = 0; i < polygon.Length; i++) {
                                 coordinates[i] = new Coordinate(polygon[i][0], polygon[i][1]);
                             }
 
@@ -126,8 +122,7 @@ namespace DVAN.Routing
 
                         await buffer.SendAsync(new IsochroneCollection(envelope, isochrones, center));
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         await buffer.SendAsync(null);
                     }
                 });
@@ -135,7 +130,8 @@ namespace DVAN.Routing
             return buffer;
         }
 
-        public async Task<List<IsoRaster>> requestIsoRasters(Double[][] locations, double max_range) {
+        public async Task<List<IsoRaster>> requestIsoRasters(Double[][] locations, double max_range)
+        {
             double[] ranges = { max_range };
             var request = new Dictionary<string, object> {
                 ["locations"] = locations,
@@ -152,10 +148,10 @@ namespace DVAN.Routing
                 List<IsoRaster> iso_rasters = new List<IsoRaster>(locations.Length);
 
                 double[][] locs = new double[2][];
-                for(int i=0; i<locations.Length; i++) {
+                for (int i = 0; i < locations.Length; i++) {
                     locs[0][0] = locations[i][0];
                     locs[0][1] = locations[i][1];
-                    request["locations"] =  locs;
+                    request["locations"] = locs;
 
                     var jsonRequest = JsonSerializer.Serialize(request);
                     var httpClient = new HttpClient();
@@ -175,9 +171,10 @@ namespace DVAN.Routing
             }
         }
 
-        public ISourceBlock<IsoRaster?> requestIsoRasterStream(Double[][] locations, double max_range) {
+        public ISourceBlock<IsoRaster?> requestIsoRasterStream(Double[][] locations, double max_range)
+        {
             var buffer = new BufferBlock<IsoRaster?>();
-            for (int i=0; i<locations.Length; i++) {
+            for (int i = 0; i < locations.Length; i++) {
                 int index = i;
                 Task.Run(async () => {
                     double[] ranges = { max_range };
@@ -195,7 +192,7 @@ namespace DVAN.Routing
                         double[][] locs = new double[2][];
                         locs[0][0] = locations[i][0];
                         locs[0][1] = locations[i][1];
-                        request["locations"] =  locs;
+                        request["locations"] = locs;
 
                         var jsonRequest = JsonSerializer.Serialize(request);
                         var httpClient = new HttpClient();

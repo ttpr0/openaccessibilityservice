@@ -36,7 +36,7 @@ app.MapGet("/close", () => { app.StopAsync().Wait(); });
 
 app.MapControllers();
 
-RoutingManager.addRoutingProvider(new ORSProvider("http://localhost:8082"));
+RoutingManager.addRoutingProvider(new ORSProvider("http://172.26.62.41:8080/ors"));
 PopulationManager.loadPopulation("./files/population.csv");
 
 app.Run("http://localhost:5000");

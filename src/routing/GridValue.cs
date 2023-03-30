@@ -1,14 +1,15 @@
 using System;
 
-namespace DVAN.Routing 
+namespace DVAN.Routing
 {
     public class GridValue
     {
         public int range;
 
-        public GridValue() {}
+        public GridValue() { }
 
-        public GridValue(int value) {
+        public GridValue(int value)
+        {
             this.range = value;
         }
     }

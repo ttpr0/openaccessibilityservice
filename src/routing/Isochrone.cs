@@ -1,29 +1,34 @@
 using System;
 using NetTopologySuite.Geometries;
 
-namespace DVAN.Routing 
+namespace DVAN.Routing
 {
-    public class Isochrone {
+    public class Isochrone
+    {
         public Geometry geometry { get; set; }
         public double value { get; set; }
         public Envelope envelope { get; set; }
 
-        public Isochrone(Geometry geometry, double value) {
+        public Isochrone(Geometry geometry, double value)
+        {
             this.geometry = geometry;
             this.value = value;
         }
 
-        public Envelope getEnvelope() {
+        public Envelope getEnvelope()
+        {
             if (this.envelope == null)
                 this.envelope = this.geometry.EnvelopeInternal;
             return this.envelope;
         }
 
-        public Geometry getGeometry() {
+        public Geometry getGeometry()
+        {
             return geometry;
         }
 
-        public double getValue() {
+        public double getValue()
+        {
             return value;
         }
     }

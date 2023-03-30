@@ -11,19 +11,21 @@ using System.Threading.Tasks.Dataflow;
 
 namespace DVAN.Accessibility
 {
-    public class Access {
+    public class Access
+    {
         public float access;
         public float weighted_access;
     }
 
-    public class GravityAccessibility {
+    public class GravityAccessibility
+    {
         private PopulationView population;
         private IRoutingProvider provider;
 
         private float max_population;
         private Dictionary<int, Access> accessibility;
 
-        public GravityAccessibility(PopulationView population, IRoutingProvider provider) 
+        public GravityAccessibility(PopulationView population, IRoutingProvider provider)
         {
             this.population = population;
             this.provider = provider;
@@ -32,7 +34,7 @@ namespace DVAN.Accessibility
             this.accessibility = new Dictionary<int, Access>();
         }
 
-        public Dictionary<int, Access> getAccessibility() 
+        public Dictionary<int, Access> getAccessibility()
         {
             return this.accessibility;
         }
@@ -55,16 +57,16 @@ namespace DVAN.Accessibility
             //     IsochroneCollection isochrones = isochrones_coll.get(0);
 
             var collection = provider.requestIsochronesStream(facilities, ranges);
-            for (int j=0; j<facilities.Length; j++) {
+            for (int j = 0; j < facilities.Length; j++) {
                 var isochrones = await collection.ReceiveAsync();
                 if (isochrones == null) {
                     continue;
                 }
 
-                for (int i=0; i< isochrones.getIsochronesCount(); i++) {
+                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
                     Isochrone isochrone = isochrones.getIsochrone(i);
                     double range = isochrone.getValue();
-                    
+
                     if (!polygons.ContainsKey(range)) {
                         polygons[range] = isochrone.getGeometry();
                     }
@@ -78,7 +80,7 @@ namespace DVAN.Accessibility
             }
 
             float max_value = 0;
-            for (int i=0; i<ranges.Count; i++) {
+            for (int i = 0; i < ranges.Count; i++) {
                 double range = ranges[i];
                 double factor = factors[i];
                 Geometry iso = polygons[range];
@@ -96,12 +98,13 @@ namespace DVAN.Accessibility
                     Coordinate p = population.getCoordinate(index);
                     var location = SimplePointInAreaLocator.Locate(p, geom);
                     if (location == Location.Interior) {
-                    // if (p.getPoint().within(geom)) {
+                        // if (p.getPoint().within(geom)) {
                         Access access;
                         if (!accessibilities.ContainsKey(index)) {
                             access = new Access();
                             accessibilities[index] = access;
-                        } else {
+                        }
+                        else {
                             access = accessibilities[index];
                         }
                         accessibilities[index].access += (float)factor;
@@ -132,10 +135,10 @@ namespace DVAN.Accessibility
         {
             Dictionary<int, Access> accessibilities = new Dictionary<int, Access>(10000);
 
-            ISourceBlock<IsoRaster?> collection = provider.requestIsoRasterStream(facilities, ranges[ranges.Count-1]);
+            ISourceBlock<IsoRaster?> collection = provider.requestIsoRasterStream(facilities, ranges[ranges.Count - 1]);
 
             float max_value = 0;
-            for (int j=0; j<facilities.Length; j++) {
+            for (int j = 0; j < facilities.Length; j++) {
                 var raster = await collection.ReceiveAsync();
                 if (raster == null) {
                     continue;
@@ -153,10 +156,11 @@ namespace DVAN.Accessibility
                         if (!accessibilities.ContainsKey(index)) {
                             access = new Access();
                             accessibilities[index] = access;
-                        } else {
+                        }
+                        else {
                             access = accessibilities[index];
                         }
-                        for (int i=0; i<ranges.Count; i++) {
+                        for (int i = 0; i < ranges.Count; i++) {
                             if (range <= ranges[i]) {
                                 access.access += (float)factors[i];
                                 if (access.access > max_value) {

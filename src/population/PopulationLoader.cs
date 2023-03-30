@@ -7,8 +7,10 @@ using NetTopologySuite.IO;
 
 namespace DVAN.Population
 {
-    public sealed class PopulationLoader {
-        public static PopulationContainer loadFromCSV(string filename) {
+    public sealed class PopulationLoader
+    {
+        public static PopulationContainer loadFromCSV(string filename)
+        {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             var content = File.ReadAllLines(filename);
 
@@ -35,7 +37,7 @@ namespace DVAN.Population
             // geom indices
             int index_geom = -1;
             int index_geom_utm = -1;
-            for (int i=0; i < tokens.Length; i++) {
+            for (int i = 0; i < tokens.Length; i++) {
                 String token = tokens[i];
                 if (token.Equals("EW_GESAMT")) {
                     index_ew_gesamt = i;
@@ -89,7 +91,7 @@ namespace DVAN.Population
             PopulationContainer population = new PopulationContainer(10000);
             WKBReader geom_reader = new WKBReader();
 
-            for (int i=1; i<content.Length; i++) {
+            for (int i = 1; i < content.Length; i++) {
                 line = content[i];
                 tokens = line.Split(del);
                 int ew_gesamt = (int)Convert.ToDouble(tokens[index_ew_gesamt].Replace(",", "."));
@@ -106,8 +108,8 @@ namespace DVAN.Population
                 int kisc15_17 = (int)Convert.ToDouble(tokens[index_kisc15_17].Replace(",", "."));
                 int kisc18_19 = (int)Convert.ToDouble(tokens[index_kisc18_19].Replace(",", "."));
                 int kisc20x = (int)Convert.ToDouble(tokens[index_kisc20x].Replace(",", "."));
-                int[] standard_population = new int[] {stnd00_09, stnd10_19, stnd20_39, (int)(stnd40_59/2), (int)(stnd40_59/2), stnd60_79, stnd80x};
-                int[] kita_schul_population = new int[] {kisc00_02, kisc03_05, kisc06_09, kisc10_14, kisc15_17, kisc18_19, kisc20x};
+                int[] standard_population = new int[] { stnd00_09, stnd10_19, stnd20_39, (int)(stnd40_59 / 2), (int)(stnd40_59 / 2), stnd60_79, stnd80x };
+                int[] kita_schul_population = new int[] { kisc00_02, kisc03_05, kisc06_09, kisc10_14, kisc15_17, kisc18_19, kisc20x };
                 PopulationAttributes attributes = new PopulationAttributes(ew_gesamt, standard_population, kita_schul_population);
                 Point point = (Point)geom_reader.Read(WKBReader.HexToBytes(tokens[index_geom]));
                 Point utm_point = (Point)geom_reader.Read(WKBReader.HexToBytes(tokens[index_geom_utm]));

@@ -16,7 +16,8 @@ namespace DVAN.API
 
         private Envelope? envelope;
 
-        public Envelope getEnvelope() {
+        public Envelope getEnvelope()
+        {
             if (this.envelope == null) {
                 this.envelope = new Envelope(this.envelop[0], this.envelop[2], this.envelop[1], this.envelop[3]);
             }

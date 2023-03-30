@@ -26,7 +26,7 @@ namespace DVAN.API
         }
 
         [HttpPost]
-        public async Task<GridResponse> calcMultiCriteriaGrid([FromBody] MultiCriteriaRequest request) 
+        public async Task<GridResponse> calcMultiCriteriaGrid([FromBody] MultiCriteriaRequest request)
         {
             PopulationContainer population = PopulationManager.getPopulation();
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
@@ -35,7 +35,7 @@ namespace DVAN.API
             PopulationView view = population.getPopulationView(request.getEnvelope());
             view.setPopulationType(request.population_type);
             view.setPopulationIndizes(request.population_indizes);
-            
+
             logger.LogDebug("Creating GravityAccessibility");
             GravityAccessibility gravity = new GravityAccessibility(view, provider);
 
@@ -55,7 +55,7 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildResponse(PopulationView population, Dictionary<int, Dictionary<string, float>> accessibilities) 
+        GridResponse buildResponse(PopulationView population, Dictionary<int, Dictionary<string, float>> accessibilities)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
@@ -68,7 +68,8 @@ namespace DVAN.API
                 Dictionary<string, float> values;
                 if (accessibilities.ContainsKey(index)) {
                     values = accessibilities[index];
-                } else {
+                }
+                else {
                     values = new Dictionary<string, float>();
                     values["multiCritera"] = -9999.0f;
                     values["multiCritera_weighted"] = -9999.0f;
@@ -88,11 +89,11 @@ namespace DVAN.API
                 }
                 features.Add(new GridFeature((float)p.X, (float)p.Y, values));
             }
-            float[] extend = {minx-50, miny-50, maxx+50, maxy+50};
+            float[] extend = { minx - 50, miny - 50, maxx + 50, maxy + 50 };
 
             float dx = extend[2] - extend[0];
             float dy = extend[3] - extend[1];
-            int[] size = {(int)(dx/100), (int)(dy/100)};
+            int[] size = { (int)(dx / 100), (int)(dy / 100) };
 
             String crs = "EPSG:25832";
 

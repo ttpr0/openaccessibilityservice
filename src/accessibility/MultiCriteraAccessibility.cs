@@ -7,7 +7,8 @@ using NetTopologySuite.Geometries;
 
 namespace DVAN.Accessibility
 {
-    public class MultiCriteraAccessibility {
+    public class MultiCriteraAccessibility
+    {
         private PopulationView population;
         private GravityAccessibility gravity;
 
@@ -17,7 +18,7 @@ namespace DVAN.Accessibility
 
         private Dictionary<int, Dictionary<string, float>> accessibilities;
 
-        public MultiCriteraAccessibility(PopulationView population, GravityAccessibility gravity) 
+        public MultiCriteraAccessibility(PopulationView population, GravityAccessibility gravity)
         {
             this.population = population;
             this.gravity = gravity;
@@ -47,9 +48,10 @@ namespace DVAN.Accessibility
                 if (!this.accessibilities.ContainsKey(index)) {
                     this.accessibilities[index] = new Dictionary<string, float>();
                     multi_access = this.accessibilities[index];
-                    multi_access["multiCritera"]  = 0.0f;
+                    multi_access["multiCritera"] = 0.0f;
                     multi_access["multiCritera_weighted"] = 0.0f;
-                } else {
+                }
+                else {
                     multi_access = this.accessibilities[index];
                 }
                 multi_access[name] = access.access;

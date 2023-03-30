@@ -4,7 +4,7 @@ using NetTopologySuite.Geometries;
 
 namespace DVAN.API
 {
-    public class MultiCriteriaRequest 
+    public class MultiCriteriaRequest
     {
         public Dictionary<string, InfrastructureParams> infrastructures { get; set; }
 
@@ -16,7 +16,8 @@ namespace DVAN.API
 
         private Envelope envelope;
 
-        public Envelope getEnvelope() {
+        public Envelope getEnvelope()
+        {
             if (this.envelope == null) {
                 this.envelope = new Envelope(this.envelop[0], this.envelop[2], this.envelop[1], this.envelop[3]);
             }
@@ -24,7 +25,7 @@ namespace DVAN.API
         }
     }
 
-    public class InfrastructureParams 
+    public class InfrastructureParams
     {
         public double infrastructure_weight { get; set; }
 

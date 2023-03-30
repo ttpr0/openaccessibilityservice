@@ -30,7 +30,8 @@ namespace DVAN.API
                     return null;
                 }
                 parameters.range_max = (int)request.range_max;
-            } else if (request.range_type == "discrete") {
+            }
+            else if (request.range_type == "discrete") {
                 parameters.range_type = request.range_type;
                 if (request.ranges == null) {
                     return null;

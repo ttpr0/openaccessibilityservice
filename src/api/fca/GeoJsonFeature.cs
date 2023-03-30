@@ -9,7 +9,7 @@ namespace DVAN.API
 
     }
 
-    public class GeoJsonPoint : GeoJsonFeature 
+    public class GeoJsonPoint : GeoJsonFeature
     {
         public string type = "Feature";
         public Properties properties;

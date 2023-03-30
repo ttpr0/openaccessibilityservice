@@ -2,14 +2,17 @@ using System;
 
 namespace DVAN.Population
 {
-    public class PopulationManager {
+    public class PopulationManager
+    {
         private static PopulationContainer population;
 
-        public static void loadPopulation(String filename) {
+        public static void loadPopulation(String filename)
+        {
             PopulationManager.population = PopulationLoader.loadFromCSV(filename);
         }
 
-        public static PopulationContainer getPopulation() {
+        public static PopulationContainer getPopulation()
+        {
             return PopulationManager.population;
         }
     }
