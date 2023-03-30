@@ -147,10 +147,9 @@ namespace DVAN.Routing
             try {
                 List<IsoRaster> iso_rasters = new List<IsoRaster>(locations.Length);
 
-                double[][] locs = new double[2][];
                 for (int i = 0; i < locations.Length; i++) {
-                    locs[0][0] = locations[i][0];
-                    locs[0][1] = locations[i][1];
+                    double[][] locs = new double[1][];
+                    locs[0] = new double[] { locations[i][0], locations[i][1] };
                     request["locations"] = locs;
 
                     var jsonRequest = JsonSerializer.Serialize(request);
@@ -189,9 +188,8 @@ namespace DVAN.Routing
                     };
 
                     try {
-                        double[][] locs = new double[2][];
-                        locs[0][0] = locations[i][0];
-                        locs[0][1] = locations[i][1];
+                        double[][] locs = new double[1][];
+                        locs[0] = new double[] { locations[index][0], locations[index][1] };
                         request["locations"] = locs;
 
                         var jsonRequest = JsonSerializer.Serialize(request);
@@ -210,6 +208,46 @@ namespace DVAN.Routing
                 });
             }
             return buffer;
+        }
+
+        public async Task<Matrix?> requestMatrix(double[][] sources, double[][] destinations)
+        {
+            double[][] locations = new double[sources.Length + destinations.Length][];
+            int[] source = new int[sources.Length];
+            int[] destination = new int[destinations.Length];
+            int c = 0;
+            for (int i = 0; i < sources.Length; i++) {
+                source[i] = c;
+                locations[c] = sources[i];
+                c += 1;
+            }
+            for (int i = 0; i < destinations.Length; i++) {
+                destination[i] = c;
+                locations[c] = destinations[i];
+                c += 1;
+            }
+
+            var request = new Dictionary<string, object> {
+                ["locations"] = locations,
+                ["sources"] = source,
+                ["destinations"] = destination,
+                ["units"] = "m",
+            };
+
+            try {
+
+                var jsonRequest = JsonSerializer.Serialize(request);
+                var httpClient = new HttpClient();
+                var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+                var response = await httpClient.PostAsync(this.url + "/v2/matrix/driving-car", content);
+                using var stream = await response.Content.ReadAsStreamAsync();
+                var matrix = JsonSerializer.Deserialize<Matrix>(stream);
+
+                return matrix;
+            }
+            catch (Exception e) {
+                return null;
+            }
         }
     }
 }
