@@ -11,7 +11,22 @@ namespace DVAN.FCA
 {
     public class Simple2SFCA
     {
-        public static async Task<Dictionary<int, float>> calc2SFCA(PopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+
+        public static Task<Dictionary<int, float>> calc2SFCA(PopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider, string? mode)
+        {
+            switch (mode) {
+                case "isochrones":
+                    return calc2SFCAIsochrones(population, facilities, ranges, range_factors, provider);
+                case "matrix":
+                    return calc2SFCAMatrix(population, facilities, ranges, range_factors, provider);
+                case "isoraster":
+                    return calc2SFCAIsoRaster(population, facilities, ranges, range_factors, provider);
+                default:
+                    return calc2SFCAIsochrones(population, facilities, ranges, range_factors, provider);
+            }
+        }
+
+        public static async Task<Dictionary<int, float>> calc2SFCAIsochrones(PopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
         {
             var population_weights = new Dictionary<int, float>();
             float[] facility_weights = new float[facilities.Length];
@@ -79,17 +94,144 @@ namespace DVAN.FCA
 
             return population_weights;
         }
-    }
 
-    class FacilityReference
-    {
-        public int index;
-        public float range;
-
-        public FacilityReference(int index, float range)
+        public static async Task<Dictionary<int, float>> calc2SFCAMatrix(PopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
         {
-            this.index = index;
-            this.range = range;
+            var population_weights = new Dictionary<int, float>();
+            float[] facility_weights = new float[facilities.Length];
+
+            float max_range = (float)ranges[^1];
+            var inverted_mapping = new Dictionary<int, List<FacilityReference>>();
+
+            var points = population.getAllPoints();
+            double[][] destinations = new double[points.Count][];
+            for (int i = 0; i < points.Count; i++) {
+                var index = points[i];
+                Coordinate p = population.getCoordinate(index);
+                destinations[i] = new double[] { p.X, p.Y };
+            }
+            var matrix = await provider.requestMatrix(facilities, destinations);
+            if (matrix == null || matrix.durations == null) {
+                return population_weights;
+            }
+            for (int f = 0; f < facilities.Length; f++) {
+                float weight = 0;
+                for (int i = 0; i < points.Count; i++) {
+                    float range = (float)matrix.durations[f][i];
+                    if (range > max_range) {
+                        continue;
+                    }
+                    int index = points[i];
+                    int population_count = population.getPopulationCount(index);
+                    float range_factor = 1 - range / max_range;
+
+                    weight += population_count * range_factor;
+
+                    if (!inverted_mapping.ContainsKey(index)) {
+                        inverted_mapping[index] = new List<FacilityReference>(4);
+                    }
+                    inverted_mapping[index].Add(new FacilityReference(f, range));
+                }
+                if (weight == 0) {
+                    facility_weights[f] = 0;
+                }
+                else {
+                    facility_weights[f] = 1 / weight;
+                }
+            }
+
+            foreach (int index in inverted_mapping.Keys) {
+                List<FacilityReference> refs = inverted_mapping[index];
+                if (refs == null) {
+                    continue;
+                }
+                else {
+                    float weight = 0;
+                    foreach (FacilityReference fref in refs) {
+                        double range_factor = 1 - fref.range / max_range;
+                        weight += (float)(facility_weights[fref.index] * range_factor);
+                    }
+                    population_weights[index] = weight;
+                }
+            }
+
+            return population_weights;
         }
+
+        public static async Task<Dictionary<int, float>> calc2SFCAIsoRaster(PopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        {
+            var population_weights = new Dictionary<int, float>();
+            float[] facility_weights = new float[facilities.Length];
+
+            float max_range = (float)ranges[^1];
+            var inverted_mapping = new Dictionary<int, List<FacilityReference>>();
+
+            var collection = provider.requestIsoRasterStream(facilities, max_range);
+            for (int f = 0; f < facilities.Length; f++) {
+                var isoraster = await collection.ReceiveAsync();
+                if (isoraster == null) {
+                    continue;
+                }
+
+                var visited = new HashSet<int>(10000);
+                float weight = 0;
+                double[][] extend = isoraster.getEnvelope();
+                var env = new Envelope(extend[0][0], extend[3][0], extend[2][1], extend[1][1]);
+                var points = population.getPointsInEnvelop(env);
+                foreach (int index in points) {
+                    if (visited.Contains(index)) {
+                        continue;
+                    }
+                    Coordinate p = population.getCoordinate(index, "EPSG:25832");
+                    int range = isoraster.getValueAtCoordinate(p);
+                    if (range != -1) {
+                        int population_count = population.getPopulationCount(index);
+                        float range_factor = 1 - range / max_range;
+                        weight += population_count * range_factor;
+
+                        if (!inverted_mapping.ContainsKey(index)) {
+                            inverted_mapping[index] = new List<FacilityReference>(4);
+                        }
+                        inverted_mapping[index].Add(new FacilityReference(f, range));
+                        visited.Add(index);
+                    }
+                }
+                if (weight == 0) {
+                    facility_weights[f] = 0;
+                }
+                else {
+                    facility_weights[f] = 1 / weight;
+                }
+            }
+
+            foreach (int index in inverted_mapping.Keys) {
+                List<FacilityReference> refs = inverted_mapping[index];
+                if (refs == null) {
+                    continue;
+                }
+                else {
+                    float weight = 0;
+                    foreach (FacilityReference fref in refs) {
+                        double range_factor = 1 - fref.range / max_range; ;
+                        weight += (float)(facility_weights[fref.index] * range_factor);
+                    }
+                    population_weights[index] = weight;
+                }
+            }
+
+            return population_weights;
+        }
+    }
+}
+
+class FacilityReference
+{
+    public int index;
+    public float range;
+
+    public FacilityReference(int index, float range)
+    {
+        this.index = index;
+        this.range = range;
     }
 }
