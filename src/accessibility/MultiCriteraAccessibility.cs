@@ -9,7 +9,7 @@ namespace DVAN.Accessibility
 {
     public class MultiCriteraAccessibility
     {
-        private PopulationView population;
+        private IPopulationView population;
         private GravityAccessibility gravity;
 
         private float max_population;
@@ -18,7 +18,7 @@ namespace DVAN.Accessibility
 
         private Dictionary<int, Dictionary<string, float>> accessibilities;
 
-        public MultiCriteraAccessibility(PopulationView population, GravityAccessibility gravity)
+        public MultiCriteraAccessibility(IPopulationView population, GravityAccessibility gravity)
         {
             this.population = population;
             this.gravity = gravity;

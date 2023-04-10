@@ -16,7 +16,7 @@ namespace DVAN.API
 {
     public class NearestQuery
     {
-        public static async Task<Dictionary<int, List<RangeRef>>> computeAccessibility(double[][] locations, List<double> ranges, PopulationView view, IRoutingProvider provider)
+        public static async Task<Dictionary<int, List<RangeRef>>> computeAccessibility(double[][] locations, List<double> ranges, IPopulationView view, IRoutingProvider provider)
         {
             SimpleAccessibility simple = new SimpleAccessibility(view, provider);
 
@@ -25,7 +25,7 @@ namespace DVAN.API
             return simple.getAccessibilities();
         }
 
-        public static GridResponse buildGridResponse(List<int> indices, PopulationView population, Dictionary<int, List<RangeRef>> accessibilities, int count)
+        public static GridResponse buildGridResponse(List<int> indices, IPopulationView population, Dictionary<int, List<RangeRef>> accessibilities, int count)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;

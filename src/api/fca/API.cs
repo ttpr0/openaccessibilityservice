@@ -23,7 +23,7 @@ namespace DVAN.API
         public async Task<GridResponse> calculateFCA([FromBody] FCARequest request)
         {
             PopulationContainer population = PopulationManager.getPopulation();
-            PopulationView view = population.getPopulationView(request.getEnvelope());
+            IPopulationView view = population.getPopulationView2(request.getEnvelope());
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
             var weights = await Simple2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, request.range_factors, provider, request.mode);
@@ -40,7 +40,7 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildResponse(PopulationView population, Dictionary<int, float> accessibilities, float factor)
+        GridResponse buildResponse(IPopulationView population, Dictionary<int, float> accessibilities, float factor)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;

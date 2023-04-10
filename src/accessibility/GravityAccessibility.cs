@@ -19,13 +19,13 @@ namespace DVAN.Accessibility
 
     public class GravityAccessibility
     {
-        private PopulationView population;
+        private IPopulationView population;
         private IRoutingProvider provider;
 
         private float max_population;
         private Dictionary<int, Access> accessibility;
 
-        public GravityAccessibility(PopulationView population, IRoutingProvider provider)
+        public GravityAccessibility(IPopulationView population, IRoutingProvider provider)
         {
             this.population = population;
             this.provider = provider;

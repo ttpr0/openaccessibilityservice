@@ -12,7 +12,7 @@ namespace DVAN.Accessibility
     public class Simple2SFCA
     {
 
-        public static Task<Dictionary<int, float>> calc2SFCA(PopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider, string? mode)
+        public static Task<Dictionary<int, float>> calc2SFCA(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider, string? mode)
         {
             switch (mode) {
                 case "isochrones":
@@ -26,7 +26,7 @@ namespace DVAN.Accessibility
             }
         }
 
-        public static async Task<Dictionary<int, float>> calc2SFCAIsochrones(PopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        public static async Task<Dictionary<int, float>> calc2SFCAIsochrones(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
         {
             var population_weights = new Dictionary<int, float>();
             float[] facility_weights = new float[facilities.Length];
@@ -95,7 +95,7 @@ namespace DVAN.Accessibility
             return population_weights;
         }
 
-        public static async Task<Dictionary<int, float>> calc2SFCAMatrix(PopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        public static async Task<Dictionary<int, float>> calc2SFCAMatrix(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
         {
             var population_weights = new Dictionary<int, float>();
             float[] facility_weights = new float[facilities.Length];
@@ -158,7 +158,7 @@ namespace DVAN.Accessibility
             return population_weights;
         }
 
-        public static async Task<Dictionary<int, float>> calc2SFCAIsoRaster(PopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        public static async Task<Dictionary<int, float>> calc2SFCAIsoRaster(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
         {
             var population_weights = new Dictionary<int, float>();
             float[] facility_weights = new float[facilities.Length];

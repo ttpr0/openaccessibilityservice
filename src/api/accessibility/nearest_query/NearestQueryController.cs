@@ -37,7 +37,7 @@ namespace DVAN.API
 
             PopulationContainer population = PopulationManager.getPopulation();
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
-            PopulationView view = population.getPopulationView(parameters.envelope);
+            IPopulationView view = population.getPopulationView(parameters.envelope);
 
             var accessibility = await NearestQuery.computeAccessibility(parameters.facility_locations, parameters.ranges, view, provider);
 
@@ -75,7 +75,7 @@ namespace DVAN.API
             var parameters = session.parameters;
 
             PopulationContainer population = PopulationManager.getPopulation();
-            PopulationView view = population.getPopulationView(parameters.envelope);
+            IPopulationView view = population.getPopulationView(parameters.envelope);
 
             var response = NearestQuery.buildGridResponse(population_indices, view, accessibilities, parameters.facility_count);
             return response;
@@ -114,7 +114,7 @@ namespace DVAN.API
             var computed_values = session.computed_values;
             var range_max = session.parameters.range_max;
             PopulationContainer population = PopulationManager.getPopulation();
-            PopulationView view = population.getPopulationView(parameters.envelope);
+            IPopulationView view = population.getPopulationView(parameters.envelope);
             List<int> indizes;
             if (request.envelop == null) {
                 indizes = view.getAllPoints();

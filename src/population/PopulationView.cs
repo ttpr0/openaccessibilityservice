@@ -7,7 +7,7 @@ using NetTopologySuite.Algorithm.Locate;
 
 namespace DVAN.Population
 {
-    public class PopulationView
+    public class PopulationView : IPopulationView
     {
         PopulationContainer population;
         Geometry? area;

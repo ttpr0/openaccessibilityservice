@@ -55,7 +55,7 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildResponse(PopulationView population, Dictionary<int, Dictionary<string, float>> accessibilities)
+        GridResponse buildResponse(IPopulationView population, Dictionary<int, Dictionary<string, float>> accessibilities)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;

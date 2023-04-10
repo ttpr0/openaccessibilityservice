@@ -12,12 +12,12 @@ namespace DVAN.Accessibility
 {
     public class SimpleAccessibility
     {
-        private PopulationView population;
+        private IPopulationView population;
         private IRoutingProvider provider;
         private Dictionary<int, List<RangeRef>> accessibilities;
         private FacilityCatchment[] catchments;
 
-        public SimpleAccessibility(PopulationView population, IRoutingProvider provider)
+        public SimpleAccessibility(IPopulationView population, IRoutingProvider provider)
         {
             this.population = population;
             this.provider = provider;

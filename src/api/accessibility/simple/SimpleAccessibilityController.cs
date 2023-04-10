@@ -23,7 +23,7 @@ namespace DVAN.API
         {
             PopulationContainer population = PopulationManager.getPopulation();
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
-            PopulationView view = population.getPopulationView(request.getEnvelope());
+            IPopulationView view = population.getPopulationView(request.getEnvelope());
 
             SimpleAccessibility simple = new SimpleAccessibility(view, provider);
 
@@ -34,7 +34,7 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildResponse(PopulationView population, Dictionary<int, List<RangeRef>> accessibilities)
+        GridResponse buildResponse(IPopulationView population, Dictionary<int, List<RangeRef>> accessibilities)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
