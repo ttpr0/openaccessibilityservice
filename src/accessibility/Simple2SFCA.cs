@@ -7,7 +7,7 @@ using DVAN.Routing;
 using DVAN.Population;
 using System.Threading.Tasks.Dataflow;
 
-namespace DVAN.FCA
+namespace DVAN.Accessibility
 {
     public class Simple2SFCA
     {
@@ -166,40 +166,35 @@ namespace DVAN.FCA
             float max_range = (float)ranges[^1];
             var inverted_mapping = new Dictionary<int, List<FacilityReference>>();
 
-            var collection = provider.requestIsoRasterStream(facilities, max_range);
-            for (int f = 0; f < facilities.Length; f++) {
-                var isoraster = await collection.ReceiveAsync();
-                if (isoraster == null) {
-                    continue;
-                }
+            var isoraster = await provider.requestIsoRaster(facilities, max_range);
+            if (isoraster == null) {
+                return population_weights;
+            }
 
-                var visited = new HashSet<int>(10000);
-                float weight = 0;
-                double[][] extend = isoraster.getEnvelope();
-                var env = new Envelope(extend[0][0], extend[3][0], extend[2][1], extend[1][1]);
-                var points = population.getPointsInEnvelop(env);
-                foreach (int index in points) {
-                    if (visited.Contains(index)) {
-                        continue;
-                    }
-                    Coordinate p = population.getCoordinate(index, "EPSG:25832");
-                    int range = isoraster.getValueAtCoordinate(p);
-                    if (range != -1) {
+            double[][] extend = isoraster.getEnvelope();
+            var env = new Envelope(extend[0][0], extend[3][0], extend[2][1], extend[1][1]);
+            var points = population.getPointsInEnvelop(env);
+            foreach (int index in points) {
+                Coordinate p = population.getCoordinate(index, "EPSG:25832");
+                var accessor = isoraster.getAccessor(p);
+                if (accessor != null) {
+                    foreach (var f in accessor.getFacilities()) {
+                        float range = accessor.getRange(f);
+
                         int population_count = population.getPopulationCount(index);
                         float range_factor = 1 - range / max_range;
-                        weight += population_count * range_factor;
+                        facility_weights[f] += population_count * range_factor;
 
                         if (!inverted_mapping.ContainsKey(index)) {
                             inverted_mapping[index] = new List<FacilityReference>(4);
                         }
                         inverted_mapping[index].Add(new FacilityReference(f, range));
-                        visited.Add(index);
                     }
                 }
-                if (weight == 0) {
-                    facility_weights[f] = 0;
-                }
-                else {
+            }
+            for (int f = 0; f < facility_weights.Length; f++) {
+                float weight = facility_weights[f];
+                if (weight != 0) {
                     facility_weights[f] = 1 / weight;
                 }
             }

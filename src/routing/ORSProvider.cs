@@ -130,7 +130,7 @@ namespace DVAN.Routing
             return buffer;
         }
 
-        public async Task<List<IsoRaster>> requestIsoRasters(Double[][] locations, double max_range)
+        public async Task<IsoRaster?> requestIsoRaster(Double[][] locations, double max_range)
         {
             double[] ranges = { max_range };
             var request = new Dictionary<string, object> {
@@ -145,25 +145,18 @@ namespace DVAN.Routing
             };
 
             try {
-                List<IsoRaster> iso_rasters = new List<IsoRaster>(locations.Length);
-
-                for (int i = 0; i < locations.Length; i++) {
-                    double[][] locs = new double[1][];
-                    locs[0] = new double[] { locations[i][0], locations[i][1] };
-                    request["locations"] = locs;
-
-                    var jsonRequest = JsonSerializer.Serialize(request);
-                    var httpClient = new HttpClient();
-                    var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-                    var response = await httpClient.PostAsync(this.url + "/v2/isoraster/driving-car", content);
-                    using var stream = await response.Content.ReadAsStreamAsync();
-                    var raster = JsonSerializer.Deserialize<IsoRaster>(stream);
-                    raster.constructIndex();
-
-                    iso_rasters.Add(raster);
+                var jsonRequest = JsonSerializer.Serialize(request);
+                var httpClient = new HttpClient();
+                var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+                var response = await httpClient.PostAsync(this.url + "/v2/isoraster/driving-car", content);
+                using var stream = await response.Content.ReadAsStreamAsync();
+                var raster = JsonSerializer.Deserialize<IsoRaster>(stream);
+                if (raster == null) {
+                    return null;
                 }
+                raster.constructIndex();
 
-                return iso_rasters;
+                return raster;
             }
             catch (Exception e) {
                 return null;

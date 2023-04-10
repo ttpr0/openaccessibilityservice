@@ -11,7 +11,7 @@ namespace DVAN.Routing
 
         ISourceBlock<IsochroneCollection> requestIsochronesStream(Double[][] locations, List<Double> ranges);
 
-        Task<List<IsoRaster>> requestIsoRasters(Double[][] locations, double max_range);
+        Task<IsoRaster> requestIsoRaster(Double[][] locations, double max_range);
 
         ISourceBlock<IsoRaster> requestIsoRasterStream(Double[][] locations, double max_range);
 
