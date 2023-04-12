@@ -9,94 +9,73 @@ namespace DVAN.Population
 {
     public class PopulationView : IPopulationView
     {
-        PopulationContainer population;
+        public KdTree<object> index;
+        public List<Coordinate> points;
+        public List<Coordinate> utm_points;
+        public List<int> counts;
+
         Geometry? area;
         Envelope? envelope;
-        String population_type;
-        int[]? population_indizes;
 
-        public PopulationView(PopulationContainer population, Envelope? envelope)
+        public PopulationView(List<Coordinate> points, List<Coordinate> utm_points, List<int> counts, Envelope? envelope)
         {
-            this.population = population;
-            this.envelope = envelope;
-            this.area = null;
-            this.population_type = "standard_all";
-        }
-
-        public PopulationView(PopulationContainer population, Envelope? envelope, String population_type, int[]? population_indizes)
-        {
-            this.population = population;
-            this.envelope = envelope;
-            this.area = null;
-            if (population_indizes == null && population_type != "standard_all") {
-                throw new ArgumentException("invalid arguments passed to constructor");
+            this.points = points;
+            this.utm_points = utm_points;
+            this.counts = counts;
+            this.index = new KdTree<object>();
+            int i = 0;
+            foreach (var coord in points) {
+                this.index.Insert(coord, i);
+                i++;
             }
-            this.population_type = population_type;
-            this.population_indizes = population_indizes;
+            this.envelope = envelope;
+            this.area = null;
         }
 
-        public PopulationView(PopulationContainer population, Geometry? area)
+        public PopulationView(List<Coordinate> points, List<Coordinate> utm_points, List<int> counts, Geometry? area)
         {
-            this.population = population;
+            this.points = points;
+            this.utm_points = utm_points;
+            this.counts = counts;
+            this.index = new KdTree<object>();
+            int i = 0;
+            foreach (var coord in points) {
+                this.index.Insert(coord, i);
+                i++;
+            }
             if (area != null) {
                 this.area = area;
                 this.envelope = area.EnvelopeInternal;
             }
-            this.population_type = "standard_all";
-        }
-
-        public Envelope? getEnvelope()
-        {
-            return this.envelope;
         }
 
         public Coordinate getCoordinate(int index)
         {
-            return this.population.points[index];
+            return this.points[index];
         }
 
         public Coordinate getCoordinate(int index, String crs)
         {
             if (crs == "EPSG:4326") {
-                return this.population.points[index];
+                return this.points[index];
             }
             else if (crs == "EPSG:25832") {
-                return this.population.utm_points[index];
+                return this.utm_points[index];
             }
             return new Coordinate(0, 0);
         }
 
         public int getPopulationCount(int index)
         {
-            PopulationAttributes attrs = this.population.attributes[index];
-            if (this.population_type == null || this.population_type.Equals("standard_all")) {
-                return attrs.getPopulationCount();
-            }
-            if (this.population_type.Equals("standard")) {
-                return attrs.getStandardPopulation(population_indizes);
-            }
-            if (this.population_type.Equals("kita_schul")) {
-                return attrs.getKitaSchulPopulation(population_indizes);
-            }
-            return 0;
+            return this.counts[index];
         }
 
         public List<int> getAllPoints()
         {
-            List<int> points = new List<int>(100);
-
-            if (this.envelope == null) {
-                return this.population.attributes.Select(e => e.getIndex()).ToList<int>();
+            var points = new List<int>(this.points.Count);
+            for (int i = 0; i < this.points.Count; i++) {
+                points.Add(i);
             }
-
-            var visitor = new VisitKdNode<object>();
-            visitor.setFunc((KdNode<object> node) => {
-                int index = (int)node.Data;
-                points.Add(index);
-            });
-
-            this.population.index.Query(this.envelope, visitor);
-
             return points;
         }
 
@@ -129,29 +108,9 @@ namespace DVAN.Population
                 }
             });
 
-            this.population.index.Query(env, visitor);
+            this.index.Query(env, visitor);
 
             return points;
-        }
-
-        public String getPopulationType()
-        {
-            return population_type;
-        }
-
-        public void setPopulationType(String population_type)
-        {
-            this.population_type = population_type;
-        }
-
-        public int[]? getPopulationIndizes()
-        {
-            return population_indizes;
-        }
-
-        public void setPopulationIndizes(int[] population_indizes)
-        {
-            this.population_indizes = population_indizes;
         }
     }
 }

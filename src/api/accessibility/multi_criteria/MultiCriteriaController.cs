@@ -28,13 +28,10 @@ namespace DVAN.API
         [HttpPost]
         public async Task<GridResponse> calcMultiCriteriaGrid([FromBody] MultiCriteriaRequest request)
         {
-            PopulationContainer population = PopulationManager.getPopulation();
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
             logger.LogDebug("Creating PopulationView");
-            PopulationView view = population.getPopulationView(request.getEnvelope());
-            view.setPopulationType(request.population_type);
-            view.setPopulationIndizes(request.population_indizes);
+            IPopulationView view = PopulationManager.getPopulationView(request.getEnvelope(), request.population_type, request.population_indizes);
 
             logger.LogDebug("Creating GravityAccessibility");
             GravityAccessibility gravity = new GravityAccessibility(view, provider);

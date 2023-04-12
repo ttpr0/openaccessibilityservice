@@ -67,16 +67,6 @@ namespace DVAN.Population
 
             return points;
         }
-
-        public PopulationView getPopulationView(Envelope? envelope)
-        {
-            return new PopulationView(this, envelope);
-        }
-
-        public PopulationView getPopulationView(Geometry? area)
-        {
-            return new PopulationView(this, area);
-        }
     }
 
     class VisitKdNode<T> : IKdNodeVisitor<T> where T : class

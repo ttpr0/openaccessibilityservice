@@ -21,9 +21,8 @@ namespace DVAN.API
         [HttpPost]
         public async Task<GridResponse> calcSimpleGrid([FromBody] SimpleAccessibilityRequest request)
         {
-            PopulationContainer population = PopulationManager.getPopulation();
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
-            IPopulationView view = population.getPopulationView(request.getEnvelope());
+            IPopulationView view = PopulationManager.getPopulationView(request.getEnvelope());
 
             SimpleAccessibility simple = new SimpleAccessibility(view, provider);
 

@@ -22,8 +22,7 @@ namespace DVAN.API
         [HttpPost]
         public async Task<GridResponse> calculateFCA([FromBody] FCARequest request)
         {
-            PopulationContainer population = PopulationManager.getPopulation();
-            IPopulationView view = population.getPopulationView2(request.getEnvelope());
+            IPopulationView view = PopulationManager.getPopulationView(request.getEnvelope());
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
             var weights = await Simple2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, request.range_factors, provider, request.mode);

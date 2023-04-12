@@ -35,9 +35,8 @@ namespace DVAN.API
                 return new ErrorResponse("nearest_query", "invalid parameters");
             }
 
-            PopulationContainer population = PopulationManager.getPopulation();
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
-            IPopulationView view = population.getPopulationView(parameters.envelope);
+            IPopulationView view = PopulationManager.getPopulationView(parameters.envelope);
 
             var accessibility = await NearestQuery.computeAccessibility(parameters.facility_locations, parameters.ranges, view, provider);
 
@@ -74,8 +73,7 @@ namespace DVAN.API
             var accessibilities = session.accessibilities;
             var parameters = session.parameters;
 
-            PopulationContainer population = PopulationManager.getPopulation();
-            IPopulationView view = population.getPopulationView(parameters.envelope);
+            IPopulationView view = PopulationManager.getPopulationView(parameters.envelope);
 
             var response = NearestQuery.buildGridResponse(population_indices, view, accessibilities, parameters.facility_count);
             return response;
@@ -113,8 +111,7 @@ namespace DVAN.API
             var reverse_indices = session.reverse_indizes;
             var computed_values = session.computed_values;
             var range_max = session.parameters.range_max;
-            PopulationContainer population = PopulationManager.getPopulation();
-            IPopulationView view = population.getPopulationView(parameters.envelope);
+            IPopulationView view = PopulationManager.getPopulationView(parameters.envelope);
             List<int> indizes;
             if (request.envelop == null) {
                 indizes = view.getAllPoints();

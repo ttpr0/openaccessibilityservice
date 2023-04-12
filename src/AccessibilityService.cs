@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using DVAN.Population;
 using DVAN.Routing;
 using DVAN.API;
@@ -38,5 +38,6 @@ app.MapControllers();
 
 RoutingManager.addRoutingProvider(new ORSProvider("http://172.26.62.41:8080/ors"));
 PopulationManager.loadPopulation("./files/population.csv");
+PopulationManager.periodicClearViewStore(TimeSpan.FromSeconds(60), TimeSpan.FromMinutes(5));
 
 app.Run("http://localhost:5000");

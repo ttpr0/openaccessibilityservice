@@ -28,9 +28,8 @@ namespace DVAN.API
         [HttpPost]
         public async Task<GridResponse> calcGravityGrid([FromBody] GravityAccessibilityRequest request)
         {
-            PopulationContainer population = PopulationManager.getPopulation();
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
-            IPopulationView view = population.getPopulationView(request.getEnvelope());
+            IPopulationView view = PopulationManager.getPopulationView(request.getEnvelope());
 
             logger.LogDebug("start calculation gravity accessibility");
             long start = Environment.TickCount64;
