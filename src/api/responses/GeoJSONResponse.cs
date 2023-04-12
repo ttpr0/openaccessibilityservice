@@ -1,15 +1,30 @@
 using System;
-using System.Collections.Generic;
 using NetTopologySuite.Geometries;
+using DVAN.Population;
 
 namespace DVAN.API
 {
-    public abstract class GeoJsonFeature
+    public class GeoJSONResponse
     {
+        public String type { get; set; }
+        public GeoJSONFeature[] features { get; set; }
 
+        public GeoJSONResponse(PopulationContainer population, float[] weights)
+        {
+            this.type = "FeatureCollection";
+            GeoJSONFeature[] points = new GeoJSONPoint[weights.Length];
+            for (int i = 0; i < points.Length; i++) {
+                Coordinate p = population.getPoint(i);
+                points[i] = new GeoJSONPoint((int)weights[i], p);
+            }
+            this.features = points;
+        }
     }
 
-    public class GeoJsonPoint : GeoJsonFeature
+    public abstract class GeoJSONFeature
+    { }
+
+    public class GeoJSONPoint : GeoJSONFeature
     {
         public string type = "Feature";
         public Properties properties;
@@ -38,11 +53,10 @@ namespace DVAN.API
             }
         }
 
-        public GeoJsonPoint(int value, Coordinate point)
+        public GeoJSONPoint(int value, Coordinate point)
         {
             this.properties = new Properties(value);
             this.geometry = new Geometry(point);
         }
     }
-
 }
