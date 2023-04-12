@@ -10,6 +10,12 @@ namespace DVAN.API
 
         public List<double>? range_factors { get; set; }
 
+        public Guid? population_id { get; set; }
+
+        public double[][]? population_locations { get; set; }
+
+        public double[]? population_weights { get; set; }
+
         public double[][]? facility_locations { get; set; }
 
         public string? mode { get; set; }
