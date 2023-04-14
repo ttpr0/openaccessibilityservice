@@ -109,7 +109,7 @@ namespace DVAN.API
                 else {
                     accessibility = -9999;
                 }
-                response[index] = accessibility;
+                response[i] = accessibility;
             }
             return response;
         }

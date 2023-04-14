@@ -20,7 +20,8 @@ namespace DVAN.API
     public class PopulationController
     {
         [HttpPost]
-        public object storePopulationView([FromBody] PopulationRequest request)
+        [Route("store")]
+        public object storePopulationView([FromBody] PopulationStoreRequest request)
         {
             IPopulationView view;
 
@@ -34,6 +35,40 @@ namespace DVAN.API
             var id = PopulationManager.storePopulationView(view);
             return new {
                 id = id
+            };
+        }
+
+        [HttpPost]
+        [Route("get")]
+        public object getPopulationView([FromBody] PopulationGetRequest request)
+        {
+            IPopulationView view;
+
+            if (request.population_id != null) {
+                view = PopulationManager.getStoredPopulationView(request.population_id.Value);
+                if (view == null) {
+                    return new ErrorResponse("Population Get", "no stored population-view found");
+                }
+            }
+            else {
+                view = PopulationManager.getPopulationView(request.getEnvelope());
+            }
+
+            var indices = view.getAllPoints();
+            var locations = new List<double[]>();
+            var weights = new List<double>();
+            for (int i = 0; i < indices.Count; i++) {
+                int index = indices[i];
+                var point = view.getCoordinate(index);
+                var weight = view.getPopulationCount(index);
+
+                locations.Add(new double[] { point.X, point.Y });
+                weights.Add(weight);
+            }
+
+            return new {
+                locations = locations,
+                weights = weights
             };
         }
     }
