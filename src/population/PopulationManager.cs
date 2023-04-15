@@ -50,6 +50,16 @@ namespace DVAN.Population
             return new PopulationView(points, null, counts, envelop);
         }
 
+        public static IPopulationView createPopulationView(double[][] locations, Envelope envelop)
+        {
+            var points = new List<Coordinate>();
+            for (int i = 0; i < locations.Length; i++) {
+                var location = locations[i];
+                points.Add(new Coordinate(location[0], location[1]));
+            }
+            return new PopulationView(points, null, null, envelop);
+        }
+
         public static async Task periodicClearViewStore(TimeSpan run_interval, TimeSpan del_interval)
         {
             while (true) {

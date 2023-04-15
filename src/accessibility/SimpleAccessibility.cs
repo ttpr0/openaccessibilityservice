@@ -43,6 +43,7 @@ namespace DVAN.Accessibility
                 if (isochrones == null) {
                     continue;
                 }
+                int facility_index = isochrones.getID();
 
                 // double[][] locations = new double[1][];
                 // locations[0] = new double[] { 0, 0 };
@@ -83,7 +84,7 @@ namespace DVAN.Accessibility
                             else {
                                 access = accessibilities[index];
                             }
-                            accessibilities[index].Add(new RangeRef((int)range, f));
+                            accessibilities[index].Add(new RangeRef((int)range, facility_index));
                             population_count += population.getPopulationCount(index);
                         }
                     }
@@ -101,10 +102,10 @@ namespace DVAN.Accessibility
         public double range;
         public int index;
 
-        public RangeRef(double range, int count)
+        public RangeRef(double range, int index)
         {
             this.range = range;
-            this.index = count;
+            this.index = index;
         }
     }
 

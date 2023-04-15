@@ -20,7 +20,7 @@ namespace DVAN.Routing
             this.url = url;
         }
 
-        async public Task<List<IsochroneCollection>> requestIsochrones(Double[][] locations, List<Double> ranges)
+        async public Task<List<IsochroneCollection>> requestIsochrones(double[][] locations, List<double> ranges)
         {
             var request = new Dictionary<string, object> {
                 ["locations"] = locations,
@@ -64,7 +64,7 @@ namespace DVAN.Routing
                     isochrones.Add(isochrone);
                 }
 
-                var isoColl = new IsochroneCollection(envelope, isochrones, center);
+                var isoColl = new IsochroneCollection(0, envelope, isochrones, center);
                 isoColls.Add(isoColl);
 
                 return isoColls;
@@ -74,7 +74,7 @@ namespace DVAN.Routing
             }
         }
 
-        public ISourceBlock<IsochroneCollection?> requestIsochronesStream(Double[][] locations, List<Double> ranges)
+        public ISourceBlock<IsochroneCollection?> requestIsochronesStream(double[][] locations, List<double> ranges)
         {
             var buffer = new BufferBlock<IsochroneCollection>();
             for (int i = 0; i < locations.Length; i++) {
@@ -120,7 +120,7 @@ namespace DVAN.Routing
                             isochrones.Add(isochrone);
                         }
 
-                        await buffer.SendAsync(new IsochroneCollection(envelope, isochrones, center));
+                        await buffer.SendAsync(new IsochroneCollection(index, envelope, isochrones, center));
                     }
                     catch (Exception e) {
                         await buffer.SendAsync(null);
