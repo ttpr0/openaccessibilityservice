@@ -11,7 +11,7 @@ namespace DVAN.Population
     {
         private static PopulationContainer population;
 
-        private static Dictionary<Guid, (IPopulationView, DateTime)> stored_views;
+        private static Dictionary<Guid, (IPopulationView, DateTime)> stored_views = new Dictionary<Guid, (IPopulationView, DateTime)>();
 
         public static void loadPopulation(String filename)
         {
