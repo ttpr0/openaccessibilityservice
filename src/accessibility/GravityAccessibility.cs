@@ -150,8 +150,12 @@ namespace DVAN.Accessibility
                 long start = Environment.TickCount64;
                 foreach (int index in points) {
                     Coordinate p = population.getCoordinate(index, "EPSG:25832");
-                    int range = raster.getValueAtCoordinate(p);
-                    if (range != -1) {
+                    var range_dict = raster.getValueAtCoordinate(p);
+                    if (range_dict == null) {
+                        continue;
+                    }
+                    bool found = range_dict.TryGetValue(0, out int range);
+                    if (found) {
                         Access access;
                         if (!accessibilities.ContainsKey(index)) {
                             access = new Access();
