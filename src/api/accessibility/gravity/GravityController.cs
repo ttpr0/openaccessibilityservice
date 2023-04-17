@@ -26,10 +26,27 @@ namespace DVAN.API
         }
 
         [HttpPost]
-        public async Task<GridResponse> calcGravityGrid([FromBody] GravityAccessibilityRequest request)
+        public async Task<object> calcGravity([FromBody] GravityAccessibilityRequest request)
         {
+            IPopulationView view;
+            if (request.population_id != null) {
+                view = PopulationManager.getStoredPopulationView(request.population_id.Value);
+                if (view == null) {
+                    if (request.population_locations != null) {
+                        view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
+                    }
+                    else {
+                        view = PopulationManager.getPopulationView(request.getEnvelope());
+                    }
+                }
+            }
+            else if (request.population_locations != null) {
+                view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
+            }
+            else {
+                view = PopulationManager.getPopulationView(request.getEnvelope());
+            }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
-            IPopulationView view = PopulationManager.getPopulationView(request.getEnvelope());
 
             logger.LogDebug("start calculation gravity accessibility");
             long start = Environment.TickCount64;
@@ -41,10 +58,68 @@ namespace DVAN.API
             logger.LogDebug("start building response");
             var response = this.buildResponse(view, gravity.getAccessibility());
             logger.LogDebug("response build successfully");
+
+            return new {
+                access = response
+            };
+        }
+
+        [HttpPost]
+        [Route("grid")]
+        public async Task<GridResponse> calcGravityGrid([FromBody] GravityAccessibilityRequest request)
+        {
+            IPopulationView view;
+            if (request.population_id != null) {
+                view = PopulationManager.getStoredPopulationView(request.population_id.Value);
+                if (view == null) {
+                    if (request.population_locations != null) {
+                        view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
+                    }
+                    else {
+                        view = PopulationManager.getPopulationView(request.getEnvelope());
+                    }
+                }
+            }
+            else if (request.population_locations != null) {
+                view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
+            }
+            else {
+                view = PopulationManager.getPopulationView(request.getEnvelope());
+            }
+            IRoutingProvider provider = RoutingManager.getRoutingProvider();
+
+            logger.LogDebug("start calculation gravity accessibility");
+            long start = Environment.TickCount64;
+            GravityAccessibility gravity = new GravityAccessibility(view, provider);
+            await gravity.calcAccessibility(request.facility_locations, request.ranges, request.range_factors);
+            long end = Environment.TickCount64;
+            logger.LogDebug($"finished in {end - start} ms");
+
+            logger.LogDebug("start building response");
+            var response = this.buildGridResponse(view, gravity.getAccessibility());
+            logger.LogDebug("response build successfully");
             return response;
         }
 
-        GridResponse buildResponse(IPopulationView population, Dictionary<int, Access> accessibility)
+        float[] buildResponse(IPopulationView population, Dictionary<int, Access> accessibilities)
+        {
+            List<int> indices = population.getAllPoints();
+            var response = new float[indices.Count];
+            for (int i = 0; i < indices.Count; i++) {
+                int index = indices[i];
+                float accessibility;
+                if (accessibilities.TryGetValue(index, out Access value)) {
+                    accessibility = value.access;
+                }
+                else {
+                    accessibility = -9999;
+                }
+                response[i] = accessibility;
+            }
+            return response;
+        }
+
+        GridResponse buildGridResponse(IPopulationView population, Dictionary<int, Access> accessibility)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;

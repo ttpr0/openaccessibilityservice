@@ -12,6 +12,12 @@ namespace DVAN.API
 
         public double[][]? facility_locations { get; set; }
 
+        public Guid? population_id { get; set; }
+
+        public double[][]? population_locations { get; set; }
+
+        public double[]? population_weights { get; set; }
+
         public double[]? envelop { get; set; }
 
         private Envelope? envelope;
