@@ -15,7 +15,6 @@ namespace DVAN.Accessibility
         private IPopulationView population;
         private IRoutingProvider provider;
         private Dictionary<int, List<RangeRef>> accessibilities;
-        private FacilityCatchment[] catchments;
 
         public SimpleAccessibility(IPopulationView population, IRoutingProvider provider)
         {
@@ -71,7 +70,6 @@ namespace DVAN.Accessibility
                     }
                     Envelope env = iso.EnvelopeInternal;
                     List<int> points = population.getPointsInEnvelop(env);
-                    int population_count = 0;
                     foreach (int index in points) {
                         Coordinate p = population.getCoordinate(index);
                         var location = SimplePointInAreaLocator.Locate(p, iso);
@@ -85,15 +83,12 @@ namespace DVAN.Accessibility
                                 access = accessibilities[index];
                             }
                             accessibilities[index].Add(new RangeRef((int)range, facility_index));
-                            population_count += population.getPopulationCount(index);
                         }
                     }
-                    catchments[f].addRangeRef(range, population_count);
                 }
             }
 
             this.accessibilities = accessibilities;
-            this.catchments = catchments;
         }
     }
 
