@@ -19,10 +19,13 @@ namespace DVAN.API
     public class SimpleAccessibilityController
     {
         [HttpPost]
-        public async Task<GridResponse> calcSimpleGrid([FromBody] SimpleAccessibilityRequest request)
+        public async Task<object> calcSimpleGrid([FromBody] SimpleAccessibilityRequest request)
         {
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
-            IPopulationView view = PopulationManager.getPopulationView(request.getEnvelope());
+            IPopulationView? view = PopulationManager.getPopulationView(request.population);
+            if (view == null) {
+                return new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid");
+            }
 
             SimpleAccessibility simple = new SimpleAccessibility(view, provider);
 

@@ -28,23 +28,9 @@ namespace DVAN.API
         [HttpPost]
         public async Task<object> calcGravity([FromBody] GravityAccessibilityRequest request)
         {
-            IPopulationView view;
-            if (request.population_id != null) {
-                view = PopulationManager.getStoredPopulationView(request.population_id.Value);
-                if (view == null) {
-                    if (request.population_locations != null) {
-                        view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
-                    }
-                    else {
-                        view = PopulationManager.getPopulationView(request.getEnvelope());
-                    }
-                }
-            }
-            else if (request.population_locations != null) {
-                view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
-            }
-            else {
-                view = PopulationManager.getPopulationView(request.getEnvelope());
+            IPopulationView? view = PopulationManager.getPopulationView(request.population);
+            if (view == null) {
+                return new ErrorResponse("accessibility/gravity", "failed to get population-view, parameters are invalid");
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
@@ -66,25 +52,11 @@ namespace DVAN.API
 
         [HttpPost]
         [Route("grid")]
-        public async Task<GridResponse> calcGravityGrid([FromBody] GravityAccessibilityRequest request)
+        public async Task<object> calcGravityGrid([FromBody] GravityAccessibilityRequest request)
         {
-            IPopulationView view;
-            if (request.population_id != null) {
-                view = PopulationManager.getStoredPopulationView(request.population_id.Value);
-                if (view == null) {
-                    if (request.population_locations != null) {
-                        view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
-                    }
-                    else {
-                        view = PopulationManager.getPopulationView(request.getEnvelope());
-                    }
-                }
-            }
-            else if (request.population_locations != null) {
-                view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
-            }
-            else {
-                view = PopulationManager.getPopulationView(request.getEnvelope());
+            IPopulationView? view = PopulationManager.getPopulationView(request.population);
+            if (view == null) {
+                return new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid");
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
@@ -108,7 +80,7 @@ namespace DVAN.API
             for (int i = 0; i < indices.Count; i++) {
                 int index = indices[i];
                 float accessibility;
-                if (accessibilities.TryGetValue(index, out Access value)) {
+                if (accessibilities.TryGetValue(index, out Access? value)) {
                     accessibility = value.access;
                 }
                 else {
@@ -158,7 +130,7 @@ namespace DVAN.API
             float dy = extend[3] - extend[1];
             int[] size = { (int)(dx / 100), (int)(dy / 100) };
 
-            String crs = "EPSG:25832";
+            string crs = "EPSG:25832";
 
             return new GridResponse(features, crs, extend, size);
         }

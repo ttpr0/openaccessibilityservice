@@ -26,12 +26,15 @@ namespace DVAN.API
         }
 
         [HttpPost]
-        public async Task<GridResponse> calcMultiCriteriaGrid([FromBody] MultiCriteriaRequest request)
+        public async Task<object> calcMultiCriteriaGrid([FromBody] MultiCriteriaRequest request)
         {
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
             logger.LogDebug("Creating PopulationView");
-            IPopulationView view = PopulationManager.getPopulationView(request.getEnvelope(), request.population_type, request.population_indizes);
+            IPopulationView? view = PopulationManager.getPopulationView(request.population);
+            if (view == null) {
+                return new ErrorResponse("accessibility/multi", "failed to get population-view, parameters are invalid");
+            }
 
             logger.LogDebug("Creating GravityAccessibility");
             GravityAccessibility gravity = new GravityAccessibility(view, provider);
@@ -92,7 +95,7 @@ namespace DVAN.API
             float dy = extend[3] - extend[1];
             int[] size = { (int)(dx / 100), (int)(dy / 100) };
 
-            String crs = "EPSG:25832";
+            string crs = "EPSG:25832";
 
             return new GridResponse(features, crs, extend, size);
         }

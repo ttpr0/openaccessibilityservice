@@ -13,7 +13,7 @@ namespace DVAN.Population
 
         private static Dictionary<Guid, (IPopulationView, DateTime)> stored_views = new Dictionary<Guid, (IPopulationView, DateTime)>();
 
-        public static void loadPopulation(String filename)
+        public static void loadPopulation(string filename)
         {
             PopulationManager.population = PopulationLoader.loadFromCSV(filename);
         }
@@ -23,17 +23,59 @@ namespace DVAN.Population
             return PopulationManager.population;
         }
 
-        public static IPopulationView getPopulationView(Envelope? envelope)
+        public static IPopulationView? getPopulationView(PopulationRequestParams param)
+        {
+            IPopulationView view;
+            try {
+                if (param.population_id != null) {
+                    view = PopulationManager.getStoredPopulationView(param.population_id.Value);
+                    if (view != null) {
+                        return view;
+                    }
+                }
+                if (param.population_locations != null && param.population_weights != null) {
+                    Envelope envelope;
+                    if (param.envelop != null) {
+                        envelope = new Envelope(param.envelop[0], param.envelop[2], param.envelop[1], param.envelop[3]);
+                    }
+                    else {
+                        envelope = null;
+                    }
+                    view = PopulationManager.createPopulationView(param.population_locations, param.population_weights, envelope);
+                    if (view != null) {
+                        return view;
+                    }
+                }
+                if (true) {
+                    if (param.envelop != null) {
+                        var envelope = new Envelope(param.envelop[0], param.envelop[2], param.envelop[1], param.envelop[3]);
+                        if (param.population_type != null) {
+                            view = PopulationManager.createPopulationView(envelope, param.population_type, param.population_indizes);
+                        }
+                        else {
+                            view = PopulationManager.createPopulationView(envelope);
+                        }
+                        if (view != null) {
+                            return view;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        public static IPopulationView createPopulationView(Envelope? envelope)
         {
             return new PopulationContainerView(population, envelope);
         }
 
-        public static IPopulationView getPopulationView(Envelope? envelope, string type, int[] indizes)
+        public static IPopulationView createPopulationView(Envelope? envelope, string type, int[] indizes)
         {
             return new PopulationContainerView(population, envelope, type, indizes);
         }
 
-        public static IPopulationView getPopulationView(Geometry? area)
+        public static IPopulationView createPopulationView(Geometry? area)
         {
             return new PopulationContainerView(population, area);
         }
@@ -60,6 +102,23 @@ namespace DVAN.Population
             return new PopulationView(points, null, null, envelop);
         }
 
+        public static Guid storePopulationView(IPopulationView view)
+        {
+            var id = Guid.NewGuid();
+            stored_views[id] = (view, DateTime.UtcNow);
+            return id;
+        }
+
+        public static IPopulationView? getStoredPopulationView(Guid id)
+        {
+            if (stored_views.ContainsKey(id)) {
+                var (view, _) = stored_views[id];
+                stored_views[id] = (view, DateTime.UtcNow);
+                return view;
+            }
+            return null;
+        }
+
         public static async Task periodicClearViewStore(TimeSpan run_interval, TimeSpan del_interval)
         {
             while (true) {
@@ -76,23 +135,6 @@ namespace DVAN.Population
                 }
                 await Task.Delay(run_interval);
             }
-        }
-
-        public static Guid storePopulationView(IPopulationView view)
-        {
-            var id = Guid.NewGuid();
-            stored_views[id] = (view, DateTime.UtcNow);
-            return id;
-        }
-
-        public static IPopulationView? getStoredPopulationView(Guid id)
-        {
-            if (stored_views.ContainsKey(id)) {
-                var (view, _) = stored_views[id];
-                stored_views[id] = (view, DateTime.UtcNow);
-                return view;
-            }
-            return null;
         }
     }
 }

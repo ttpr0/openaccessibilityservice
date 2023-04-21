@@ -23,13 +23,9 @@ namespace DVAN.API
         [Route("store")]
         public object storePopulationView([FromBody] PopulationStoreRequest request)
         {
-            IPopulationView view;
-
-            if (request.population_locations != null) {
-                view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
-            }
-            else {
-                view = PopulationManager.getPopulationView(request.getEnvelope());
+            IPopulationView? view = PopulationManager.getPopulationView(request.population);
+            if (view == null) {
+                return new ErrorResponse("utility/population/store", "failed to get population-view, parameters are invalid");
             }
 
             var id = PopulationManager.storePopulationView(view);
@@ -42,16 +38,19 @@ namespace DVAN.API
         [Route("get")]
         public object getPopulationView([FromBody] PopulationGetRequest request)
         {
-            IPopulationView view;
+            IPopulationView? view;
 
             if (request.population_id != null) {
                 view = PopulationManager.getStoredPopulationView(request.population_id.Value);
                 if (view == null) {
-                    return new ErrorResponse("Population Get", "no stored population-view found");
+                    return new ErrorResponse("utility/population/get", "no stored population-view found");
                 }
             }
             else {
-                view = PopulationManager.getPopulationView(request.getEnvelope());
+                view = PopulationManager.getPopulationView(request.population);
+                if (view == null) {
+                    return new ErrorResponse("utility/population/get", "failed to get population-view, parameters are invalid");
+                }
             }
 
             var indices = view.getAllPoints();

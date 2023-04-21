@@ -31,7 +31,7 @@ namespace DVAN.API
         public async Task<object> calcQuery([FromBody] AggregateQueryRequest request)
         {
             Dictionary<int, List<int>> accessibility;
-            IPopulationView view;
+            IPopulationView? view;
             if (request.session_id != null) {
                 var session_id = request.session_id.Value;
                 if (!sessions.ContainsKey(session_id)) {
@@ -42,22 +42,9 @@ namespace DVAN.API
                 view = session.population_view;
             }
             else {
-                if (request.population_id != null) {
-                    view = PopulationManager.getStoredPopulationView(request.population_id.Value);
-                    if (view == null) {
-                        if (request.population_locations != null) {
-                            view = PopulationManager.createPopulationView(request.population_locations, request.getEnvelope());
-                        }
-                        else {
-                            view = PopulationManager.getPopulationView(request.getEnvelope());
-                        }
-                    }
-                }
-                else if (request.population_locations != null) {
-                    view = PopulationManager.createPopulationView(request.population_locations, request.getEnvelope());
-                }
-                else {
-                    view = PopulationManager.getPopulationView(request.getEnvelope());
+                view = PopulationManager.getPopulationView(request.population);
+                if (view == null) {
+                    return new ErrorResponse("queries/aggregate", "failed to get population-view, parameters are invalid");
                 }
                 IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
@@ -86,7 +73,7 @@ namespace DVAN.API
         public async Task<object> calcGrid([FromBody] AggregateQueryRequest request)
         {
             Dictionary<int, List<int>> accessibility;
-            IPopulationView view;
+            IPopulationView? view;
             if (request.session_id != null) {
                 var session_id = request.session_id.Value;
                 if (!sessions.ContainsKey(session_id)) {
@@ -97,22 +84,9 @@ namespace DVAN.API
                 view = session.population_view;
             }
             else {
-                if (request.population_id != null) {
-                    view = PopulationManager.getStoredPopulationView(request.population_id.Value);
-                    if (view == null) {
-                        if (request.population_locations != null) {
-                            view = PopulationManager.createPopulationView(request.population_locations, request.getEnvelope());
-                        }
-                        else {
-                            view = PopulationManager.getPopulationView(request.getEnvelope());
-                        }
-                    }
-                }
-                else if (request.population_locations != null) {
-                    view = PopulationManager.createPopulationView(request.population_locations, request.getEnvelope());
-                }
-                else {
-                    view = PopulationManager.getPopulationView(request.getEnvelope());
+                view = PopulationManager.getPopulationView(request.population);
+                if (view == null) {
+                    return new ErrorResponse("queries/aggregate/grid", "failed to get population-view, parameters are invalid");
                 }
                 IRoutingProvider provider = RoutingManager.getRoutingProvider();
 

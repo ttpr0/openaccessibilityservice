@@ -22,23 +22,9 @@ namespace DVAN.API
         [HttpPost]
         public async Task<object> calcFCA([FromBody] FCARequest request)
         {
-            IPopulationView view;
-            if (request.population_id != null) {
-                view = PopulationManager.getStoredPopulationView(request.population_id.Value);
-                if (view == null) {
-                    if (request.population_locations != null) {
-                        view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
-                    }
-                    else {
-                        view = PopulationManager.getPopulationView(request.getEnvelope());
-                    }
-                }
-            }
-            else if (request.population_locations != null) {
-                view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
-            }
-            else {
-                view = PopulationManager.getPopulationView(request.getEnvelope());
+            IPopulationView? view = PopulationManager.getPopulationView(request.population);
+            if (view == null) {
+                return new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid");
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
@@ -60,25 +46,11 @@ namespace DVAN.API
 
         [HttpPost]
         [Route("grid")]
-        public async Task<GridResponse> calcFCAGrid([FromBody] FCARequest request)
+        public async Task<object> calcFCAGrid([FromBody] FCARequest request)
         {
-            IPopulationView view;
-            if (request.population_id != null) {
-                view = PopulationManager.getStoredPopulationView(request.population_id.Value);
-                if (view == null) {
-                    if (request.population_locations != null) {
-                        view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
-                    }
-                    else {
-                        view = PopulationManager.getPopulationView(request.getEnvelope());
-                    }
-                }
-            }
-            else if (request.population_locations != null) {
-                view = PopulationManager.createPopulationView(request.population_locations, request.population_weights, request.getEnvelope());
-            }
-            else {
-                view = PopulationManager.getPopulationView(request.getEnvelope());
+            IPopulationView? view = PopulationManager.getPopulationView(request.population);
+            if (view == null) {
+                return new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid");
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
