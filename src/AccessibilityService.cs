@@ -5,6 +5,8 @@ using DVAN.API;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
     Args = args
@@ -13,6 +15,11 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options => {
+    // using System.Reflection;
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options => {
@@ -24,6 +31,9 @@ builder.Services.AddCors(options => {
 var app = builder.Build();
 
 app.UseCors(MyAllowSpecificOrigins);
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 //add static file provider
 var provider = new FileExtensionContentTypeProvider();

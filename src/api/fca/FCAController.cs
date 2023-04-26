@@ -17,14 +17,19 @@ namespace DVAN.API
 {
     [ApiController]
     [Route("/v1/fca")]
-    public class FCAController
+    public class FCAController : ControllerBase
     {
+        /// <summary>
+        /// Calculates simple floating catchment area.
+        /// </summary>
         [HttpPost]
-        public async Task<object> calcFCA([FromBody] FCARequest request)
+        [ProducesResponseType(200, Type = typeof(FCAResponse))]
+        [ProducesResponseType(400, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> calcFCA([FromBody] FCARequest request)
         {
             IPopulationView? view = PopulationManager.getPopulationView(request.population);
             if (view == null) {
-                return new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid");
+                return BadRequest(new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid"));
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
@@ -39,18 +44,23 @@ namespace DVAN.API
             float factor = 100 / max_weight;
 
             var response = this.buildResponse(view, weights, factor);
-            return new {
+            return Ok(new FCAResponse {
                 access = response
-            };
+            });
         }
 
+        /// <summary>
+        /// Calculates simple floating catchment area, returns grid response.
+        /// </summary>
         [HttpPost]
         [Route("grid")]
-        public async Task<object> calcFCAGrid([FromBody] FCARequest request)
+        [ProducesResponseType(200, Type = typeof(GridResponse))]
+        [ProducesResponseType(400, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> calcFCAGrid([FromBody] FCARequest request)
         {
             IPopulationView? view = PopulationManager.getPopulationView(request.population);
             if (view == null) {
-                return new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid");
+                return BadRequest(new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid"));
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
@@ -65,7 +75,7 @@ namespace DVAN.API
             float factor = 100 / max_weight;
 
             var response = this.buildGridResponse(view, weights, factor);
-            return response;
+            return Ok(response);
         }
 
         float[] buildResponse(IPopulationView population, Dictionary<int, float> accessibilities, float factor)
