@@ -32,8 +32,9 @@ namespace DVAN.API
         {
             Dictionary<int, List<RangeRef>> accessibility;
             IPopulationView? view;
+            Guid session_id;
             if (request.session_id != null) {
-                var session_id = request.session_id.Value;
+                session_id = request.session_id.Value;
                 if (!sessions.ContainsKey(session_id)) {
                     return new ErrorResponse("n_nearest", "no active session found");
                 }
@@ -49,22 +50,22 @@ namespace DVAN.API
                 IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
                 accessibility = await NNearestQuery.computeAccessibility(request.facility_locations, request.ranges, view, provider);
+
+                session_id = Guid.NewGuid();
+                sessions[session_id] = new NNearestQuerySession {
+                    id = session_id,
+                    accessibilities = accessibility,
+                    population_view = view
+                };
             }
 
-            Guid id = Guid.NewGuid();
             List<int> population_indices = view.getAllPoints();
-
-            sessions[id] = new NNearestQuerySession {
-                id = id,
-                accessibilities = accessibility,
-                population_view = view
-            };
 
             var results = NNearestQuery.computeQuery(population_indices, request.facility_values, accessibility, request.compute_type, request.facility_count);
 
             return new {
                 result = results,
-                session_id = id
+                session_id = session_id,
             };
         }
 
