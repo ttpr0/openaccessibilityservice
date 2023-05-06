@@ -36,19 +36,18 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildResponse(IPopulationView population, Dictionary<int, List<RangeRef>> accessibilities)
+        GridResponse buildResponse(IPopulationView population, List<RangeRef>[] accessibilities)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
             float maxx = -1;
             float miny = 1000000000;
             float maxy = -1;
-            List<int> indices = population.getAllPoints();
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            for (int i = 0; i < population.pointCount(); i++) {
+                int index = i;
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 List<RangeRef> ranges;
-                if (accessibilities.ContainsKey(index)) {
+                if (accessibilities[index] != null) {
                     ranges = accessibilities[index];
                 }
                 else {
@@ -87,7 +86,7 @@ namespace DVAN.API
             float dy = extend[3] - extend[1];
             int[] size = { (int)(dx / 100), (int)(dy / 100) };
 
-            String crs = "EPSG:25832";
+            string crs = "EPSG:25832";
 
             return new GridResponse(features, crs, extend, size);
         }

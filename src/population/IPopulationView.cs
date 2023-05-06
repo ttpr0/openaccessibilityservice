@@ -13,10 +13,10 @@ namespace DVAN.Population
 
         public Coordinate getCoordinate(int index, string crs);
 
-        public int getPopulationCount(int index);
+        public int getPopulation(int index);
 
-        public List<int> getAllPoints();
+        public int pointCount();
 
-        public List<int> getPointsInEnvelop(Envelope envelope);
+        public List<int> getPointsInEnvelop(Envelope? envelope);
     }
 }

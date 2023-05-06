@@ -55,18 +55,17 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildResponse(IPopulationView population, Dictionary<int, Dictionary<string, float>> accessibilities)
+        GridResponse buildResponse(IPopulationView population, Dictionary<string, float>[] accessibilities)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
             float maxx = -1;
             float miny = 1000000000;
             float maxy = -1;
-            List<int> indices = population.getAllPoints();
-            foreach (int index in indices) {
+            for (int index = 0; index < population.pointCount(); index++) {
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 Dictionary<string, float> values;
-                if (accessibilities.ContainsKey(index)) {
+                if (accessibilities[index] != null) {
                     values = accessibilities[index];
                 }
                 else {

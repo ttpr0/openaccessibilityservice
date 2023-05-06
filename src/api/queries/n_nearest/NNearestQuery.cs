@@ -16,14 +16,14 @@ namespace DVAN.API
 {
     public class NNearestQuery
     {
-        public static async Task<Dictionary<int, List<RangeRef>>> computeAccessibility(double[][] locations, List<double> ranges, IPopulationView view, IRoutingProvider provider)
+        public static async Task<List<RangeRef>[]> computeAccessibility(double[][] locations, List<double> ranges, IPopulationView view, IRoutingProvider provider)
         {
             SimpleAccessibility simple = new SimpleAccessibility(view, provider);
 
             await simple.calcAccessibility(locations, ranges);
 
             var accessibilities = simple.getAccessibilities();
-            foreach (var rangerefs in accessibilities.Values) {
+            foreach (var rangerefs in accessibilities) {
                 rangerefs.Sort((a, b) => {
                     if (a.range > b.range) {
                         return 1;
@@ -37,13 +37,13 @@ namespace DVAN.API
             return accessibilities;
         }
 
-        public static float[] computeQuery(List<int> indices, double[] values, Dictionary<int, List<RangeRef>> accessibilities, string computed_type, int count)
+        public static float[] computeQuery(double[] values, List<RangeRef>[] accessibilities, string computed_type, int count)
         {
-            var results = new float[indices.Count];
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            var results = new float[accessibilities.Length];
+            for (int i = 0; i < accessibilities.Length; i++) {
+                int index = i;
                 List<RangeRef> ranges;
-                if (accessibilities.ContainsKey(index)) {
+                if (accessibilities[index] != null) {
                     ranges = accessibilities[index];
                 }
                 else {

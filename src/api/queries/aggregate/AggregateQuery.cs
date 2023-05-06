@@ -16,7 +16,7 @@ namespace DVAN.API
 {
     public class AggregateQuery
     {
-        public static async Task<Dictionary<int, List<int>>> computeAccessibility(double[][] locations, double range, IPopulationView view, IRoutingProvider provider)
+        public static async Task<List<int>[]> computeAccessibility(double[][] locations, double range, IPopulationView view, IRoutingProvider provider)
         {
             var simple = new SimpleCatchment(view, provider);
 
@@ -25,13 +25,13 @@ namespace DVAN.API
             return simple.getAccessibilities();
         }
 
-        public static float[] computeQuery(List<int> indices, double[] values, Dictionary<int, List<int>> accessibilities, string computed_type)
+        public static float[] computeQuery(double[] values, List<int>[] accessibilities, string computed_type)
         {
-            var results = new float[indices.Count];
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            var results = new float[accessibilities.Length];
+            for (int i = 0; i < accessibilities.Length; i++) {
+                int index = i;
                 List<int> facilities;
-                if (accessibilities.ContainsKey(index)) {
+                if (accessibilities[index] != null) {
                     facilities = accessibilities[index];
                 }
                 else {

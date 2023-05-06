@@ -53,13 +53,12 @@ namespace DVAN.API
                 }
             }
 
-            var indices = view.getAllPoints();
             var locations = new List<double[]>();
             var weights = new List<double>();
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            for (int i = 0; i < view.pointCount(); i++) {
+                int index = i;
                 var point = view.getCoordinate(index);
-                var weight = view.getPopulationCount(index);
+                var weight = view.getPopulation(index);
 
                 locations.Add(new double[] { point.X, point.Y });
                 weights.Add(weight);

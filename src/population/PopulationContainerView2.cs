@@ -7,40 +7,24 @@ using NetTopologySuite.Algorithm.Locate;
 
 namespace DVAN.Population
 {
-    public class PopulationContainerView : IPopulationView
+    public class PopulationContainerView2
     {
-        KdTree<object> index;
-        List<int> points;
         PopulationContainer population;
         Geometry? area;
         Envelope? envelope;
         string population_type;
         int[]? population_indizes;
 
-        public PopulationContainerView(PopulationContainer population, Envelope? envelope)
+        public PopulationContainerView2(PopulationContainer population, Envelope? envelope)
         {
-            this.index = new KdTree<object>();
-            this.points = new List<int>();
-            var indizes = population.getPointsInEnvelop(envelope);
-            foreach (var index in indizes) {
-                this.index.Insert(population.getPoint(index), this.points.Count);
-                this.points.Add(index);
-            }
             this.population = population;
             this.envelope = envelope;
             this.area = null;
             this.population_type = "standard_all";
         }
 
-        public PopulationContainerView(PopulationContainer population, Envelope? envelope, String population_type, int[]? population_indizes)
+        public PopulationContainerView2(PopulationContainer population, Envelope? envelope, String population_type, int[]? population_indizes)
         {
-            this.index = new KdTree<object>();
-            this.points = new List<int>();
-            var indizes = population.getPointsInEnvelop(envelope);
-            foreach (var index in indizes) {
-                this.index.Insert(population.getPoint(index), this.points.Count);
-                this.points.Add(index);
-            }
             this.population = population;
             this.envelope = envelope;
             this.area = null;
@@ -51,15 +35,8 @@ namespace DVAN.Population
             this.population_indizes = population_indizes;
         }
 
-        public PopulationContainerView(PopulationContainer population, Geometry? area)
+        public PopulationContainerView2(PopulationContainer population, Geometry? area)
         {
-            this.index = new KdTree<object>();
-            this.points = new List<int>();
-            var indizes = population.getPointsInGeometry(area);
-            foreach (var index in indizes) {
-                this.index.Insert(population.getPoint(index), this.points.Count);
-                this.points.Add(index);
-            }
             this.population = population;
             if (area != null) {
                 this.area = area;
@@ -75,23 +52,23 @@ namespace DVAN.Population
 
         public Coordinate getCoordinate(int index)
         {
-            return this.population.points[this.points[index]];
+            return this.population.points[index];
         }
 
-        public Coordinate getCoordinate(int index, string crs)
+        public Coordinate getCoordinate(int index, String crs)
         {
             if (crs == "EPSG:4326") {
-                return this.population.points[this.points[index]];
+                return this.population.points[index];
             }
             else if (crs == "EPSG:25832") {
-                return this.population.utm_points[this.points[index]];
+                return this.population.utm_points[index];
             }
             return new Coordinate(0, 0);
         }
 
         public int getPopulation(int index)
         {
-            PopulationAttributes attrs = this.population.attributes[this.points[index]];
+            PopulationAttributes attrs = this.population.attributes[index];
             if (this.population_type == null || this.population_type.Equals("standard_all")) {
                 return attrs.getPopulationCount();
             }
@@ -104,12 +81,26 @@ namespace DVAN.Population
             return 0;
         }
 
-        public int pointCount()
+        public List<int> getAllPoints()
         {
-            return this.points.Count;
+            List<int> points = new List<int>(100);
+
+            if (this.envelope == null) {
+                return this.population.attributes.Select(e => e.getIndex()).ToList<int>();
+            }
+
+            var visitor = new VisitKdNode<object>();
+            visitor.setFunc((KdNode<object> node) => {
+                int index = (int)node.Data;
+                points.Add(index);
+            });
+
+            this.population.index.Query(this.envelope, visitor);
+
+            return points;
         }
 
-        public List<int> getPointsInEnvelop(Envelope? envelope)
+        public List<int> getPointsInEnvelop(Envelope envelope)
         {
             Envelope env;
             if (this.envelope == null) {
@@ -119,22 +110,31 @@ namespace DVAN.Population
                 env = this.envelope.Intersection(envelope);
             }
             if (env == null) {
-                return Enumerable.Range(0, this.pointCount()).ToList();
+                return this.getAllPoints();
             }
 
             List<int> points = new List<int>(100);
             var visitor = new VisitKdNode<object>();
             visitor.setFunc((node) => {
-                int index = (int)node.Data;
-                points.Add(index);
+                if (this.area == null) {
+                    int index = (int)node.Data;
+                    points.Add(index);
+                }
+                else {
+                    Location location = SimplePointInAreaLocator.Locate(node.Coordinate, this.area);
+                    if (location == Location.Interior) {
+                        int index = (int)node.Data;
+                        points.Add(index);
+                    }
+                }
             });
 
-            this.index.Query(env, visitor);
+            this.population.index.Query(env, visitor);
 
             return points;
         }
 
-        public string getPopulationType()
+        public String getPopulationType()
         {
             return population_type;
         }

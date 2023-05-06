@@ -36,7 +36,7 @@ namespace DVAN.API
             var weights = await Simple2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, request.range_factors, provider, request.mode);
 
             float max_weight = 0;
-            foreach (float w in weights.Values) {
+            foreach (float w in weights) {
                 if (w > max_weight) {
                     max_weight = w;
                 }
@@ -67,7 +67,7 @@ namespace DVAN.API
             var weights = await Simple2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, request.range_factors, provider, request.mode);
 
             float max_weight = 0;
-            foreach (float w in weights.Values) {
+            foreach (float w in weights) {
                 if (w > max_weight) {
                     max_weight = w;
                 }
@@ -78,37 +78,33 @@ namespace DVAN.API
             return Ok(response);
         }
 
-        float[] buildResponse(IPopulationView population, Dictionary<int, float> accessibilities, float factor)
+        float[] buildResponse(IPopulationView population, float[] accessibilities, float factor)
         {
-            List<int> indices = population.getAllPoints();
-            var response = new float[indices.Count];
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
-                float accessibility;
-                if (accessibilities.TryGetValue(index, out float value)) {
-                    accessibility = value * factor;
+            for (int i = 0; i < accessibilities.Length; i++) {
+                float accessibility = accessibilities[i];
+                if (accessibility != 0) {
+                    accessibility = accessibility * factor;
                 }
                 else {
                     accessibility = -9999;
                 }
-                response[i] = accessibility;
+                accessibilities[i] = accessibility;
             }
-            return response;
+            return accessibilities;
         }
 
-        GridResponse buildGridResponse(IPopulationView population, Dictionary<int, float> accessibilities, float factor)
+        GridResponse buildGridResponse(IPopulationView population, float[] accessibilities, float factor)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
             float maxx = -1;
             float miny = 1000000000;
             float maxy = -1;
-            List<int> indices = population.getAllPoints();
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            for (int i = 0; i < population.pointCount(); i++) {
+                int index = i;
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 float accessibility;
-                if (accessibilities.ContainsKey(index)) {
+                if (accessibilities[index] != 0) {
                     accessibility = accessibilities[index] * factor;
                 }
                 else {

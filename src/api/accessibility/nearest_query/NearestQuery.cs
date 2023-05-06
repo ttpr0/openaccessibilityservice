@@ -16,7 +16,7 @@ namespace DVAN.API
 {
     public class NearestQuery
     {
-        public static async Task<Dictionary<int, List<RangeRef>>> computeAccessibility(double[][] locations, List<double> ranges, IPopulationView view, IRoutingProvider provider)
+        public static async Task<List<RangeRef>[]> computeAccessibility(double[][] locations, List<double> ranges, IPopulationView view, IRoutingProvider provider)
         {
             SimpleAccessibility simple = new SimpleAccessibility(view, provider);
 
@@ -25,18 +25,18 @@ namespace DVAN.API
             return simple.getAccessibilities();
         }
 
-        public static GridResponse buildGridResponse(List<int> indices, IPopulationView population, Dictionary<int, List<RangeRef>> accessibilities, int count)
+        public static GridResponse buildGridResponse(IPopulationView population, List<RangeRef>[] accessibilities, int count)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
             float maxx = -1;
             float miny = 1000000000;
             float maxy = -1;
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            for (int i = 0; i < population.pointCount(); i++) {
+                int index = i;
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 List<RangeRef> ranges;
-                if (accessibilities.ContainsKey(index)) {
+                if (accessibilities[index] != null) {
                     ranges = accessibilities[index];
                 }
                 else {
@@ -77,19 +77,19 @@ namespace DVAN.API
             float dy = extend[3] - extend[1];
             int[] size = { (int)(dx / 100), (int)(dy / 100) };
 
-            String crs = "EPSG:25832";
+            string crs = "EPSG:25832";
 
             return new GridResponse(features, crs, extend, size);
         }
 
-        public static int[] buildComputeResponse(List<int> indices, Dictionary<int, List<RangeRef>> accessibilities, string computed_type, List<int> range_indices)
+        public static int[] buildComputeResponse(List<RangeRef>[] accessibilities, string computed_type, List<int> range_indices)
         {
             range_indices.Sort((int a, int b) => a - b);
-            var values = new int[indices.Count];
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            var values = new int[accessibilities.Length];
+            for (int i = 0; i < accessibilities.Length; i++) {
+                int index = i;
                 List<RangeRef> ranges;
-                if (accessibilities.ContainsKey(index)) {
+                if (accessibilities[index] != null) {
                     ranges = accessibilities[index];
                 }
                 else {
@@ -158,7 +158,7 @@ namespace DVAN.API
             return values;
         }
 
-        public static (int[], int, int, int, int, int) buildStatisticsResponse(int[] computed_values, List<int> indizes, Dictionary<int, int> reverse_indizes, int max_range)
+        public static (int[], int, int, int, int, int) buildStatisticsResponse(int[] computed_values, List<int> indizes, int max_range)
         {
             var counts = new int[max_range / 60 + 1];
             var min = int.MaxValue;
@@ -167,8 +167,7 @@ namespace DVAN.API
             var values = new List<int>(indizes.Count);
             for (int i = 0; i < indizes.Count; i++) {
                 var index = indizes[i];
-                var j = reverse_indizes[index];
-                var value = computed_values[j];
+                var value = computed_values[index];
                 if (value == -9999) {
                     continue;
                 }

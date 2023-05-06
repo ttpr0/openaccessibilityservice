@@ -30,7 +30,7 @@ namespace DVAN.API
         [HttpPost]
         public async Task<object> calcQuery([FromBody] AggregateQueryRequest request)
         {
-            Dictionary<int, List<int>> accessibility;
+            List<int>[] accessibility;
             IPopulationView? view;
             if (request.session_id != null) {
                 var session_id = request.session_id.Value;
@@ -52,7 +52,6 @@ namespace DVAN.API
             }
 
             Guid id = Guid.NewGuid();
-            List<int> population_indices = view.getAllPoints();
 
             sessions[id] = new AggregateQuerySession {
                 id = id,
@@ -60,7 +59,7 @@ namespace DVAN.API
                 population_view = view
             };
 
-            var results = AggregateQuery.computeQuery(population_indices, request.facility_values, accessibility, request.compute_type);
+            var results = AggregateQuery.computeQuery(request.facility_values, accessibility, request.compute_type);
 
             return new {
                 result = results,
@@ -72,7 +71,7 @@ namespace DVAN.API
         [Route("grid")]
         public async Task<object> calcGrid([FromBody] AggregateQueryRequest request)
         {
-            Dictionary<int, List<int>> accessibility;
+            List<int>[] accessibility;
             IPopulationView? view;
             if (request.session_id != null) {
                 var session_id = request.session_id.Value;
@@ -93,23 +92,22 @@ namespace DVAN.API
                 accessibility = await AggregateQuery.computeAccessibility(request.facility_locations, request.range.Value, view, provider);
             }
 
-            List<int> population_indices = view.getAllPoints();
-            var results = AggregateQuery.computeQuery(population_indices, request.facility_values, accessibility, request.compute_type);
+            var results = AggregateQuery.computeQuery(request.facility_values, accessibility, request.compute_type);
 
-            var response = this.buildGridResponse(population_indices, view, results);
+            var response = this.buildGridResponse(view, results);
 
             return response;
         }
 
-        GridResponse buildGridResponse(List<int> indices, IPopulationView population, float[] values)
+        GridResponse buildGridResponse(IPopulationView population, float[] values)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
             float maxx = -1;
             float miny = 1000000000;
             float maxy = -1;
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            for (int i = 0; i < population.pointCount(); i++) {
+                int index = i;
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 if (p.X < minx) {
                     minx = (float)p.X;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NetTopologySuite.Algorithm.Locate;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Index.KdTree;
 
@@ -61,6 +62,25 @@ namespace DVAN.Population
             visitor.setFunc((KdNode<object> node) => {
                 int index = (int)node.Data;
                 points.Add(index);
+            });
+
+            this.index.Query(envelope, visitor);
+
+            return points;
+        }
+
+        public List<int> getPointsInGeometry(Geometry area)
+        {
+            List<int> points = new List<int>(100);
+
+            var envelope = area.EnvelopeInternal;
+            var visitor = new VisitKdNode<object>();
+            visitor.setFunc((KdNode<object> node) => {
+                Location location = SimplePointInAreaLocator.Locate(node.Coordinate, area);
+                if (location == Location.Interior) {
+                    int index = (int)node.Data;
+                    points.Add(index);
+                }
             });
 
             this.index.Query(envelope, visitor);

@@ -73,15 +73,14 @@ namespace DVAN.API
             return response;
         }
 
-        float[] buildResponse(IPopulationView population, Dictionary<int, Access> accessibilities)
+        float[] buildResponse(IPopulationView population, Access[] accessibilities)
         {
-            List<int> indices = population.getAllPoints();
-            var response = new float[indices.Count];
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            var response = new float[population.pointCount()];
+            for (int i = 0; i < population.pointCount(); i++) {
+                int index = i;
                 float accessibility;
-                if (accessibilities.TryGetValue(index, out Access? value)) {
-                    accessibility = value.access;
+                if (accessibilities[index] != null) {
+                    accessibility = accessibilities[index].access;
                 }
                 else {
                     accessibility = -9999;
@@ -91,18 +90,17 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildGridResponse(IPopulationView population, Dictionary<int, Access> accessibility)
+        GridResponse buildGridResponse(IPopulationView population, Access[] accessibility)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
             float maxx = -1;
             float miny = 1000000000;
             float maxy = -1;
-            List<int> indices = population.getAllPoints();
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            for (int i = 0; i < population.pointCount(); i++) {
+                int index = i;
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
-                if (accessibility.ContainsKey(index)) {
+                if (accessibility[index] != null) {
                     Access access = accessibility[index];
                     GravityValue value = new GravityValue(access.access, access.weighted_access);
                     features.Add(new GridFeature((float)p.X, (float)p.Y, value));

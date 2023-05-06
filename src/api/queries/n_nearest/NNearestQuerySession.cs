@@ -12,6 +12,6 @@ namespace DVAN.API
 
         public IPopulationView population_view { get; set; }
 
-        public Dictionary<int, List<RangeRef>> accessibilities { get; set; }
+        public List<RangeRef>[] accessibilities { get; set; }
     }
 }

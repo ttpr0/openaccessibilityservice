@@ -23,7 +23,7 @@ namespace DVAN.Accessibility
         private IRoutingProvider provider;
 
         private float max_population;
-        private Dictionary<int, Access> accessibility;
+        private Access[] accessibility;
 
         public GravityAccessibility(IPopulationView population, IRoutingProvider provider)
         {
@@ -31,20 +31,20 @@ namespace DVAN.Accessibility
             this.provider = provider;
 
             this.max_population = 100;
-            this.accessibility = new Dictionary<int, Access>();
+            this.accessibility = new Access[population.pointCount()];
         }
 
-        public Dictionary<int, Access> getAccessibility()
+        public Access[] getAccessibility()
         {
             return this.accessibility;
         }
 
-        public async Task calcAccessibility(Double[][] facilities, List<Double> ranges, List<Double> factors)
+        public async Task calcAccessibility(double[][] facilities, List<double> ranges, List<double> factors)
         {
-            HashSet<int> visited = new HashSet<int>(10000);
-            Dictionary<int, Access> accessibilities = new Dictionary<int, Access>(10000);
+            var visited = new HashSet<int>(10000);
+            var accessibilities = new Access[this.population.pointCount()];
 
-            Dictionary<double, Geometry> polygons = new Dictionary<double, Geometry>(ranges.Count);
+            var polygons = new Dictionary<double, Geometry>(ranges.Count);
 
             // Double[][] locations = new Double[1][2];
             // for (int f=0; f<facilities.length; f++) {
@@ -100,7 +100,7 @@ namespace DVAN.Accessibility
                     if (location == Location.Interior) {
                         // if (p.getPoint().within(geom)) {
                         Access access;
-                        if (!accessibilities.ContainsKey(index)) {
+                        if (accessibilities[index] == null) {
                             access = new Access();
                             accessibilities[index] = access;
                         }
@@ -117,23 +117,23 @@ namespace DVAN.Accessibility
                 Console.WriteLine("time: " + (end - start));
             }
 
-            foreach (int key in accessibilities.Keys) {
-                Access access = accessibilities[key];
+            for (int key = 0; key < accessibilities.Length; key++) {
+                var access = accessibilities[key];
                 if (access.access == 0) {
                     access.access = -9999;
                     access.weighted_access = -9999;
                 }
                 else {
                     access.access = access.access * 100 / max_value;
-                    access.weighted_access = access.access * this.population.getPopulationCount(key) / max_population;
+                    access.weighted_access = access.access * this.population.getPopulation(key) / max_population;
                 }
             }
             this.accessibility = accessibilities;
         }
 
-        public async Task calcAccessibility2(Double[][] facilities, List<Double> ranges, List<Double> factors)
+        public async Task calcAccessibility2(double[][] facilities, List<double> ranges, List<double> factors)
         {
-            Dictionary<int, Access> accessibilities = new Dictionary<int, Access>(10000);
+            var accessibilities = new Access[this.population.pointCount()];
 
             ISourceBlock<IsoRaster?> collection = provider.requestIsoRasterStream(facilities, ranges[ranges.Count - 1]);
 
@@ -157,7 +157,7 @@ namespace DVAN.Accessibility
                     bool found = range_dict.TryGetValue(0, out int range);
                     if (found) {
                         Access access;
-                        if (!accessibilities.ContainsKey(index)) {
+                        if (accessibilities[index] == null) {
                             access = new Access();
                             accessibilities[index] = access;
                         }
@@ -179,7 +179,7 @@ namespace DVAN.Accessibility
                 Console.WriteLine("time: " + (end - start));
             }
 
-            foreach (int index in accessibilities.Keys) {
+            for (int index = 0; index < accessibilities.Length; index++) {
                 Access access = accessibilities[index];
                 if (access.access == 0) {
                     access.access = -9999;
@@ -187,7 +187,7 @@ namespace DVAN.Accessibility
                 }
                 else {
                     access.access = access.access * 100 / max_value;
-                    access.weighted_access = access.access * this.population.getPopulationCount(index) / max_population;
+                    access.weighted_access = access.access * this.population.getPopulation(index) / max_population;
                 }
             }
             this.accessibility = accessibilities;

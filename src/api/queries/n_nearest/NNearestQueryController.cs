@@ -30,7 +30,7 @@ namespace DVAN.API
         [HttpPost]
         public async Task<object> calcQuery([FromBody] NNearestQueryRequest request)
         {
-            Dictionary<int, List<RangeRef>> accessibility;
+            List<RangeRef>[] accessibility;
             IPopulationView? view;
             Guid session_id;
             if (request.session_id != null) {
@@ -59,9 +59,7 @@ namespace DVAN.API
                 };
             }
 
-            List<int> population_indices = view.getAllPoints();
-
-            var results = NNearestQuery.computeQuery(population_indices, request.facility_values, accessibility, request.compute_type, request.facility_count);
+            var results = NNearestQuery.computeQuery(request.facility_values, accessibility, request.compute_type, request.facility_count);
 
             return new {
                 result = results,
@@ -73,7 +71,7 @@ namespace DVAN.API
         [Route("grid")]
         public async Task<object> calcGrid([FromBody] NNearestQueryRequest request)
         {
-            Dictionary<int, List<RangeRef>> accessibility;
+            List<RangeRef>[] accessibility;
             IPopulationView? view;
             if (request.session_id != null) {
                 var session_id = request.session_id.Value;
@@ -94,23 +92,22 @@ namespace DVAN.API
                 accessibility = await NNearestQuery.computeAccessibility(request.facility_locations, request.ranges, view, provider);
             }
 
-            List<int> population_indices = view.getAllPoints();
-            var results = NNearestQuery.computeQuery(population_indices, request.facility_values, accessibility, request.compute_type, request.facility_count);
+            var results = NNearestQuery.computeQuery(request.facility_values, accessibility, request.compute_type, request.facility_count);
 
-            var response = this.buildGridResponse(population_indices, view, results);
+            var response = this.buildGridResponse(view, results);
 
             return response;
         }
 
-        GridResponse buildGridResponse(List<int> indices, IPopulationView population, float[] values)
+        GridResponse buildGridResponse(IPopulationView population, float[] values)
         {
             List<GridFeature> features = new List<GridFeature>();
             float minx = 1000000000;
             float maxx = -1;
             float miny = 1000000000;
             float maxy = -1;
-            for (int i = 0; i < indices.Count; i++) {
-                int index = indices[i];
+            for (int i = 0; i < population.pointCount(); i++) {
+                int index = i;
                 Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 if (p.X < minx) {
                     minx = (float)p.X;

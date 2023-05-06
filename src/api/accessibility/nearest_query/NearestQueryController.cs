@@ -41,17 +41,9 @@ namespace DVAN.API
             var accessibility = await NearestQuery.computeAccessibility(parameters.facility_locations, parameters.ranges, view, provider);
 
             Guid id = Guid.NewGuid();
-            List<int> population_indices = view.getAllPoints();
-            var reverse_indizes = new Dictionary<int, int>();
-            for (int i = 0; i < population_indices.Count; i++) {
-                var index = population_indices[i];
-                reverse_indizes[index] = i;
-            }
             var session = new NearestQuerySession {
                 id = id,
                 accessibilities = accessibility,
-                population_indizes = population_indices,
-                reverse_indizes = reverse_indizes,
                 parameters = parameters
             };
             sessions[id] = session;
@@ -69,13 +61,12 @@ namespace DVAN.API
                 return new ErrorResponse("nearest_query/result", "no active session found");
             }
             var session = sessions[request.id];
-            var population_indices = session.population_indizes;
             var accessibilities = session.accessibilities;
             var parameters = session.parameters;
 
             IPopulationView view = PopulationManager.createPopulationView(parameters.envelope);
 
-            var response = NearestQuery.buildGridResponse(population_indices, view, accessibilities, parameters.facility_count);
+            var response = NearestQuery.buildGridResponse(view, accessibilities, parameters.facility_count);
             return response;
         }
 
@@ -86,10 +77,9 @@ namespace DVAN.API
                 return new ErrorResponse("nearest_query/compute", "no active session found");
             }
             var session = sessions[request.id];
-            var population_indices = session.population_indizes;
             var accessibilities = session.accessibilities;
 
-            var computed_values = NearestQuery.buildComputeResponse(population_indices, accessibilities, request.compute_type, request.range_indizes);
+            var computed_values = NearestQuery.buildComputeResponse(accessibilities, request.compute_type, request.range_indizes);
             session.computed_values = computed_values;
 
             return new {
@@ -108,20 +98,19 @@ namespace DVAN.API
                 return new ErrorResponse("nearest_query/statistics", "no current computed result found");
             }
             var parameters = session.parameters;
-            var reverse_indices = session.reverse_indizes;
             var computed_values = session.computed_values;
             var range_max = session.parameters.range_max;
             IPopulationView view = PopulationManager.createPopulationView(parameters.envelope);
             List<int> indizes;
             if (request.envelop == null) {
-                indizes = view.getAllPoints();
+                indizes = Enumerable.Range(0, view.pointCount()).ToList();
             }
             else {
                 var envelope = new Envelope(request.envelop[0], request.envelop[2], request.envelop[1], request.envelop[3]);
                 indizes = view.getPointsInEnvelop(envelope);
             }
 
-            var (counts, mean, std, median, min, max) = NearestQuery.buildStatisticsResponse(computed_values, indizes, reverse_indices, range_max);
+            var (counts, mean, std, median, min, max) = NearestQuery.buildStatisticsResponse(computed_values, indizes, range_max);
 
             return new {
                 counts = counts,

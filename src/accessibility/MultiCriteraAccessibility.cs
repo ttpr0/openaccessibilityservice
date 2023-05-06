@@ -16,7 +16,7 @@ namespace DVAN.Accessibility
         private float max_value;
         private float max_weighted_value;
 
-        private Dictionary<int, Dictionary<string, float>> accessibilities;
+        private Dictionary<string, float>[] accessibilities;
 
         public MultiCriteraAccessibility(IPopulationView population, GravityAccessibility gravity)
         {
@@ -26,26 +26,26 @@ namespace DVAN.Accessibility
             float max_pop = 100;
             this.max_population = max_pop;
 
-            this.accessibilities = new Dictionary<int, Dictionary<string, float>>(10000);
+            this.accessibilities = new Dictionary<string, float>[population.pointCount()];
         }
 
-        public Dictionary<int, Dictionary<string, float>> getAccessibilities()
+        public Dictionary<string, float>[] getAccessibilities()
         {
             return this.accessibilities;
         }
 
-        public async Task addAccessibility(String name, Double[][] facilities, List<Double> ranges, List<Double> factors, double weight)
+        public async Task addAccessibility(string name, double[][] facilities, List<double> ranges, List<double> factors, double weight)
         {
             await gravity.calcAccessibility(facilities, ranges, factors);
-            Dictionary<int, Access> accessibility = gravity.getAccessibility();
+            Access[] accessibility = gravity.getAccessibility();
 
             Access defaultAccess = new Access();
             defaultAccess.access = -9999;
             defaultAccess.weighted_access = -9999;
-            foreach (int index in accessibility.Keys) {
-                Access access = accessibility.ContainsKey(index) ? accessibility[index] : defaultAccess;
+            for (int index = 0; index < accessibility.Length; index++) {
+                Access access = accessibility[index] == null ? accessibility[index] : defaultAccess;
                 Dictionary<string, float> multi_access;
-                if (!this.accessibilities.ContainsKey(index)) {
+                if (this.accessibilities[index] == null) {
                     this.accessibilities[index] = new Dictionary<string, float>();
                     multi_access = this.accessibilities[index];
                     multi_access["multiCritera"] = 0.0f;
@@ -62,7 +62,7 @@ namespace DVAN.Accessibility
                 float temp = multi_access["multiCritera"];
                 float weighted_temp = multi_access["multiCritera_weighted"];
                 float new_value = temp + access.access;
-                float new_weighted_value = weighted_temp + access.access * population.getPopulationCount(index) / max_population;
+                float new_weighted_value = weighted_temp + access.access * population.getPopulation(index) / max_population;
                 multi_access["multiCritera"] = new_value;
                 multi_access["multiCritera_weighted"] = new_weighted_value;
                 if (new_value > max_value) {
@@ -76,7 +76,7 @@ namespace DVAN.Accessibility
 
         public void calcAccessibility()
         {
-            foreach (int index in this.accessibilities.Keys) {
+            for (int index = 0; index < this.accessibilities.Length; index++) {
                 Dictionary<string, float> multi_access = this.accessibilities[index];
                 float temp = multi_access["multiCritera"];
                 float weighted_temp = multi_access["multiCritera_weighted"];

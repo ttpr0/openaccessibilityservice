@@ -65,21 +65,17 @@ namespace DVAN.Population
             return new Coordinate(0, 0);
         }
 
-        public int getPopulationCount(int index)
+        public int getPopulation(int index)
         {
             return this.counts[index];
         }
 
-        public List<int> getAllPoints()
+        public int pointCount()
         {
-            var points = new List<int>(this.points.Count);
-            for (int i = 0; i < this.points.Count; i++) {
-                points.Add(i);
-            }
-            return points;
+            return this.points.Count;
         }
 
-        public List<int> getPointsInEnvelop(Envelope envelope)
+        public List<int> getPointsInEnvelop(Envelope? envelope)
         {
             Envelope env;
             if (this.envelope == null) {
@@ -89,7 +85,7 @@ namespace DVAN.Population
                 env = this.envelope.Intersection(envelope);
             }
             if (env == null) {
-                return this.getAllPoints();
+                return Enumerable.Range(0, this.pointCount()).ToList();
             }
 
             List<int> points = new List<int>(100);

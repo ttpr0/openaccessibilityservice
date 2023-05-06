@@ -14,7 +14,7 @@ namespace DVAN.Accessibility
     {
         private IPopulationView population;
         private IRoutingProvider provider;
-        private Dictionary<int, List<int>>? accessibilities;
+        private List<int>[]? accessibilities;
 
         public SimpleCatchment(IPopulationView population, IRoutingProvider provider)
         {
@@ -22,14 +22,14 @@ namespace DVAN.Accessibility
             this.provider = provider;
         }
 
-        public Dictionary<int, List<int>>? getAccessibilities()
+        public List<int>[]? getAccessibilities()
         {
             return this.accessibilities;
         }
 
         public async Task calcAccessibility(double[][] facilities, double catchment_range)
         {
-            var accessibilities = new Dictionary<int, List<int>>(10000);
+            var accessibilities = new List<int>[this.population.pointCount()];
 
             var collection = provider.requestIsochronesStream(facilities, new List<double> { catchment_range });
             for (int f = 0; f < facilities.Length; f++) {
@@ -70,7 +70,7 @@ namespace DVAN.Accessibility
                         var location = SimplePointInAreaLocator.Locate(p, iso);
                         if (location == Location.Interior) {
                             List<int> access;
-                            if (!accessibilities.ContainsKey(index)) {
+                            if (accessibilities[index] == null) {
                                 access = new List<int>();
                                 accessibilities[index] = access;
                             }

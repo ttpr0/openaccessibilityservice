@@ -12,7 +12,7 @@ namespace DVAN.Accessibility
     public class Simple2SFCA
     {
 
-        public static Task<Dictionary<int, float>> calc2SFCA(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider, string? mode)
+        public static Task<float[]> calc2SFCA(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider, string? mode)
         {
             switch (mode) {
                 case "isochrones":
@@ -26,10 +26,10 @@ namespace DVAN.Accessibility
             }
         }
 
-        public static async Task<Dictionary<int, float>> calc2SFCAIsochrones(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCAIsochrones(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
         {
-            var population_weights = new Dictionary<int, float>();
-            float[] facility_weights = new float[facilities.Length];
+            var population_weights = new float[population.pointCount()];
+            var facility_weights = new float[facilities.Length];
 
             var inverted_mapping = new Dictionary<int, List<FacilityReference>>();
 
@@ -58,7 +58,7 @@ namespace DVAN.Accessibility
                         Coordinate p = population.getCoordinate(index);
                         var location = SimplePointInAreaLocator.Locate(p, iso);
                         if (location == Location.Interior) {
-                            int population_count = population.getPopulationCount(index);
+                            int population_count = population.getPopulation(index);
                             weight += population_count * (float)range_factor;
 
                             if (!inverted_mapping.ContainsKey(index)) {
@@ -95,18 +95,18 @@ namespace DVAN.Accessibility
             return population_weights;
         }
 
-        public static async Task<Dictionary<int, float>> calc2SFCAMatrix(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCAMatrix(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
         {
-            var population_weights = new Dictionary<int, float>();
+            var population_weights = new float[population.pointCount()];
             float[] facility_weights = new float[facilities.Length];
 
             float max_range = (float)ranges[^1];
             var inverted_mapping = new Dictionary<int, List<FacilityReference>>();
 
-            var points = population.getAllPoints();
-            double[][] destinations = new double[points.Count][];
-            for (int i = 0; i < points.Count; i++) {
-                var index = points[i];
+            var point_count = population.pointCount();
+            double[][] destinations = new double[point_count][];
+            for (int i = 0; i < point_count; i++) {
+                var index = i;
                 Coordinate p = population.getCoordinate(index);
                 destinations[i] = new double[] { p.X, p.Y };
             }
@@ -116,13 +116,13 @@ namespace DVAN.Accessibility
             }
             for (int f = 0; f < facilities.Length; f++) {
                 float weight = 0;
-                for (int i = 0; i < points.Count; i++) {
+                for (int i = 0; i < point_count; i++) {
                     float range = (float)matrix.durations[f][i];
                     if (range > max_range) {
                         continue;
                     }
-                    int index = points[i];
-                    int population_count = population.getPopulationCount(index);
+                    int index = i;
+                    int population_count = population.getPopulation(index);
                     float range_factor = 1 - range / max_range;
 
                     weight += population_count * range_factor;
@@ -158,9 +158,9 @@ namespace DVAN.Accessibility
             return population_weights;
         }
 
-        public static async Task<Dictionary<int, float>> calc2SFCAIsoRaster(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCAIsoRaster(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
         {
-            var population_weights = new Dictionary<int, float>();
+            var population_weights = new float[population.pointCount()];
             float[] facility_weights = new float[facilities.Length];
 
             float max_range = (float)ranges[^1];
@@ -181,7 +181,7 @@ namespace DVAN.Accessibility
                     foreach (var f in accessor.getFacilities()) {
                         float range = accessor.getRange(f);
 
-                        int population_count = population.getPopulationCount(index);
+                        int population_count = population.getPopulation(index);
                         float range_factor = 1 - range / max_range;
                         facility_weights[f] += population_count * range_factor;
 
