@@ -43,7 +43,7 @@ namespace DVAN.Accessibility
             defaultAccess.access = -9999;
             defaultAccess.weighted_access = -9999;
             for (int index = 0; index < accessibility.Length; index++) {
-                Access access = accessibility[index] == null ? accessibility[index] : defaultAccess;
+                Access access = accessibility[index] != null ? accessibility[index] : defaultAccess;
                 Dictionary<string, float> multi_access;
                 if (this.accessibilities[index] == null) {
                     this.accessibilities[index] = new Dictionary<string, float>();
