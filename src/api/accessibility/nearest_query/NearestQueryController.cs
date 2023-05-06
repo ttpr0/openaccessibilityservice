@@ -66,7 +66,7 @@ namespace DVAN.API
 
             IPopulationView view = PopulationManager.createPopulationView(parameters.envelope);
 
-            var response = NearestQuery.buildGridResponse(view, accessibilities, parameters.facility_count);
+            var response = NearestQuery.buildResponse(view, accessibilities, parameters.facility_count);
             return response;
         }
 

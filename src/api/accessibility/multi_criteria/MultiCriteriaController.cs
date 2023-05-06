@@ -55,15 +55,11 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildResponse(IPopulationView population, Dictionary<string, float>[] accessibilities)
+        Dictionary<string, float>[] buildResponse(IPopulationView population, Dictionary<string, float>[] accessibilities)
         {
-            List<GridFeature> features = new List<GridFeature>();
-            float minx = 1000000000;
-            float maxx = -1;
-            float miny = 1000000000;
-            float maxy = -1;
+            var features = new Dictionary<string, float>[population.pointCount()];
+
             for (int index = 0; index < population.pointCount(); index++) {
-                Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 Dictionary<string, float> values;
                 if (accessibilities[index] != null) {
                     values = accessibilities[index];
@@ -74,29 +70,10 @@ namespace DVAN.API
                     values["multiCritera_weighted"] = -9999.0f;
                 }
 
-                if (p.X < minx) {
-                    minx = (float)p.X;
-                }
-                if (p.X > maxx) {
-                    maxx = (float)p.X;
-                }
-                if (p.Y < miny) {
-                    miny = (float)p.Y;
-                }
-                if (p.Y > maxy) {
-                    maxy = (float)p.Y;
-                }
-                features.Add(new GridFeature((float)p.X, (float)p.Y, values));
+                features[index] = values;
             }
-            float[] extend = { minx - 50, miny - 50, maxx + 50, maxy + 50 };
 
-            float dx = extend[2] - extend[0];
-            float dy = extend[3] - extend[1];
-            int[] size = { (int)(dx / 100), (int)(dy / 100) };
-
-            string crs = "EPSG:25832";
-
-            return new GridResponse(features, crs, extend, size);
+            return features;
         }
     }
 }

@@ -36,34 +36,17 @@ namespace DVAN.API
             return response;
         }
 
-        GridResponse buildResponse(IPopulationView population, List<RangeRef>[] accessibilities)
+        SimpleValue[] buildResponse(IPopulationView population, List<RangeRef>[] accessibilities)
         {
-            List<GridFeature> features = new List<GridFeature>();
-            float minx = 1000000000;
-            float maxx = -1;
-            float miny = 1000000000;
-            float maxy = -1;
+            var features = new SimpleValue[population.pointCount()];
             for (int i = 0; i < population.pointCount(); i++) {
                 int index = i;
-                Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 List<RangeRef> ranges;
                 if (accessibilities[index] != null) {
                     ranges = accessibilities[index];
                 }
                 else {
                     ranges = new List<RangeRef>();
-                }
-                if (p.X < minx) {
-                    minx = (float)p.X;
-                }
-                if (p.X > maxx) {
-                    maxx = (float)p.X;
-                }
-                if (p.Y < miny) {
-                    miny = (float)p.Y;
-                }
-                if (p.Y > maxy) {
-                    maxy = (float)p.Y;
                 }
                 ranges.Sort((RangeRef a, RangeRef b) => {
                     return (int)(a.range - b.range);
@@ -78,17 +61,10 @@ namespace DVAN.API
                 if (ranges.Count > 2) {
                     value.third = (int)ranges[2].range;
                 }
-                features.Add(new GridFeature((float)p.X, (float)p.Y, value));
+                features[index] = value;
             }
-            float[] extend = { minx - 50, miny - 50, maxx + 50, maxy + 50 };
 
-            float dx = extend[2] - extend[0];
-            float dy = extend[3] - extend[1];
-            int[] size = { (int)(dx / 100), (int)(dy / 100) };
-
-            string crs = "EPSG:25832";
-
-            return new GridResponse(features, crs, extend, size);
+            return features;
         }
 
         class SimpleValue

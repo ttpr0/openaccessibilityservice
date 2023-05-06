@@ -25,16 +25,12 @@ namespace DVAN.API
             return simple.getAccessibilities();
         }
 
-        public static GridResponse buildGridResponse(IPopulationView population, List<RangeRef>[] accessibilities, int count)
+        public static Dictionary<string, int>[] buildResponse(IPopulationView population, List<RangeRef>[] accessibilities, int count)
         {
-            List<GridFeature> features = new List<GridFeature>();
-            float minx = 1000000000;
-            float maxx = -1;
-            float miny = 1000000000;
-            float maxy = -1;
+            var features = new Dictionary<string, int>[population.pointCount()];
+
             for (int i = 0; i < population.pointCount(); i++) {
                 int index = i;
-                Coordinate p = population.getCoordinate(index, "EPSG:25832");
                 List<RangeRef> ranges;
                 if (accessibilities[index] != null) {
                     ranges = accessibilities[index];
@@ -43,18 +39,6 @@ namespace DVAN.API
                     ranges = new List<RangeRef>();
                 }
                 accessibilities[index] = ranges;
-                if (p.X < minx) {
-                    minx = (float)p.X;
-                }
-                if (p.X > maxx) {
-                    maxx = (float)p.X;
-                }
-                if (p.Y < miny) {
-                    miny = (float)p.Y;
-                }
-                if (p.Y > maxy) {
-                    maxy = (float)p.Y;
-                }
                 ranges.Sort((RangeRef a, RangeRef b) => {
                     return (int)(a.range - b.range);
                 });
@@ -69,17 +53,10 @@ namespace DVAN.API
                     }
                 }
                 value["index"] = i;
-                features.Add(new GridFeature((float)p.X, (float)p.Y, value));
+                features[index] = value;
             }
-            float[] extend = { minx - 50, miny - 50, maxx + 50, maxy + 50 };
 
-            float dx = extend[2] - extend[0];
-            float dy = extend[3] - extend[1];
-            int[] size = { (int)(dx / 100), (int)(dy / 100) };
-
-            string crs = "EPSG:25832";
-
-            return new GridResponse(features, crs, extend, size);
+            return features;
         }
 
         public static int[] buildComputeResponse(List<RangeRef>[] accessibilities, string computed_type, List<int> range_indices)
