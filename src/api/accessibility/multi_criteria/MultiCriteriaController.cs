@@ -16,7 +16,7 @@ namespace DVAN.API
 {
     [ApiController]
     [Route("/v1/accessibility/multi")]
-    public class MultiCriteriaController
+    public class MultiCriteriaController : ControllerBase
     {
         private ILogger logger;
 
@@ -25,15 +25,20 @@ namespace DVAN.API
             this.logger = logger;
         }
 
+        /// <summary>
+        /// Calculates simple multi-criteria accessibility based on gravity.
+        /// </summary>
         [HttpPost]
-        public async Task<object> calcMultiCriteriaGrid([FromBody] MultiCriteriaRequest request)
+        [ProducesResponseType(200, Type = typeof(MultiCriteriaResponse))]
+        [ProducesResponseType(400, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> calcMultiCriteriaGrid([FromBody] MultiCriteriaRequest request)
         {
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
             logger.LogDebug("Creating PopulationView");
             IPopulationView? view = PopulationManager.getPopulationView(request.population);
             if (view == null) {
-                return new ErrorResponse("accessibility/multi", "failed to get population-view, parameters are invalid");
+                return BadRequest(new ErrorResponse("accessibility/multi", "failed to get population-view, parameters are invalid"));
             }
 
             logger.LogDebug("Creating GravityAccessibility");
@@ -52,7 +57,9 @@ namespace DVAN.API
             multiCriteria.calcAccessibility();
             var response = this.buildResponse(view, multiCriteria.getAccessibilities());
             logger.LogDebug("Finished Building Response Grid");
-            return response;
+            return Ok(new MultiCriteriaResponse {
+                access = response
+            });
         }
 
         Dictionary<string, float>[] buildResponse(IPopulationView population, Dictionary<string, float>[] accessibilities)

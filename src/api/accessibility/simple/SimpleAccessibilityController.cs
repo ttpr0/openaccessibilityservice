@@ -16,15 +16,20 @@ namespace DVAN.API
 {
     [ApiController]
     [Route("/v1/accessibility/simple")]
-    public class SimpleAccessibilityController
+    public class SimpleAccessibilityController : ControllerBase
     {
+        /// <summary>
+        /// Calculates simple accessibility.
+        /// </summary>
         [HttpPost]
-        public async Task<object> calcSimpleGrid([FromBody] SimpleAccessibilityRequest request)
+        [ProducesResponseType(200, Type = typeof(SimpleAccessibilityResponse))]
+        [ProducesResponseType(400, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> calcSimpleGrid([FromBody] SimpleAccessibilityRequest request)
         {
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
             IPopulationView? view = PopulationManager.getPopulationView(request.population);
             if (view == null) {
-                return new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid");
+                return BadRequest(new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid"));
             }
 
             SimpleAccessibility simple = new SimpleAccessibility(view, provider);
@@ -33,7 +38,9 @@ namespace DVAN.API
 
             var response = this.buildResponse(view, simple.getAccessibilities());
 
-            return response;
+            return Ok(new SimpleAccessibilityResponse {
+                access = response
+            });
         }
 
         SimpleValue[] buildResponse(IPopulationView population, List<RangeRef>[] accessibilities)
@@ -65,20 +72,6 @@ namespace DVAN.API
             }
 
             return features;
-        }
-
-        class SimpleValue
-        {
-            public int first { get; set; }
-            public int second { get; set; }
-            public int third { get; set; }
-
-            public SimpleValue(int first, int second, int third)
-            {
-                this.first = first;
-                this.second = second;
-                this.third = third;
-            }
         }
     }
 }

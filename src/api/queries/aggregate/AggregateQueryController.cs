@@ -16,7 +16,7 @@ namespace DVAN.API
 {
     [ApiController]
     [Route("/v1/queries/aggregate")]
-    public class AggregateQueryController
+    public class AggregateQueryController : ControllerBase
     {
         static Dictionary<Guid, AggregateQuerySession> sessions = new Dictionary<Guid, AggregateQuerySession>();
 
@@ -27,15 +27,20 @@ namespace DVAN.API
             this.logger = logger;
         }
 
+        /// <summary>
+        /// Calculates aggregate query.
+        /// </summary>
         [HttpPost]
-        public async Task<object> calcQuery([FromBody] AggregateQueryRequest request)
+        [ProducesResponseType(200, Type = typeof(AggregateQueryResponse))]
+        [ProducesResponseType(400, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> calcQuery([FromBody] AggregateQueryRequest request)
         {
             List<int>[] accessibility;
             IPopulationView? view;
             if (request.session_id != null) {
                 var session_id = request.session_id.Value;
                 if (!sessions.ContainsKey(session_id)) {
-                    return new ErrorResponse("n_nearest", "no active session found");
+                    return BadRequest(new ErrorResponse("n_nearest", "no active session found"));
                 }
                 var session = sessions[session_id];
                 accessibility = session.accessibilities;
@@ -44,7 +49,7 @@ namespace DVAN.API
             else {
                 view = PopulationManager.getPopulationView(request.population);
                 if (view == null) {
-                    return new ErrorResponse("queries/aggregate", "failed to get population-view, parameters are invalid");
+                    return BadRequest(new ErrorResponse("queries/aggregate", "failed to get population-view, parameters are invalid"));
                 }
                 IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
@@ -61,10 +66,10 @@ namespace DVAN.API
 
             var results = AggregateQuery.computeQuery(request.facility_values, accessibility, request.compute_type);
 
-            return new {
+            return Ok(new AggregateQueryResponse {
                 result = results,
                 session_id = id
-            };
+            });
         }
     }
 }

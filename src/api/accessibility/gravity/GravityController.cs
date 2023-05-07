@@ -16,7 +16,7 @@ namespace DVAN.API
 {
     [ApiController]
     [Route("/v1/accessibility/gravity")]
-    public class GravityController
+    public class GravityController : ControllerBase
     {
         private ILogger logger;
 
@@ -25,12 +25,17 @@ namespace DVAN.API
             this.logger = logger;
         }
 
+        /// <summary>
+        /// Calculates simple gravity accessibility.
+        /// </summary>
         [HttpPost]
-        public async Task<object> calcGravity([FromBody] GravityAccessibilityRequest request)
+        [ProducesResponseType(200, Type = typeof(GravityResponse))]
+        [ProducesResponseType(400, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> calcGravity([FromBody] GravityAccessibilityRequest request)
         {
             IPopulationView? view = PopulationManager.getPopulationView(request.population);
             if (view == null) {
-                return new ErrorResponse("accessibility/gravity", "failed to get population-view, parameters are invalid");
+                return BadRequest(new ErrorResponse("accessibility/gravity", "failed to get population-view, parameters are invalid"));
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
@@ -45,9 +50,9 @@ namespace DVAN.API
             var response = this.buildResponse(view, gravity.getAccessibility());
             logger.LogDebug("response build successfully");
 
-            return new {
+            return Ok(new GravityResponse {
                 access = response
-            };
+            });
         }
 
         float[] buildResponse(IPopulationView population, Access[] accessibilities)

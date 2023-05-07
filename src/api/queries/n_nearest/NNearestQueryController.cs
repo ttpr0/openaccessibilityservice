@@ -16,7 +16,7 @@ namespace DVAN.API
 {
     [ApiController]
     [Route("/v1/queries/n_nearest")]
-    public class NNearestQueryController
+    public class NNearestQueryController : ControllerBase
     {
         static Dictionary<Guid, NNearestQuerySession> sessions = new Dictionary<Guid, NNearestQuerySession>();
 
@@ -27,8 +27,13 @@ namespace DVAN.API
             this.logger = logger;
         }
 
+        /// <summary>
+        /// Calculates nnearest query.
+        /// </summary>
         [HttpPost]
-        public async Task<object> calcQuery([FromBody] NNearestQueryRequest request)
+        [ProducesResponseType(200, Type = typeof(NNearestQueryResponse))]
+        [ProducesResponseType(400, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> calcQuery([FromBody] NNearestQueryRequest request)
         {
             List<RangeRef>[] accessibility;
             IPopulationView? view;
@@ -36,7 +41,7 @@ namespace DVAN.API
             if (request.session_id != null) {
                 session_id = request.session_id.Value;
                 if (!sessions.ContainsKey(session_id)) {
-                    return new ErrorResponse("n_nearest", "no active session found");
+                    return BadRequest(new ErrorResponse("n_nearest", "no active session found"));
                 }
                 var session = sessions[session_id];
                 accessibility = session.accessibilities;
@@ -45,7 +50,7 @@ namespace DVAN.API
             else {
                 view = PopulationManager.getPopulationView(request.population);
                 if (view == null) {
-                    return new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid");
+                    return BadRequest(new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid"));
                 }
                 IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
@@ -61,10 +66,10 @@ namespace DVAN.API
 
             var results = NNearestQuery.computeQuery(request.facility_values, accessibility, request.compute_type, request.facility_count);
 
-            return new {
+            return Ok(new NNearestQueryResponse {
                 result = results,
                 session_id = session_id,
-            };
+            });
         }
     }
 }
