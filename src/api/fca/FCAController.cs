@@ -32,8 +32,9 @@ namespace DVAN.API
                 return BadRequest(new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid"));
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
+            IDistanceDecay decay = new HybridDecay(request.ranges.Select(v => (float)v).ToArray(), request.range_factors.Select(v => (float)v).ToArray());
 
-            var weights = await Enhanced2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, request.range_factors, provider, request.mode);
+            var weights = await Enhanced2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, decay, provider, request.mode);
 
             float max_weight = 0;
             foreach (float w in weights) {

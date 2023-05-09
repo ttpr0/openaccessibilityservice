@@ -12,21 +12,21 @@ namespace DVAN.Accessibility
     public class Enhanced2SFCA
     {
 
-        public static Task<float[]> calc2SFCA(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider, string? mode)
+        public static Task<float[]> calc2SFCA(IPopulationView population, double[][] facilities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider, string? mode)
         {
             switch (mode) {
                 case "isochrones":
-                    return calc2SFCAIsochrones(population, facilities, ranges, range_factors, provider);
+                    return calc2SFCAIsochrones(population, facilities, ranges, decay, provider);
                 case "matrix":
-                    return calc2SFCAMatrix(population, facilities, ranges, range_factors, provider);
+                    return calc2SFCAMatrix(population, facilities, ranges, decay, provider);
                 case "isoraster":
-                    return calc2SFCAIsoRaster(population, facilities, ranges, range_factors, provider);
+                    return calc2SFCAIsoRaster(population, facilities, ranges, decay, provider);
                 default:
-                    return calc2SFCAIsochrones(population, facilities, ranges, range_factors, provider);
+                    return calc2SFCAIsochrones(population, facilities, ranges, decay, provider);
             }
         }
 
-        public static async Task<float[]> calc2SFCAIsochrones(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCAIsochrones(IPopulationView population, double[][] facilities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
         {
             var population_weights = new float[population.pointCount()];
             var facility_weights = new float[facilities.Length];
@@ -45,7 +45,7 @@ namespace DVAN.Accessibility
                 for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
                     var isochrone = isochrones.getIsochrone(i);
                     double range = isochrone.getValue();
-                    double range_factor = range_factors[ranges.IndexOf(range)];
+                    double range_factor = decay.getDistanceWeight((float)range);
 
                     Geometry iso = isochrone.getGeometry();
                     Envelope env = iso.EnvelopeInternal;
@@ -85,7 +85,7 @@ namespace DVAN.Accessibility
                 else {
                     float weight = 0;
                     foreach (FacilityReference fref in refs) {
-                        double range_factor = range_factors[ranges.IndexOf(fref.range)];
+                        double range_factor = decay.getDistanceWeight(fref.range);
                         weight += (float)(facility_weights[fref.index] * range_factor);
                     }
                     population_weights[index] = weight;
@@ -95,7 +95,7 @@ namespace DVAN.Accessibility
             return population_weights;
         }
 
-        public static async Task<float[]> calc2SFCAMatrix(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCAMatrix(IPopulationView population, double[][] facilities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
         {
             var population_weights = new float[population.pointCount()];
             float[] facility_weights = new float[facilities.Length];
@@ -123,7 +123,7 @@ namespace DVAN.Accessibility
                     }
                     int index = i;
                     int population_count = population.getPopulation(index);
-                    float range_factor = 1 - range / max_range;
+                    float range_factor = decay.getDistanceWeight(range);
 
                     weight += population_count * range_factor;
 
@@ -148,7 +148,7 @@ namespace DVAN.Accessibility
                 else {
                     float weight = 0;
                     foreach (FacilityReference fref in refs) {
-                        double range_factor = 1 - fref.range / max_range;
+                        double range_factor = decay.getDistanceWeight(fref.range);
                         weight += (float)(facility_weights[fref.index] * range_factor);
                     }
                     population_weights[index] = weight;
@@ -158,7 +158,7 @@ namespace DVAN.Accessibility
             return population_weights;
         }
 
-        public static async Task<float[]> calc2SFCAIsoRaster(IPopulationView population, double[][] facilities, List<double> ranges, List<double> range_factors, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCAIsoRaster(IPopulationView population, double[][] facilities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
         {
             var population_weights = new float[population.pointCount()];
             float[] facility_weights = new float[facilities.Length];
@@ -182,7 +182,7 @@ namespace DVAN.Accessibility
                         float range = accessor.getRange(f);
 
                         int population_count = population.getPopulation(index);
-                        float range_factor = 1 - range / max_range;
+                        float range_factor = decay.getDistanceWeight(range);
                         facility_weights[f] += population_count * range_factor;
 
                         if (!inverted_mapping.ContainsKey(index)) {
@@ -207,7 +207,7 @@ namespace DVAN.Accessibility
                 else {
                     float weight = 0;
                     foreach (FacilityReference fref in refs) {
-                        double range_factor = 1 - fref.range / max_range; ;
+                        double range_factor = decay.getDistanceWeight(fref.range);
                         weight += (float)(facility_weights[fref.index] * range_factor);
                     }
                     population_weights[index] = weight;
