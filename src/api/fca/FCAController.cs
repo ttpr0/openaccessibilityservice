@@ -33,7 +33,7 @@ namespace DVAN.API
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
 
-            var weights = await Simple2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, request.range_factors, provider, request.mode);
+            var weights = await Enhanced2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, request.range_factors, provider, request.mode);
 
             float max_weight = 0;
             foreach (float w in weights) {

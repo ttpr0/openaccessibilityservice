@@ -9,9 +9,9 @@ using System.Threading.Tasks.Dataflow;
 
 namespace DVAN.Accessibility
 {
-    public class Simple2SFCA
+    public class Dynamic2SFCA
     {
-        public static async Task<float[]> calc2SFCA(IPopulationView population, double[][] facilities, double[] capacities, double range, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCA(IPopulationView population, int[] range_indizes, double[][] facilities, double[] capacities, List<double> ranges, IRoutingProvider provider)
         {
             // initialize arrays to store weights
             var population_weights = new float[population.pointCount()];
@@ -21,7 +21,7 @@ namespace DVAN.Accessibility
             var inverted_mapping = new Dictionary<int, List<int>>();
 
             // calculating supply-demand-ratio by using isochrones and checking for point-in-area location
-            var collection = provider.requestIsochronesStream(facilities, new List<double> { range });
+            var collection = provider.requestIsochronesStream(facilities, ranges);
             for (int f = 0; f < facilities.Length; f++) {
                 var isochrones = await collection.ReceiveAsync();
                 if (isochrones == null) {
@@ -33,11 +33,18 @@ namespace DVAN.Accessibility
                 for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
                     var isochrone = isochrones.getIsochrone(i);
 
+                    // range_index used to identify catchment
+                    int range_index = ranges.IndexOf(isochrone.getValue());
+
                     Geometry iso = isochrone.getGeometry();
                     Envelope env = iso.EnvelopeInternal;
 
                     List<int> points = population.getPointsInEnvelop(env);
                     foreach (int index in points) {
+                        // check for right catchment on population point
+                        if (range_index != range_indizes[index]) {
+                            continue;
+                        }
                         Coordinate p = population.getCoordinate(index);
                         var location = SimplePointInAreaLocator.Locate(p, iso);
                         if (location == Location.Interior) {
