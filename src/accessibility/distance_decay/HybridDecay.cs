@@ -18,7 +18,7 @@ namespace DVAN.Accessibility
         public float getDistanceWeight(float distance)
         {
             for (int i = 0; i < distances.Length; i++) {
-                if (distance < distances[i]) {
+                if (distance <= distances[i]) {
                     return factors[i];
                 }
             }
