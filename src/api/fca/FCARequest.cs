@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 using DVAN.Population;
 using DVAN.Accessibility;
+using DVAN.Routing;
 
 namespace DVAN.API
 {
@@ -20,6 +21,8 @@ namespace DVAN.API
         public PopulationRequestParams population { get; set; }
 
         public DecayRequestParams distance_decay { get; set; }
+
+        public RoutingRequestParams? routing { get; set; }
 
         /// <summary>
         /// Facility Locations in geographic coordinates.

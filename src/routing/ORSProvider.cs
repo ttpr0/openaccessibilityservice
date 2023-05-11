@@ -15,27 +15,61 @@ namespace DVAN.Routing
     {
         private string url;
 
-        public ORSProvider(String url)
+        private string profile = "driving-car";
+        private string range_type = "time";
+        private string location_type = "destination";
+        private float isochrone_smoothing = (float)5.0;
+        private Dictionary<string, object>? options;
+
+        public ORSProvider(string url)
         {
             this.url = url;
+        }
+
+        public void setProfile(string profile)
+        {
+            this.profile = profile;
+        }
+
+        public void setRangeType(string range_type)
+        {
+            this.range_type = range_type;
+        }
+
+        public void setOption(string name, object value)
+        {
+            switch (name) {
+                case "location_type":
+                    this.location_type = (string)value;
+                    break;
+                case "isochrone_smoothing":
+                    this.isochrone_smoothing = (float)value;
+                    break;
+                default:
+                    if (this.options == null) {
+                        this.options = new Dictionary<string, object>();
+                    }
+                    this.options[name] = value;
+                    break;
+            }
         }
 
         async public Task<List<IsochroneCollection>> requestIsochrones(double[][] locations, List<double> ranges)
         {
             var request = new Dictionary<string, object> {
                 ["locations"] = locations,
-                ["location_type"] = "destination",
+                ["location_type"] = this.location_type,
                 ["range"] = ranges,
-                ["range_type"] = "time",
+                ["range_type"] = this.range_type,
                 ["units"] = "m",
-                ["smoothing"] = 5.0
+                ["smoothing"] = this.isochrone_smoothing,
             };
 
             try {
                 var jsonRequest = JsonSerializer.Serialize(request);
                 var httpClient = new HttpClient();
                 var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync(this.url + "/v2/isochrones/driving-car/geojson", content);
+                var response = await httpClient.PostAsync(this.url + "/v2/isochrones/" + this.profile + "/geojson", content);
 
                 var isoColls = new List<IsochroneCollection>(locations.Length);
 
@@ -81,11 +115,11 @@ namespace DVAN.Routing
                 int index = i;
                 Task.Run(async () => {
                     var request = new Dictionary<string, object> {
-                        ["location_type"] = "destination",
+                        ["location_type"] = this.location_type,
                         ["range"] = ranges,
-                        ["range_type"] = "time",
+                        ["range_type"] = this.range_type,
                         ["units"] = "m",
-                        ["smoothing"] = 5.0
+                        ["smoothing"] = this.isochrone_smoothing,
                     };
                     double[][] locs = new double[1][];
                     locs[0] = new double[] { locations[index][0], locations[index][1] };
@@ -95,7 +129,7 @@ namespace DVAN.Routing
                         var jsonRequest = JsonSerializer.Serialize(request);
                         var httpClient = new HttpClient();
                         var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-                        var response = await httpClient.PostAsync(this.url + "/v2/isochrones/driving-car/geojson", content);
+                        var response = await httpClient.PostAsync(this.url + "/v2/isochrones/" + this.profile + "/geojson", content);
 
                         var isoColls = new List<IsochroneCollection>(locations.Length);
 
@@ -130,14 +164,14 @@ namespace DVAN.Routing
             return buffer;
         }
 
-        public async Task<IsoRaster?> requestIsoRaster(Double[][] locations, double max_range)
+        public async Task<IsoRaster?> requestIsoRaster(double[][] locations, double max_range)
         {
             double[] ranges = { max_range };
             var request = new Dictionary<string, object> {
                 ["locations"] = locations,
-                ["location_type"] = "destination",
+                ["location_type"] = this.location_type,
                 ["range"] = ranges,
-                ["range_type"] = "time",
+                ["range_type"] = this.range_type,
                 ["units"] = "m",
                 ["consumer_type"] = "node_based",
                 ["crs"] = "25832",
@@ -148,7 +182,7 @@ namespace DVAN.Routing
                 var jsonRequest = JsonSerializer.Serialize(request);
                 var httpClient = new HttpClient();
                 var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync(this.url + "/v2/isoraster/driving-car", content);
+                var response = await httpClient.PostAsync(this.url + "/v2/isoraster/" + this.profile, content);
                 using var stream = await response.Content.ReadAsStreamAsync();
                 var raster = JsonSerializer.Deserialize<IsoRaster>(stream);
                 if (raster == null) {
@@ -163,7 +197,7 @@ namespace DVAN.Routing
             }
         }
 
-        public ISourceBlock<IsoRaster?> requestIsoRasterStream(Double[][] locations, double max_range)
+        public ISourceBlock<IsoRaster?> requestIsoRasterStream(double[][] locations, double max_range)
         {
             var buffer = new BufferBlock<IsoRaster?>();
             for (int i = 0; i < locations.Length; i++) {
@@ -171,9 +205,9 @@ namespace DVAN.Routing
                 Task.Run(async () => {
                     double[] ranges = { max_range };
                     var request = new Dictionary<string, object> {
-                        ["location_type"] = "destination",
+                        ["location_type"] = this.location_type,
                         ["range"] = ranges,
-                        ["range_type"] = "time",
+                        ["range_type"] = this.range_type,
                         ["units"] = "m",
                         ["consumer_type"] = "node_based",
                         ["crs"] = "25832",
@@ -188,7 +222,7 @@ namespace DVAN.Routing
                         var jsonRequest = JsonSerializer.Serialize(request);
                         var httpClient = new HttpClient();
                         var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-                        var response = await httpClient.PostAsync(this.url + "/v2/isoraster/driving-car", content);
+                        var response = await httpClient.PostAsync(this.url + "/v2/isoraster/" + this.profile, content);
                         using var stream = await response.Content.ReadAsStreamAsync();
                         var raster = JsonSerializer.Deserialize<IsoRaster>(stream);
                         raster.constructIndex();
@@ -225,6 +259,7 @@ namespace DVAN.Routing
                 ["sources"] = source,
                 ["destinations"] = destination,
                 ["units"] = "m",
+                ["metrics"] = this.range_type == "time" ? "duration" : this.range_type,
             };
 
             try {
@@ -232,7 +267,7 @@ namespace DVAN.Routing
                 var jsonRequest = JsonSerializer.Serialize(request);
                 var httpClient = new HttpClient();
                 var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync(this.url + "/v2/matrix/driving-car", content);
+                var response = await httpClient.PostAsync(this.url + "/v2/matrix/" + this.profile, content);
                 using var stream = await response.Content.ReadAsStreamAsync();
                 var matrix = JsonSerializer.Deserialize<Matrix>(stream);
 

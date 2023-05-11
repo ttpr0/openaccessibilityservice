@@ -37,7 +37,7 @@ namespace DVAN.API
             if (view == null) {
                 return BadRequest(new ErrorResponse("accessibility/gravity", "failed to get population-view, parameters are invalid"));
             }
-            IRoutingProvider provider = RoutingManager.getRoutingProvider();
+            IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
 
             logger.LogDebug("start calculation gravity accessibility");
             long start = Environment.TickCount64;

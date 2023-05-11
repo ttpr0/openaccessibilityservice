@@ -31,7 +31,7 @@ namespace DVAN.API
             if (view == null) {
                 return BadRequest(new ErrorResponse("2sfca/enhanced", "failed to get population-view, parameters are invalid"));
             }
-            IRoutingProvider provider = RoutingManager.getRoutingProvider();
+            IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
             IDistanceDecay? decay = DistanceDecay.getDistanceDecay(request.distance_decay);
             if (decay == null) {
                 return BadRequest(new ErrorResponse("2sfca/enhanced", "failed to get distance-decay, parameters are invalid"));

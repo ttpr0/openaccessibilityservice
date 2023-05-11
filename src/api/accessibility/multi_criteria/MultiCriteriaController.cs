@@ -33,7 +33,7 @@ namespace DVAN.API
         [ProducesResponseType(400, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> calcMultiCriteriaGrid([FromBody] MultiCriteriaRequest request)
         {
-            IRoutingProvider provider = RoutingManager.getRoutingProvider();
+            IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
 
             logger.LogDebug("Creating PopulationView");
             IPopulationView? view = PopulationManager.getPopulationView(request.population);

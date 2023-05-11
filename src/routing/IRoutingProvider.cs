@@ -7,14 +7,18 @@ namespace DVAN.Routing
 {
     public interface IRoutingProvider
     {
-        Task<List<IsochroneCollection>> requestIsochrones(Double[][] locations, List<Double> ranges);
+        void setProfile(string profile);
+        void setRangeType(string range_type);
+        void setOption(string name, object value);
 
-        ISourceBlock<IsochroneCollection> requestIsochronesStream(Double[][] locations, List<Double> ranges);
+        Task<List<IsochroneCollection>> requestIsochrones(double[][] locations, List<double> ranges);
 
-        Task<IsoRaster> requestIsoRaster(Double[][] locations, double max_range);
+        ISourceBlock<IsochroneCollection> requestIsochronesStream(double[][] locations, List<double> ranges);
 
-        ISourceBlock<IsoRaster> requestIsoRasterStream(Double[][] locations, double max_range);
+        Task<IsoRaster> requestIsoRaster(double[][] locations, double max_range);
 
-        Task<Matrix> requestMatrix(Double[][] sources, Double[][] destinations);
+        ISourceBlock<IsoRaster> requestIsoRasterStream(double[][] locations, double max_range);
+
+        Task<Matrix> requestMatrix(double[][] sources, double[][] destinations);
     }
 }

@@ -51,7 +51,7 @@ namespace DVAN.API
                 if (view == null) {
                     return BadRequest(new ErrorResponse("queries/aggregate", "failed to get population-view, parameters are invalid"));
                 }
-                IRoutingProvider provider = RoutingManager.getRoutingProvider();
+                IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
 
                 accessibility = await AggregateQuery.computeAccessibility(request.facility_locations, request.range.Value, view, provider);
             }

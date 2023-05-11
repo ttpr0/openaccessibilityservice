@@ -46,7 +46,7 @@ app.MapGet("/close", () => { app.StopAsync().Wait(); });
 
 app.MapControllers();
 
-RoutingManager.addRoutingProvider(new ORSProvider("http://172.26.62.41:8080/ors"));
+RoutingManager.setURL("http://172.26.62.41:8080/ors");
 PopulationManager.loadPopulation("./files/population.csv");
 PopulationManager.periodicClearViewStore(TimeSpan.FromSeconds(60), TimeSpan.FromMinutes(5));
 

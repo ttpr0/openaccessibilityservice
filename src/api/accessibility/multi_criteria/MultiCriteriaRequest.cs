@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 using DVAN.Population;
+using DVAN.Routing;
 
 namespace DVAN.API
 {
@@ -16,6 +17,8 @@ namespace DVAN.API
         public Dictionary<string, InfrastructureParams> infrastructures { get; set; }
 
         public PopulationRequestParams population { get; set; }
+
+        public RoutingRequestParams? routing { get; set; }
     }
 
     /// <summary>

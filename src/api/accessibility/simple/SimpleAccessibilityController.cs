@@ -26,7 +26,7 @@ namespace DVAN.API
         [ProducesResponseType(400, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> calcSimpleGrid([FromBody] SimpleAccessibilityRequest request)
         {
-            IRoutingProvider provider = RoutingManager.getRoutingProvider();
+            IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
             IPopulationView? view = PopulationManager.getPopulationView(request.population);
             if (view == null) {
                 return BadRequest(new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid"));

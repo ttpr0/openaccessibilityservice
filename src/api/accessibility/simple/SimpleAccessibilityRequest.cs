@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 using DVAN.Population;
+using DVAN.Routing;
 
 namespace DVAN.API
 {
@@ -23,5 +24,7 @@ namespace DVAN.API
         public double[][] facility_locations { get; set; }
 
         public PopulationRequestParams population { get; set; }
+
+        public RoutingRequestParams? routing { get; set; }
     }
 }
