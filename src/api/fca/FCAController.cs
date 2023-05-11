@@ -29,10 +29,13 @@ namespace DVAN.API
         {
             IPopulationView? view = PopulationManager.getPopulationView(request.population);
             if (view == null) {
-                return BadRequest(new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid"));
+                return BadRequest(new ErrorResponse("2sfca/enhanced", "failed to get population-view, parameters are invalid"));
             }
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
-            IDistanceDecay decay = new HybridDecay(request.ranges.Select(v => (float)v).ToArray(), request.range_factors.Select(v => (float)v).ToArray());
+            IDistanceDecay? decay = DistanceDecay.getDistanceDecay(request.distance_decay);
+            if (decay == null) {
+                return BadRequest(new ErrorResponse("2sfca/enhanced", "failed to get distance-decay, parameters are invalid"));
+            }
 
             var weights = await Enhanced2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, decay, provider, request.mode);
 
