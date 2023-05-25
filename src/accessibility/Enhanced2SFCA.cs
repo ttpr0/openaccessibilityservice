@@ -12,21 +12,21 @@ namespace DVAN.Accessibility
     public class Enhanced2SFCA
     {
 
-        public static Task<float[]> calc2SFCA(IPopulationView population, double[][] facilities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider, string? mode)
+        public static Task<float[]> calc2SFCA(IPopulationView population, double[][] facilities, double[] capacities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider, string? mode)
         {
             switch (mode) {
                 case "isochrones":
-                    return calc2SFCAIsochrones(population, facilities, ranges, decay, provider);
+                    return calc2SFCAIsochrones(population, facilities, capacities, ranges, decay, provider);
                 case "matrix":
-                    return calc2SFCAMatrix(population, facilities, ranges, decay, provider);
+                    return calc2SFCAMatrix(population, facilities, capacities, ranges, decay, provider);
                 case "isoraster":
-                    return calc2SFCAIsoRaster(population, facilities, ranges, decay, provider);
+                    return calc2SFCAIsoRaster(population, facilities, capacities, ranges, decay, provider);
                 default:
-                    return calc2SFCAIsochrones(population, facilities, ranges, decay, provider);
+                    return calc2SFCAIsochrones(population, facilities, capacities, ranges, decay, provider);
             }
         }
 
-        public static async Task<float[]> calc2SFCAIsochrones(IPopulationView population, double[][] facilities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCAIsochrones(IPopulationView population, double[][] facilities, double[] capacities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
         {
             var population_weights = new float[population.pointCount()];
             var facility_weights = new float[facilities.Length];
@@ -39,6 +39,7 @@ namespace DVAN.Accessibility
                 if (isochrones == null) {
                     continue;
                 }
+                int facility_index = isochrones.getID();
 
                 var visited = new HashSet<int>(10000);
                 float weight = 0;
@@ -70,10 +71,10 @@ namespace DVAN.Accessibility
                     }
                 }
                 if (weight == 0) {
-                    facility_weights[f] = 0;
+                    facility_weights[facility_index] = 0;
                 }
                 else {
-                    facility_weights[f] = 1 / weight;
+                    facility_weights[facility_index] = (float)capacities[facility_index] / weight;
                 }
             }
 
@@ -95,7 +96,7 @@ namespace DVAN.Accessibility
             return population_weights;
         }
 
-        public static async Task<float[]> calc2SFCAMatrix(IPopulationView population, double[][] facilities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCAMatrix(IPopulationView population, double[][] facilities, double[] capacities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
         {
             var population_weights = new float[population.pointCount()];
             float[] facility_weights = new float[facilities.Length];
@@ -136,7 +137,7 @@ namespace DVAN.Accessibility
                     facility_weights[f] = 0;
                 }
                 else {
-                    facility_weights[f] = 1 / weight;
+                    facility_weights[f] = (float)capacities[f] / weight;
                 }
             }
 
@@ -158,7 +159,7 @@ namespace DVAN.Accessibility
             return population_weights;
         }
 
-        public static async Task<float[]> calc2SFCAIsoRaster(IPopulationView population, double[][] facilities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
+        public static async Task<float[]> calc2SFCAIsoRaster(IPopulationView population, double[][] facilities, double[] capacities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
         {
             var population_weights = new float[population.pointCount()];
             float[] facility_weights = new float[facilities.Length];
@@ -195,7 +196,7 @@ namespace DVAN.Accessibility
             for (int f = 0; f < facility_weights.Length; f++) {
                 float weight = facility_weights[f];
                 if (weight != 0) {
-                    facility_weights[f] = 1 / weight;
+                    facility_weights[f] = (float)capacities[f] / weight;
                 }
             }
 

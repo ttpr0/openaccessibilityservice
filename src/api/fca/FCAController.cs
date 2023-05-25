@@ -36,8 +36,11 @@ namespace DVAN.API
             if (decay == null) {
                 return BadRequest(new ErrorResponse("2sfca/enhanced", "failed to get distance-decay, parameters are invalid"));
             }
+            if (request.facility_locations == null || request.facility_capacities == null || request.ranges == null) {
+                return BadRequest(new ErrorResponse("2sfca/enhanced", "facility or range parameters missing, parameters are invalid"));
+            }
 
-            var weights = await Enhanced2SFCA.calc2SFCA(view, request.facility_locations, request.ranges, decay, provider, request.mode);
+            var weights = await Enhanced2SFCA.calc2SFCA(view, request.facility_locations, request.facility_capacities, request.ranges, decay, provider, request.mode);
 
             float max_weight = 0;
             foreach (float w in weights) {

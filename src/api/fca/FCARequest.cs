@@ -31,6 +31,12 @@ namespace DVAN.API
         public double[][]? facility_locations { get; set; }
 
         /// <summary>
+        /// Facility capacities.
+        /// </summary>
+        /// <example>[12.1, 43.5, 21.4]</example>
+        public double[]? facility_capacities { get; set; }
+
+        /// <summary>
         /// Calculation mode (one of "isochrones", "isoraster", "matrix").
         /// Defaults to "isochrones".
         /// </summary>
