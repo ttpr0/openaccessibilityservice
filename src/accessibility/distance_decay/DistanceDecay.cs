@@ -63,6 +63,14 @@ namespace DVAN.Accessibility
                         return null;
                     }
                     return new KernelDensityDecay(param.max_range.Value);
+                case "polynom":
+                    if (param.max_range == null || param.range_factors == null) {
+                        return null;
+                    }
+                    if (param.max_range.Value <= 0 || param.range_factors.Length == 0) {
+                        return null;
+                    }
+                    return new PolynomDecay(param.max_range.Value, param.range_factors);
                 default:
                     return null;
             }
