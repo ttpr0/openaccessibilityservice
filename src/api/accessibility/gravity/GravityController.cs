@@ -41,13 +41,13 @@ namespace DVAN.API
 
             logger.LogDebug("start calculation gravity accessibility");
             long start = Environment.TickCount64;
-            GravityAccessibility gravity = new GravityAccessibility(view, provider);
-            await gravity.calcAccessibility(request.facility_locations, request.ranges, request.range_factors);
+            GravityAccessibility gravity = new GravityAccessibility();
+            var access = await gravity.calcAccessibility(view, request.facility_locations, request.ranges, request.range_factors, provider);
             long end = Environment.TickCount64;
             logger.LogDebug($"finished in {end - start} ms");
 
             logger.LogDebug("start building response");
-            var response = this.buildResponse(view, gravity.getAccessibility());
+            var response = this.buildResponse(view, access);
             logger.LogDebug("response build successfully");
 
             return Ok(new GravityResponse {

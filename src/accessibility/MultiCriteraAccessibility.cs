@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DVAN.API;
 using DVAN.Population;
+using DVAN.Routing;
 using NetTopologySuite.Geometries;
 
 namespace DVAN.Accessibility
@@ -12,16 +13,19 @@ namespace DVAN.Accessibility
         private IPopulationView population;
         private GravityAccessibility gravity;
 
+        private IRoutingProvider provider;
+
         private float max_population;
         private float max_value;
         private float max_weighted_value;
 
         private Dictionary<string, float>[] accessibilities;
 
-        public MultiCriteraAccessibility(IPopulationView population, GravityAccessibility gravity)
+        public MultiCriteraAccessibility(IPopulationView population, GravityAccessibility gravity, IRoutingProvider provider)
         {
             this.population = population;
             this.gravity = gravity;
+            this.provider = provider;
 
             float max_pop = 100;
             this.max_population = max_pop;
@@ -36,8 +40,7 @@ namespace DVAN.Accessibility
 
         public async Task addAccessibility(string name, double[][] facilities, List<double> ranges, List<double> factors, double weight)
         {
-            await gravity.calcAccessibility(facilities, ranges, factors);
-            Access[] accessibility = gravity.getAccessibility();
+            Access[] accessibility = await gravity.calcAccessibility(this.population, facilities, ranges, factors, this.provider);
 
             Access defaultAccess = new Access();
             defaultAccess.access = -9999;

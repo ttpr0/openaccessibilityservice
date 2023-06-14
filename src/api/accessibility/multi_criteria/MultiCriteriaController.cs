@@ -42,9 +42,9 @@ namespace DVAN.API
             }
 
             logger.LogDebug("Creating GravityAccessibility");
-            GravityAccessibility gravity = new GravityAccessibility(view, provider);
+            GravityAccessibility gravity = new GravityAccessibility();
 
-            MultiCriteraAccessibility multiCriteria = new MultiCriteraAccessibility(view, gravity);
+            MultiCriteraAccessibility multiCriteria = new MultiCriteraAccessibility(view, gravity, provider);
 
             logger.LogDebug("Adding Accessbilities");
             foreach (var entry in request.infrastructures) {

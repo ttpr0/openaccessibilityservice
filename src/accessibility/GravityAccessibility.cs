@@ -11,45 +11,20 @@ using System.Threading.Tasks.Dataflow;
 
 namespace DVAN.Accessibility
 {
-    public class Access
-    {
-        public float access;
-        public float weighted_access;
-    }
-
     public class GravityAccessibility
     {
-        private IPopulationView population;
-        private IRoutingProvider provider;
-
-        private float max_population;
-        private Access[] accessibility;
-
-        public GravityAccessibility(IPopulationView population, IRoutingProvider provider)
+        public async Task<Access[]> calcAccessibility(IPopulationView population, double[][] facilities, List<double> ranges, List<double> factors, IRoutingProvider provider)
         {
-            this.population = population;
-            this.provider = provider;
+            var accessibilities = new Access[population.pointCount()];
 
-            this.max_population = 100;
-            this.accessibility = new Access[population.pointCount()];
-        }
-
-        public Access[] getAccessibility()
-        {
-            return this.accessibility;
-        }
-
-        public async Task calcAccessibility(double[][] facilities, List<double> ranges, List<double> factors)
-        {
-            var accessibilities = new Access[this.population.pointCount()];
-
-            var table = await this.provider.requestNearest(this.population, facilities, ranges, "isochrones");
+            var table = await provider.requestNearest(population, facilities, ranges, "isochrones");
             if (table == null) {
-                return;
+                return accessibilities;
             }
 
             float max_value = 0;
-            for (int p = 0; p < this.population.pointCount(); p++) {
+            float max_population = 100;
+            for (int p = 0; p < population.pointCount(); p++) {
                 var (_, range) = table.getNearest(p);
                 var factor = factors[ranges.IndexOf(range)];
 
@@ -75,10 +50,10 @@ namespace DVAN.Accessibility
                 }
                 else {
                     access.access = access.access * 100 / max_value;
-                    access.weighted_access = access.access * this.population.getPopulation(key) / max_population;
+                    access.weighted_access = access.access * population.getPopulation(key) / max_population;
                 }
             }
-            this.accessibility = accessibilities;
+            return accessibilities;
         }
 
         // public async Task calcAccessibility2(double[][] facilities, List<double> ranges, List<double> factors)
@@ -142,5 +117,11 @@ namespace DVAN.Accessibility
         //     }
         //     this.accessibility = accessibilities;
         // }
+    }
+
+    public class Access
+    {
+        public float access;
+        public float weighted_access;
     }
 }
