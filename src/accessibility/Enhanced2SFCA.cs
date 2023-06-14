@@ -9,6 +9,10 @@ using System.Threading.Tasks.Dataflow;
 
 namespace DVAN.Accessibility
 {
+    /// <summary>
+    /// Computes Enhanced 2SFCA using 3 different calculation modes.
+    /// Result is an array containing a access value for every population point.
+    /// </summary>
     public class Enhanced2SFCA
     {
 
@@ -33,48 +37,31 @@ namespace DVAN.Accessibility
 
             var inverted_mapping = new Dictionary<int, List<FacilityReference>>();
 
-            var collection = provider.requestIsochronesStream(facilities, ranges);
+            var matrix = await provider.requestTDMatrix(population, facilities, ranges, "isochrones");
+            if (matrix == null) {
+                return population_weights;
+            }
             for (int f = 0; f < facilities.Length; f++) {
-                var isochrones = await collection.ReceiveAsync();
-                if (isochrones == null) {
-                    continue;
-                }
-                int facility_index = isochrones.getID();
-
-                var visited = new HashSet<int>(10000);
                 float weight = 0;
-                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
-                    var isochrone = isochrones.getIsochrone(i);
-                    double range = isochrone.getValue();
-                    double range_factor = decay.getDistanceWeight((float)range);
-
-                    Geometry iso = isochrone.getGeometry();
-                    Envelope env = iso.EnvelopeInternal;
-
-                    List<int> points = population.getPointsInEnvelop(env);
-                    foreach (int index in points) {
-                        if (visited.Contains(index)) {
-                            continue;
-                        }
-                        Coordinate p = population.getCoordinate(index);
-                        var location = SimplePointInAreaLocator.Locate(p, iso);
-                        if (location == Location.Interior) {
-                            int population_count = population.getPopulation(index);
-                            weight += population_count * (float)range_factor;
-
-                            if (!inverted_mapping.ContainsKey(index)) {
-                                inverted_mapping[index] = new List<FacilityReference>(4);
-                            }
-                            inverted_mapping[index].Add(new FacilityReference(f, (float)range));
-                            visited.Add(index);
-                        }
+                for (int p = 0; p < population.pointCount(); p++) {
+                    float range = matrix.getRange(f, p);
+                    if (range == 9999) {
+                        continue;
                     }
+                    float range_factor = decay.getDistanceWeight((float)range);
+                    int population_count = population.getPopulation(p);
+                    weight += population_count * (float)range_factor;
+
+                    if (!inverted_mapping.ContainsKey(p)) {
+                        inverted_mapping[p] = new List<FacilityReference>(4);
+                    }
+                    inverted_mapping[p].Add(new FacilityReference(f, (float)range));
                 }
                 if (weight == 0) {
-                    facility_weights[facility_index] = 0;
+                    facility_weights[f] = 0;
                 }
                 else {
-                    facility_weights[facility_index] = (float)capacities[facility_index] / weight;
+                    facility_weights[f] = (float)capacities[f] / weight;
                 }
             }
 
@@ -105,20 +92,14 @@ namespace DVAN.Accessibility
             var inverted_mapping = new Dictionary<int, List<FacilityReference>>();
 
             var point_count = population.pointCount();
-            double[][] destinations = new double[point_count][];
-            for (int i = 0; i < point_count; i++) {
-                var index = i;
-                Coordinate p = population.getCoordinate(index);
-                destinations[i] = new double[] { p.X, p.Y };
-            }
-            var matrix = await provider.requestMatrix(facilities, destinations);
-            if (matrix == null || matrix.durations == null) {
+            var matrix = await provider.requestTDMatrix(population, facilities, ranges, "matrix");
+            if (matrix == null) {
                 return population_weights;
             }
             for (int f = 0; f < facilities.Length; f++) {
                 float weight = 0;
                 for (int i = 0; i < point_count; i++) {
-                    float range = (float)matrix.durations[f][i];
+                    float range = matrix.getRange(f, i);
                     if (range > max_range) {
                         continue;
                     }
@@ -162,40 +143,34 @@ namespace DVAN.Accessibility
         public static async Task<float[]> calc2SFCAIsoRaster(IPopulationView population, double[][] facilities, double[] capacities, List<double> ranges, IDistanceDecay decay, IRoutingProvider provider)
         {
             var population_weights = new float[population.pointCount()];
-            float[] facility_weights = new float[facilities.Length];
+            var facility_weights = new float[facilities.Length];
 
-            float max_range = (float)ranges[^1];
             var inverted_mapping = new Dictionary<int, List<FacilityReference>>();
 
-            var isoraster = await provider.requestIsoRaster(facilities, max_range);
-            if (isoraster == null) {
+            var matrix = await provider.requestTDMatrix(population, facilities, ranges, "isoraster");
+            if (matrix == null) {
                 return population_weights;
             }
-
-            double[][] extend = isoraster.getEnvelope();
-            var env = new Envelope(extend[0][0], extend[3][0], extend[2][1], extend[1][1]);
-            var points = population.getPointsInEnvelop(env);
-            foreach (int index in points) {
-                Coordinate p = population.getCoordinate(index, "EPSG:25832");
-                var accessor = isoraster.getAccessor(p);
-                if (accessor != null) {
-                    foreach (var f in accessor.getFacilities()) {
-                        float range = accessor.getRange(f);
-
-                        int population_count = population.getPopulation(index);
-                        float range_factor = decay.getDistanceWeight(range);
-                        facility_weights[f] += population_count * range_factor;
-
-                        if (!inverted_mapping.ContainsKey(index)) {
-                            inverted_mapping[index] = new List<FacilityReference>(4);
-                        }
-                        inverted_mapping[index].Add(new FacilityReference(f, range));
+            for (int f = 0; f < facilities.Length; f++) {
+                float weight = 0;
+                for (int p = 0; p < population.pointCount(); p++) {
+                    float range = matrix.getRange(f, p);
+                    if (range == 9999) {
+                        continue;
                     }
+                    float range_factor = decay.getDistanceWeight((float)range);
+                    int population_count = population.getPopulation(p);
+                    weight += population_count * (float)range_factor;
+
+                    if (!inverted_mapping.ContainsKey(p)) {
+                        inverted_mapping[p] = new List<FacilityReference>(4);
+                    }
+                    inverted_mapping[p].Add(new FacilityReference(f, (float)range));
                 }
-            }
-            for (int f = 0; f < facility_weights.Length; f++) {
-                float weight = facility_weights[f];
-                if (weight != 0) {
+                if (weight == 0) {
+                    facility_weights[f] = 0;
+                }
+                else {
                     facility_weights[f] = (float)capacities[f] / weight;
                 }
             }

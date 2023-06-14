@@ -36,55 +36,22 @@ namespace DVAN.Accessibility
                 catchments[i] = new FacilityCatchment();
             }
 
-            var collection = provider.requestIsochronesStream(facilities, ranges);
+            var matrix = await this.provider.requestTDMatrix(this.population, facilities, ranges, "isochrones");
             for (int f = 0; f < facilities.Length; f++) {
-                var isochrones = await collection.ReceiveAsync();
-                if (isochrones == null) {
-                    continue;
-                }
-                int facility_index = isochrones.getID();
-
-                // double[][] locations = new double[1][];
-                // locations[0] = new double[] { 0, 0 };
-                // for (int f = 0; f < facilities.Length; f++) {
-                //     locations[0][0] = facilities[f][0];
-                //     locations[0][1] = facilities[f][1];
-
-                //     var iso_list = await provider.requestIsochrones(locations, ranges);
-                //     if (iso_list == null) {
-                //         continue;
-                //     }
-                //     var isochrones = iso_list[0];
-
-                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
-                    Isochrone isochrone = isochrones.getIsochrone(i);
-                    double range = isochrone.getValue();
-                    Geometry iso;
-                    Geometry outer = isochrone.getGeometry();
-                    if (i == 0) {
-                        iso = outer;
+                for (int p = 0; p < this.population.pointCount(); p++) {
+                    float range = matrix.getRange(f, p);
+                    if (range == 9999) {
+                        continue;
+                    }
+                    List<RangeRef> access;
+                    if (accessibilities[p] == null) {
+                        access = new List<RangeRef>();
+                        accessibilities[p] = access;
                     }
                     else {
-                        Geometry inner = isochrones.getIsochrone(i - 1).getGeometry();
-                        iso = outer.Difference(inner);
+                        access = accessibilities[p];
                     }
-                    Envelope env = iso.EnvelopeInternal;
-                    List<int> points = population.getPointsInEnvelop(env);
-                    foreach (int index in points) {
-                        Coordinate p = population.getCoordinate(index);
-                        var location = SimplePointInAreaLocator.Locate(p, iso);
-                        if (location == Location.Interior) {
-                            List<RangeRef> access;
-                            if (accessibilities[index] == null) {
-                                access = new List<RangeRef>();
-                                accessibilities[index] = access;
-                            }
-                            else {
-                                access = accessibilities[index];
-                            }
-                            accessibilities[index].Add(new RangeRef((int)range, facility_index));
-                        }
-                    }
+                    accessibilities[p].Add(new RangeRef((int)range, f));
                 }
             }
 

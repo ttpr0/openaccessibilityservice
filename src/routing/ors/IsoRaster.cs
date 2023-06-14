@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Index.KdTree;
 
-namespace DVAN.Routing
+namespace DVAN.Routing.ORS
 {
     public class IsoRaster
     {

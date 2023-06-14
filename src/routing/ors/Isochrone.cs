@@ -1,7 +1,7 @@
 using System;
 using NetTopologySuite.Geometries;
 
-namespace DVAN.Routing
+namespace DVAN.Routing.ORS
 {
     public class Isochrone
     {

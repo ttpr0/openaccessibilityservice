@@ -20,49 +20,35 @@ namespace DVAN.Accessibility
             // inverted mapping (population -> facilities) to avoid recomputing catchments
             var inverted_mapping = new Dictionary<int, List<int>>();
 
-            // calculating supply-demand-ratio by using isochrones and checking for point-in-area location
-            var collection = provider.requestIsochronesStream(facilities, ranges);
+            // calculating supply-demand-ratio by using time-distance-matrix
+            var matrix = await provider.requestTDMatrix(population, facilities, ranges, "isochrones");
+            if (matrix == null) {
+                return population_weights;
+            }
             for (int f = 0; f < facilities.Length; f++) {
-                var isochrones = await collection.ReceiveAsync();
-                if (isochrones == null) {
-                    continue;
-                }
-                int facility_index = isochrones.getID();
-
                 float weight = 0;
-                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
-                    var isochrone = isochrones.getIsochrone(i);
-
-                    // range_index used to identify catchment
-                    int range_index = ranges.IndexOf(isochrone.getValue());
-
-                    Geometry iso = isochrone.getGeometry();
-                    Envelope env = iso.EnvelopeInternal;
-
-                    List<int> points = population.getPointsInEnvelop(env);
-                    foreach (int index in points) {
-                        // check for right catchment on population point
-                        if (range_index != range_indizes[index]) {
-                            continue;
-                        }
-                        Coordinate p = population.getCoordinate(index);
-                        var location = SimplePointInAreaLocator.Locate(p, iso);
-                        if (location == Location.Interior) {
-                            int population_count = population.getPopulation(index);
-                            weight += population_count;
-
-                            if (!inverted_mapping.ContainsKey(index)) {
-                                inverted_mapping[index] = new List<int>(4);
-                            }
-                            inverted_mapping[index].Add(facility_index);
-                        }
+                for (int p = 0; p < population.pointCount(); p++) {
+                    float range = matrix.getRange(f, p);
+                    if (range == 9999) {
+                        continue;
                     }
+                    int range_index = ranges.IndexOf(range);
+                    if (range_index != range_indizes[p]) {
+                        continue;
+                    }
+                    int population_count = population.getPopulation(p);
+                    weight += population_count;
+
+                    if (!inverted_mapping.ContainsKey(p)) {
+                        inverted_mapping[p] = new List<int>(4);
+                    }
+                    inverted_mapping[p].Add(f);
                 }
                 if (weight == 0) {
-                    facility_weights[facility_index] = 0;
+                    facility_weights[f] = 0;
                 }
                 else {
-                    facility_weights[facility_index] = (float)capacities[facility_index] / weight;
+                    facility_weights[f] = (float)capacities[f] / weight;
                 }
             }
 

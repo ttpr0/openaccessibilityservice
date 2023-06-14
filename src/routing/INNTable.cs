@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace DVAN.Routing
 {
-    public class Matrix
+    public interface INNTable
     {
-        public double[][] durations { get; set; }
+        (int, float) getNearest(int destination);
     }
 }

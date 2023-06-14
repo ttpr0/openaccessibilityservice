@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 
-namespace DVAN.Routing
+namespace DVAN.Routing.ORS
 {
     public class IsochroneCollection
     {

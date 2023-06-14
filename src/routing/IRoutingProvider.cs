@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using DVAN.Population;
 
 namespace DVAN.Routing
 {
@@ -11,14 +12,25 @@ namespace DVAN.Routing
         void setRangeType(string range_type);
         void setOption(string name, object value);
 
-        Task<List<IsochroneCollection>> requestIsochrones(double[][] locations, List<double> ranges);
+        /// <summary>
+        /// Computes the time-distance-matrix containing travel-times between all facilities and population points.
+        /// </summary>
+        Task<ITDMatrix?> requestTDMatrix(IPopulationView population, double[][] facilities, List<double> ranges, string mode);
 
-        ISourceBlock<IsochroneCollection> requestIsochronesStream(double[][] locations, List<double> ranges);
+        /// <summary>
+        /// Computes the nearest facilities to the population points.
+        /// </summary>
+        Task<INNTable?> requestNearest(IPopulationView population, double[][] facilities, List<double> ranges, string mode);
 
-        Task<IsoRaster> requestIsoRaster(double[][] locations, double max_range);
+        /// <summary>
+        /// Computes the k-nearest facilities to the population points.
+        /// </summary>
+        Task<IKNNTable?> requestKNearest(IPopulationView population, double[][] facilities, List<double> ranges, int k, string mode);
 
-        ISourceBlock<IsoRaster> requestIsoRasterStream(double[][] locations, double max_range);
 
-        Task<Matrix> requestMatrix(double[][] sources, double[][] destinations);
+        /// <summary>
+        /// Computes all facilities that lie within a given range to the population points.
+        /// </summary>
+        Task<ICatchment?> requestCatchment(IPopulationView population, double[][] facilities, double range, string mode);
     }
 }
