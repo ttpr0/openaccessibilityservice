@@ -32,41 +32,30 @@ namespace DVAN.API
                 return BadRequest(new ErrorResponse("accessibility/gravity/grid", "failed to get population-view, parameters are invalid"));
             }
 
-            SimpleAccessibility simple = new SimpleAccessibility(view, provider);
+            var table = await provider.requestKNearest(view, request.facility_locations, request.ranges, 3, "isochrones");
 
-            await simple.calcAccessibility(request.facility_locations, request.ranges);
-
-            var response = this.buildResponse(view, simple.getAccessibilities());
+            var response = this.buildResponse(view, table);
 
             return Ok(new SimpleAccessibilityResponse {
                 access = response
             });
         }
 
-        SimpleValue[] buildResponse(IPopulationView population, List<RangeRef>[] accessibilities)
+        SimpleValue[] buildResponse(IPopulationView population, IKNNTable table)
         {
             var features = new SimpleValue[population.pointCount()];
             for (int i = 0; i < population.pointCount(); i++) {
                 int index = i;
-                List<RangeRef> ranges;
-                if (accessibilities[index] != null) {
-                    ranges = accessibilities[index];
-                }
-                else {
-                    ranges = new List<RangeRef>();
-                }
-                ranges.Sort((RangeRef a, RangeRef b) => {
-                    return (int)(a.range - b.range);
-                });
+                List<(int, float)> ranges = Enumerable.Range(0, 3).Select(item => table.getKNearest(index, item)).ToList();
                 SimpleValue value = new SimpleValue(-9999, -9999, -9999);
                 if (ranges.Count > 0) {
-                    value.first = (int)ranges[0].range;
+                    value.first = (int)ranges[0].Item2;
                 }
                 if (ranges.Count > 1) {
-                    value.second = (int)ranges[1].range;
+                    value.second = (int)ranges[1].Item2;
                 }
                 if (ranges.Count > 2) {
-                    value.third = (int)ranges[2].range;
+                    value.third = (int)ranges[2].Item2;
                 }
                 features[index] = value;
             }

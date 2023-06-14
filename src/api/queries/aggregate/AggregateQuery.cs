@@ -16,29 +16,14 @@ namespace DVAN.API
 {
     public class AggregateQuery
     {
-        public static async Task<List<int>[]> computeAccessibility(double[][] locations, double range, IPopulationView view, IRoutingProvider provider)
+        public static float[] computeQuery(double[] values, ICatchment catchment, string computed_type)
         {
-            var simple = new SimpleCatchment(view, provider);
-
-            await simple.calcAccessibility(locations, range);
-
-            return simple.getAccessibilities();
-        }
-
-        public static float[] computeQuery(double[] values, List<int>[] accessibilities, string computed_type)
-        {
-            var results = new float[accessibilities.Length];
-            for (int i = 0; i < accessibilities.Length; i++) {
+            var results = new float[values.Length];
+            for (int i = 0; i < values.Length; i++) {
                 int index = i;
-                List<int> facilities;
-                if (accessibilities[index] != null) {
-                    facilities = accessibilities[index];
-                }
-                else {
-                    facilities = new List<int>();
-                }
+                var facilities = catchment.getNeighbours(index);
                 if (computed_type == "min") {
-                    if (facilities.Count == 0) {
+                    if (!facilities.Any()) {
                         results[i] = -9999;
                     }
                     else {
@@ -46,7 +31,7 @@ namespace DVAN.API
                     }
                 }
                 if (computed_type == "max") {
-                    if (facilities.Count == 0) {
+                    if (!facilities.Any()) {
                         results[i] = -9999;
                     }
                     else {
@@ -54,7 +39,7 @@ namespace DVAN.API
                     }
                 }
                 if (computed_type == "median") {
-                    if (facilities.Count == 0) {
+                    if (!facilities.Any()) {
                         results[i] = -9999;
                     }
                     else {
@@ -72,26 +57,24 @@ namespace DVAN.API
                     }
                 }
                 if (computed_type == "mean") {
-                    if (facilities.Count == 0) {
+                    if (!facilities.Any()) {
                         results[i] = -9999;
                     }
                     else {
                         float sum = 0;
-                        for (int j = 0; j < facilities.Count; j++) {
-                            var key = facilities[j];
+                        foreach (var key in facilities) {
                             sum += (float)values[key];
                         }
-                        results[i] = sum / facilities.Count;
+                        results[i] = sum / facilities.Count();
                     }
                 }
                 if (computed_type == "sum") {
-                    if (facilities.Count == 0) {
+                    if (!facilities.Any()) {
                         results[i] = -9999;
                     }
                     else {
                         float sum = 0;
-                        for (int j = 0; j < facilities.Count; j++) {
-                            var key = facilities[j];
+                        foreach (var key in facilities) {
                             sum += (float)values[key];
                         }
                         results[i] = sum;

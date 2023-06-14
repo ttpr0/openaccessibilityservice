@@ -35,7 +35,7 @@ namespace DVAN.API
         [ProducesResponseType(400, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> calcQuery([FromBody] AggregateQueryRequest request)
         {
-            List<int>[] accessibility;
+            ICatchment catchment;
             IPopulationView? view;
             if (request.session_id != null) {
                 var session_id = request.session_id.Value;
@@ -43,7 +43,7 @@ namespace DVAN.API
                     return BadRequest(new ErrorResponse("n_nearest", "no active session found"));
                 }
                 var session = sessions[session_id];
-                accessibility = session.accessibilities;
+                catchment = session.catchment;
                 view = session.population_view;
             }
             else {
@@ -53,18 +53,18 @@ namespace DVAN.API
                 }
                 IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
 
-                accessibility = await AggregateQuery.computeAccessibility(request.facility_locations, request.range.Value, view, provider);
+                catchment = await provider.requestCatchment(view, request.facility_locations, request.range.Value, "isochrones");
             }
 
             Guid id = Guid.NewGuid();
 
             sessions[id] = new AggregateQuerySession {
                 id = id,
-                accessibilities = accessibility,
+                catchment = catchment,
                 population_view = view
             };
 
-            var results = AggregateQuery.computeQuery(request.facility_values, accessibility, request.compute_type);
+            var results = AggregateQuery.computeQuery(request.facility_values, catchment, request.compute_type);
 
             return Ok(new AggregateQueryResponse {
                 result = results,

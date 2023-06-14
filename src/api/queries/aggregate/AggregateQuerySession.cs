@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DVAN.Accessibility;
 using DVAN.Population;
+using DVAN.Routing;
 using NetTopologySuite.Geometries;
 
 namespace DVAN.API
@@ -12,6 +13,6 @@ namespace DVAN.API
 
         public IPopulationView population_view { get; set; }
 
-        public List<int>[] accessibilities { get; set; }
+        public ICatchment catchment { get; set; }
     }
 }

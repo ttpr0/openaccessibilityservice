@@ -38,7 +38,7 @@ namespace DVAN.API
             IRoutingProvider provider = RoutingManager.getRoutingProvider();
             IPopulationView view = PopulationManager.createPopulationView(parameters.envelope);
 
-            var accessibility = await NearestQuery.computeAccessibility(parameters.facility_locations, parameters.ranges, view, provider);
+            var accessibility = await NearestQuery.computeAccessibility(parameters.facility_locations, parameters.ranges, parameters.facility_count, view, provider);
 
             Guid id = Guid.NewGuid();
             var session = new NearestQuerySession {

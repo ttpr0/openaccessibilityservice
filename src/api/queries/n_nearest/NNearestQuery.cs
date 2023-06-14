@@ -16,97 +16,64 @@ namespace DVAN.API
 {
     public class NNearestQuery
     {
-        public static async Task<List<RangeRef>[]> computeAccessibility(double[][] locations, List<double> ranges, IPopulationView view, IRoutingProvider provider)
+        public static float[] computeQuery(double[] values, IKNNTable table, string computed_type, int count)
         {
-            SimpleAccessibility simple = new SimpleAccessibility(view, provider);
-
-            await simple.calcAccessibility(locations, ranges);
-
-            var accessibilities = simple.getAccessibilities();
-            foreach (var rangerefs in accessibilities) {
-                rangerefs.Sort((a, b) => {
-                    if (a.range > b.range) {
-                        return 1;
-                    }
-                    if (a.range < b.range) {
-                        return -1;
-                    }
-                    return 0;
-                });
-            }
-            return accessibilities;
-        }
-
-        public static float[] computeQuery(double[] values, List<RangeRef>[] accessibilities, string computed_type, int count)
-        {
-            var results = new float[accessibilities.Length];
-            for (int i = 0; i < accessibilities.Length; i++) {
+            var results = new float[values.Length];
+            for (int i = 0; i < values.Length; i++) {
                 int index = i;
-                List<RangeRef> ranges;
-                if (accessibilities[index] != null) {
-                    ranges = accessibilities[index];
-                }
-                else {
-                    ranges = new List<RangeRef>();
-                }
+                List<double> vals = Enumerable.Range(0, count).Select(item => {
+                    var (key, _) = table.getKNearest(index, item);
+                    if (key == -1) {
+                        return -9999;
+                    }
+                    return values[key];
+                }).Where(item => item != -9999).ToList();
                 if (computed_type == "min") {
-                    if (ranges.Count < count) {
+                    if (vals.Count == 0) {
                         results[i] = -9999;
+                        continue;
                     }
-                    else {
-                        results[i] = (float)ranges.Take(count).Min(item => values[item.index]);
-                    }
+                    results[i] = (float)vals.Min();
                 }
                 if (computed_type == "max") {
-                    if (ranges.Count < count) {
+                    if (vals.Count < count) {
                         results[i] = -9999;
+                        continue;
                     }
-                    else {
-                        results[i] = (float)ranges.Take(count).Max(item => values[item.index]);
-                    }
+                    results[i] = (float)vals.Max();
                 }
                 if (computed_type == "median") {
-                    if (ranges.Count < count) {
+                    if (vals.Count < count) {
                         results[i] = -9999;
+                        continue;
+                    }
+                    vals.Sort();
+                    if (vals.Count % 2 == 1) {
+                        var key = (vals.Count - 1) / 2;
+                        results[i] = (float)vals[key];
                     }
                     else {
-                        var temp = ranges.Take(count).Select(item => values[item.index]).ToList();
-                        temp.Sort();
-                        if (temp.Count % 2 == 1) {
-                            var key = (temp.Count - 1) / 2;
-                            results[i] = (float)values[key];
-                        }
-                        else {
-                            var key1 = (temp.Count - 2) / 2;
-                            var key2 = (temp.Count - 2) / 2 + 1;
-                            results[i] = (float)(values[key1] + values[key2]) / 2;
-                        }
+                        var key1 = (vals.Count - 2) / 2;
+                        var key2 = (vals.Count - 2) / 2 + 1;
+                        results[i] = (float)(vals[key1] + vals[key2]) / 2;
                     }
                 }
                 if (computed_type == "mean") {
-                    if (ranges.Count < count) {
+                    if (vals.Count < count) {
                         results[i] = -9999;
+                        continue;
                     }
                     else {
-                        float sum = 0;
-                        for (int j = 0; j < count; j++) {
-                            var key = ranges[j].index;
-                            sum += (float)values[key];
-                        }
-                        results[i] = sum / count;
+                        results[i] = (float)(vals.Sum() / vals.Count);
                     }
                 }
                 if (computed_type == "sum") {
-                    if (ranges.Count < count) {
+                    if (vals.Count < count) {
                         results[i] = -9999;
+                        continue;
                     }
                     else {
-                        float sum = 0;
-                        for (int j = 0; j < count; j++) {
-                            var key = ranges[j].index;
-                            sum += (float)values[key];
-                        }
-                        results[i] = sum;
+                        results[i] = (float)vals.Sum();
                     }
                 }
             }

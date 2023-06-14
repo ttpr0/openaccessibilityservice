@@ -16,13 +16,20 @@ namespace DVAN.API
 {
     public class NearestQuery
     {
-        public static async Task<List<RangeRef>[]> computeAccessibility(double[][] locations, List<double> ranges, IPopulationView view, IRoutingProvider provider)
+        public static async Task<List<RangeRef>[]> computeAccessibility(double[][] locations, List<double> ranges, int count, IPopulationView view, IRoutingProvider provider)
         {
-            SimpleAccessibility simple = new SimpleAccessibility(view, provider);
+            var table = await provider.requestKNearest(view, locations, ranges, count, "isochrones");
 
-            await simple.calcAccessibility(locations, ranges);
+            var access = new List<RangeRef>[view.pointCount()];
+            for (int p = 0; p < view.pointCount(); p++) {
+                access[p] = new List<RangeRef>(count);
+                for (int i = 0; i < count; i++) {
+                    var (index, range) = table.getKNearest(p, i);
+                    access[p].Add(new RangeRef(range, index));
+                }
+            }
 
-            return simple.getAccessibilities();
+            return access;
         }
 
         public static Dictionary<string, int>[] buildResponse(IPopulationView population, List<RangeRef>[] accessibilities, int count)

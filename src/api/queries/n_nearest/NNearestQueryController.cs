@@ -35,7 +35,7 @@ namespace DVAN.API
         [ProducesResponseType(400, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> calcQuery([FromBody] NNearestQueryRequest request)
         {
-            List<RangeRef>[] accessibility;
+            IKNNTable table;
             IPopulationView? view;
             Guid session_id;
             if (request.session_id != null) {
@@ -44,7 +44,7 @@ namespace DVAN.API
                     return BadRequest(new ErrorResponse("n_nearest", "no active session found"));
                 }
                 var session = sessions[session_id];
-                accessibility = session.accessibilities;
+                table = session.table;
                 view = session.population_view;
             }
             else {
@@ -54,17 +54,17 @@ namespace DVAN.API
                 }
                 IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
 
-                accessibility = await NNearestQuery.computeAccessibility(request.facility_locations, request.ranges, view, provider);
+                table = await provider.requestKNearest(view, request.facility_locations, request.ranges, request.facility_count, "isochrones");
 
                 session_id = Guid.NewGuid();
                 sessions[session_id] = new NNearestQuerySession {
                     id = session_id,
-                    accessibilities = accessibility,
+                    table = table,
                     population_view = view
                 };
             }
 
-            var results = NNearestQuery.computeQuery(request.facility_values, accessibility, request.compute_type, request.facility_count);
+            var results = NNearestQuery.computeQuery(request.facility_values, table, request.compute_type, request.facility_count);
 
             return Ok(new NNearestQueryResponse {
                 result = results,
