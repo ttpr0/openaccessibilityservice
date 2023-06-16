@@ -174,4 +174,16 @@ namespace DVAN.API
             return (counts, mean, std, median, min, max);
         }
     }
+
+    public class RangeRef
+    {
+        public int index { get; set; }
+        public float range { get; set; }
+
+        public RangeRef(float range, int index)
+        {
+            this.index = index;
+            this.range = range;
+        }
+    }
 }
