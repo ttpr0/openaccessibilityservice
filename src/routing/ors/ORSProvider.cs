@@ -270,7 +270,7 @@ namespace DVAN.Routing.ORS
                             var (_, last_range) = table[index, n - 1];
                             if (last_range > range || last_range == 9999) {
                                 table[index, n - 1] = (facility_index, (float)range);
-                                for (int k = n - 2; k > 0; k++) {
+                                for (int k = n - 2; k >= 0; k--) {
                                     var curr = table[index, k];
                                     var prev = table[index, k + 1];
                                     if (curr.Item2 > prev.Item2 || curr.Item2 == 9999) {
