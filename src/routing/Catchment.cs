@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace DVAN.Routing
@@ -14,7 +15,11 @@ namespace DVAN.Routing
 
         public IEnumerable<int> getNeighbours(int destination)
         {
-            return this.sources[destination];
+            var agg = this.sources[destination];
+            if (agg == null) {
+                return Enumerable.Empty<int>();
+            }
+            return agg;
         }
     }
 }
