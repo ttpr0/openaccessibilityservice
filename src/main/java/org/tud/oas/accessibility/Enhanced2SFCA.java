@@ -9,6 +9,7 @@ import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.ITDMatrix;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 
 public class Enhanced2SFCA {
@@ -20,7 +21,7 @@ public class Enhanced2SFCA {
 
         Map<Integer, List<FacilityReference>> invertedMapping = new HashMap<>();
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, ranges, mode);
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, mode, new RoutingOptions(ranges));
         try {
             if (matrix == null) {
                 return populationWeights;
@@ -67,15 +68,5 @@ public class Enhanced2SFCA {
             e.printStackTrace();
             return new float[0];
         }
-    }
-}
-
-class FacilityReference {
-    public int index;
-    public float range;
-
-    public FacilityReference(int index, float range) {
-        this.index = index;
-        this.range = range;
     }
 }

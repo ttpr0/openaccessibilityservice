@@ -6,6 +6,7 @@ import org.tud.oas.demand.DemandManager;
 import org.tud.oas.routing.IKNNTable;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingManager;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.supply.SupplyManager;
 import org.slf4j.Logger;
@@ -53,8 +54,8 @@ public class NNearestQueryController {
             }
 
             IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
-            table = provider.requestKNearest(demand_view, supply_view, request.ranges,
-                    request.facility_count, "isochrones");
+            table = provider.requestKNearest(demand_view, supply_view, request.facility_count, "isochrones",
+                    new RoutingOptions(request.ranges));
 
             sessionId = UUID.randomUUID();
             sessions.put(sessionId, new NNearestQuerySession(sessionId, demand_view, table));

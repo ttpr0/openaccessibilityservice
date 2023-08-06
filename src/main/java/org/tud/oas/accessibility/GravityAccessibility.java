@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.tud.oas.routing.IRoutingProvider;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.INNTable;
@@ -14,7 +15,7 @@ public class GravityAccessibility {
             List<Double> factors, IRoutingProvider provider) {
         Access[] accessibilities = new Access[demand.pointCount()];
 
-        INNTable table = provider.requestNearest(demand, supply, ranges, "isochrones");
+        INNTable table = provider.requestNearest(demand, supply, "isochrones", new RoutingOptions(ranges));
         if (table == null) {
             return accessibilities;
         }

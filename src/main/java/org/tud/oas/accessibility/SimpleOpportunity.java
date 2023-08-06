@@ -7,6 +7,7 @@ import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.ITDMatrix;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 
 public class SimpleOpportunity {
@@ -15,9 +16,7 @@ public class SimpleOpportunity {
             IDistanceDecay decay, IRoutingProvider provider) {
         float[] accessibilities = new float[demand.pointCount()];
 
-        List<Double> rangeList = new ArrayList<>(ranges);
-
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, rangeList, "isochrones");
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, "isochrones", new RoutingOptions(ranges));
         try {
             if (matrix == null) {
                 return accessibilities;

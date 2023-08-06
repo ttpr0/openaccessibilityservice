@@ -6,6 +6,7 @@ import org.tud.oas.routing.ITDMatrix;
 import org.tud.oas.routing.TDMatrix;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.routing.NNTable;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.routing.KNNTable;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.Catchment;
@@ -72,7 +73,7 @@ public class ORSProvider implements IRoutingProvider {
         this.range_type = range_type;
     }
 
-    public void setOption(String name, Object value) {
+    public void setParameter(String name, Object value) {
         switch (name) {
             case "location_type":
                 this.location_type = (String) value;
@@ -89,17 +90,17 @@ public class ORSProvider implements IRoutingProvider {
         }
     }
 
-    public ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, List<Double> ranges,
-            String mode) {
+    public ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply,
+            String mode, RoutingOptions options) {
         switch (mode) {
             case "isochrones":
-                return this.requestMatrixIsochrones(demand, supply, ranges);
+                return this.requestMatrixIsochrones(demand, supply, options.getRanges());
             case "matrix":
-                return this.requestMatrixMatrix(demand, supply, ranges);
+                return this.requestMatrixMatrix(demand, supply, options.getRanges());
             case "isoraster":
-                return this.requestMatrixIsoraster(demand, supply, ranges);
+                return this.requestMatrixIsoraster(demand, supply, options.getRanges());
             default:
-                return this.requestMatrixMatrix(demand, supply, ranges);
+                return this.requestMatrixMatrix(demand, supply, options.getRanges());
         }
     }
 
@@ -225,14 +226,15 @@ public class ORSProvider implements IRoutingProvider {
         return new TDMatrix(matrix);
     }
 
-    public INNTable requestNearest(IDemandView demand, ISupplyView supply, List<Double> ranges,
-            String mode) {
+    public INNTable requestNearest(IDemandView demand, ISupplyView supply, String mode, RoutingOptions options) {
         int[] nearest_table = new int[demand.pointCount()];
         float[] ranges_table = new float[demand.pointCount()];
         for (int j = 0; j < demand.pointCount(); j++) {
             nearest_table[j] = -1;
             ranges_table[j] = 9999;
         }
+
+        List<Double> ranges = options.getRanges();
 
         int point_count = supply.pointCount();
         double[][] facilities = new double[point_count][];
@@ -297,8 +299,8 @@ public class ORSProvider implements IRoutingProvider {
         return new NNTable(nearest_table, ranges_table);
     }
 
-    public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, List<Double> ranges, int n,
-            String mode) {
+    public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int n, String mode,
+            RoutingOptions options) {
         int[][] nearest_table = new int[demand.pointCount()][n];
         float[][] ranges_table = new float[demand.pointCount()][n];
         for (int j = 0; j < demand.pointCount(); j++) {
@@ -307,6 +309,8 @@ public class ORSProvider implements IRoutingProvider {
                 ranges_table[j][i] = 9999;
             }
         }
+
+        List<Double> ranges = options.getRanges();
 
         int point_count = supply.pointCount();
         double[][] facilities = new double[point_count][];
@@ -378,7 +382,8 @@ public class ORSProvider implements IRoutingProvider {
         return new KNNTable(nearest_table, ranges_table);
     }
 
-    public ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, String mode) {
+    public ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, String mode,
+            RoutingOptions options) {
         List<Integer>[] accessibilities = new List[demand.pointCount()];
 
         List<Double> ranges = new ArrayList<>();

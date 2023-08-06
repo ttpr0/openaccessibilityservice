@@ -14,6 +14,7 @@ import org.tud.oas.demand.DemandManager;
 import org.tud.oas.routing.IKNNTable;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingManager;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.supply.SupplyManager;
 
@@ -37,7 +38,8 @@ public class SimpleAccessibilityController {
                     "failed to get supply-view, parameters are invalid"));
         }
 
-        IKNNTable table = provider.requestKNearest(demand_view, supply_view, request.ranges, 3, "isochrones");
+        IKNNTable table = provider.requestKNearest(demand_view, supply_view, 3, "isochrones",
+                new RoutingOptions(request.ranges));
 
         SimpleValue[] response = this.buildResponse(demand_view, table);
 

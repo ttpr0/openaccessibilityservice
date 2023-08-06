@@ -10,7 +10,7 @@ public interface IRoutingProvider {
 
     void setRangeType(String range_type);
 
-    void setOption(String name, Object value);
+    void setParameter(String name, Object value);
 
     /**
      * Computes the time-distance-matrix containing travel-times between all
@@ -22,7 +22,7 @@ public interface IRoutingProvider {
      * @param mode
      * @return
      */
-    ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, List<Double> ranges, String mode);
+    ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, String mode, RoutingOptions options);
 
     /**
      * Computes the nearest supply to the demand points.
@@ -33,7 +33,7 @@ public interface IRoutingProvider {
      * @param mode
      * @return
      */
-    INNTable requestNearest(IDemandView demand, ISupplyView supply, List<Double> ranges, String mode);
+    INNTable requestNearest(IDemandView demand, ISupplyView supply, String mode, RoutingOptions options);
 
     /**
      * Computes the k-nearest supplies to the demand points.
@@ -45,8 +45,7 @@ public interface IRoutingProvider {
      * @param mode
      * @return
      */
-    IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, List<Double> ranges, int k,
-            String mode);
+    IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int k, String mode, RoutingOptions options);
 
     /**
      * Computes all supplies that lie within a given range to the demand
@@ -58,5 +57,6 @@ public interface IRoutingProvider {
      * @param mode
      * @return
      */
-    ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, String mode);
+    ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, String mode,
+            RoutingOptions options);
 }

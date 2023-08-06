@@ -10,6 +10,7 @@ import org.tud.oas.demand.DemandManager;
 import org.tud.oas.routing.ICatchment;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingManager;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.supply.SupplyManager;
 
@@ -54,7 +55,7 @@ public class AggregateQueryController {
 
             IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
             catchment = provider.requestCatchment(demand_view, supply_view, request.range,
-                    "isochrones");
+                    "isochrones", null);
         }
 
         UUID id = UUID.randomUUID();

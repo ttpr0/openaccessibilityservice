@@ -32,10 +32,10 @@ public class RoutingManager {
             provider.setRangeType(param.range_type);
         }
         if (param.location_type != null) {
-            provider.setOption("location_type", param.location_type);
+            provider.setParameter("location_type", param.location_type);
         }
         if (param.isochrone_smoothing != null) {
-            provider.setOption("isochrone_smoothing", param.isochrone_smoothing);
+            provider.setParameter("isochrone_smoothing", param.isochrone_smoothing);
         }
 
         return provider;

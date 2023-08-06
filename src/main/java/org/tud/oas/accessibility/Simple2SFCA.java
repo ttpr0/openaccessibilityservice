@@ -8,6 +8,7 @@ import java.util.Map;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.ITDMatrix;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 
 public class Simple2SFCA {
@@ -22,7 +23,7 @@ public class Simple2SFCA {
         List<Double> ranges = new ArrayList<>();
         ranges.add(range);
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, ranges, "isochrones");
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, "isochrones", new RoutingOptions(ranges));
         try {
             if (matrix == null) {
                 return populationWeights;
