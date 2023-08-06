@@ -1,14 +1,61 @@
 package org.tud.oas.routing;
 
+import org.tud.oas.population.IPopulationView;
+
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 
 public interface IRoutingProvider {
-    List<IsochroneCollection> requestIsochrones(Double[][] locations, List<Double> ranges);
+    void setProfile(String profile);
 
-    BlockingQueue<IsochroneCollection> requestIsochronesStream(Double[][] locations, List<Double> ranges);
+    void setRangeType(String range_type);
 
-    List<IsoRaster> requestIsoRasters(Double[][] locations, double max_range);
+    void setOption(String name, Object value);
 
-    BlockingQueue<IsoRaster> requestIsoRasterStream(Double[][] locations, double max_range);
+    /**
+     * Computes the time-distance-matrix containing travel-times between all
+     * facilities and population points.
+     * 
+     * @param population
+     * @param facilities
+     * @param ranges
+     * @param mode
+     * @return
+     */
+    ITDMatrix requestTDMatrix(IPopulationView population, double[][] facilities, List<Double> ranges, String mode);
+
+    /**
+     * Computes the nearest facilities to the population points.
+     * 
+     * @param population
+     * @param facilities
+     * @param ranges
+     * @param mode
+     * @return
+     */
+    INNTable requestNearest(IPopulationView population, double[][] facilities, List<Double> ranges, String mode);
+
+    /**
+     * Computes the k-nearest facilities to the population points.
+     * 
+     * @param population
+     * @param facilities
+     * @param ranges
+     * @param k
+     * @param mode
+     * @return
+     */
+    IKNNTable requestKNearest(IPopulationView population, double[][] facilities, List<Double> ranges, int k,
+            String mode);
+
+    /**
+     * Computes all facilities that lie within a given range to the population
+     * points.
+     * 
+     * @param population
+     * @param facilities
+     * @param range
+     * @param mode
+     * @return
+     */
+    ICatchment requestCatchment(IPopulationView population, double[][] facilities, double range, String mode);
 }

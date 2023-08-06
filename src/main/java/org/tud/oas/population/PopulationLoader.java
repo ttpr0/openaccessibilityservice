@@ -8,13 +8,13 @@ import org.locationtech.jts.geom.Point;
 import java.io.BufferedReader;
 
 public final class PopulationLoader {
-    public static Population loadFromCSV(String filename) throws Exception {
+    public static PopulationContainer loadFromCSV(String filename) throws Exception {
         FileReader file = new FileReader(filename);
-		BufferedReader reader = new BufferedReader(file);
+        BufferedReader reader = new BufferedReader(file);
 
-		String del = ";";
-		String line = reader.readLine();
-		String[] tokens = line.split(del);
+        String del = ";";
+        String line = reader.readLine();
+        String[] tokens = line.split(del);
 
         // population indices
         int index_ew_gesamt = -1;
@@ -35,7 +35,7 @@ public final class PopulationLoader {
         // geom indices
         int index_geom = -1;
         int index_geom_utm = -1;
-        for (int i=0; i < tokens.length; i++) {
+        for (int i = 0; i < tokens.length; i++) {
             String token = tokens[i];
             if (token.equals("EW_GESAMT")) {
                 index_ew_gesamt = i;
@@ -87,35 +87,37 @@ public final class PopulationLoader {
             }
         }
         System.out.println(index_ew_gesamt + "," + index_geom + "," + index_geom_utm);
-        Population population = new Population(10000);
+        PopulationContainer population = new PopulationContainer(10000);
         WKBReader geom_reader = new WKBReader();
 
-		while ((line = reader.readLine()) != null)
-		{
-			tokens = line.split(del);
-            int ew_gesamt = (int)Double.parseDouble(tokens[index_ew_gesamt].replace(",", "."));
-            int stnd00_09 = (int)Double.parseDouble(tokens[index_stnd00_09].replace(",", "."));
-            int stnd10_19 = (int)Double.parseDouble(tokens[index_stnd10_19].replace(",", "."));
-            int stnd20_39 = (int)Double.parseDouble(tokens[index_stnd20_39].replace(",", "."));
-            int stnd40_59 = (int)Double.parseDouble(tokens[index_stnd40_59].replace(",", "."));
-            int stnd60_79 = (int)Double.parseDouble(tokens[index_stnd60_79].replace(",", "."));
-            int stnd80x = (int)Double.parseDouble(tokens[index_stnd80x].replace(",", "."));
-            int kisc00_02 = (int)Double.parseDouble(tokens[index_kisc00_02].replace(",", "."));
-            int kisc03_05 = (int)Double.parseDouble(tokens[index_kisc03_05].replace(",", "."));
-            int kisc06_09 = (int)Double.parseDouble(tokens[index_kisc06_09].replace(",", "."));
-            int kisc10_14 = (int)Double.parseDouble(tokens[index_kisc10_14].replace(",", "."));
-            int kisc15_17 = (int)Double.parseDouble(tokens[index_kisc15_17].replace(",", "."));
-            int kisc18_19 = (int)Double.parseDouble(tokens[index_kisc18_19].replace(",", "."));
-            int kisc20x = (int)Double.parseDouble(tokens[index_kisc20x].replace(",", "."));
-            int[] standard_population = new int[] {stnd00_09, stnd10_19, stnd20_39, (int)(stnd40_59/2), (int)(stnd40_59/2), stnd60_79, stnd80x};
-            int[] kita_schul_population = new int[] {kisc00_02, kisc03_05, kisc06_09, kisc10_14, kisc15_17, kisc18_19, kisc20x};
-            PopulationAttributes attributes = new PopulationAttributes(ew_gesamt, standard_population, kita_schul_population);
-            Point point = (Point)geom_reader.read(WKBReader.hexToBytes(tokens[index_geom]));
-            Point utm_point = (Point)geom_reader.read(WKBReader.hexToBytes(tokens[index_geom_utm]));
+        while ((line = reader.readLine()) != null) {
+            tokens = line.split(del);
+            int ew_gesamt = (int) Double.parseDouble(tokens[index_ew_gesamt].replace(",", "."));
+            int stnd00_09 = (int) Double.parseDouble(tokens[index_stnd00_09].replace(",", "."));
+            int stnd10_19 = (int) Double.parseDouble(tokens[index_stnd10_19].replace(",", "."));
+            int stnd20_39 = (int) Double.parseDouble(tokens[index_stnd20_39].replace(",", "."));
+            int stnd40_59 = (int) Double.parseDouble(tokens[index_stnd40_59].replace(",", "."));
+            int stnd60_79 = (int) Double.parseDouble(tokens[index_stnd60_79].replace(",", "."));
+            int stnd80x = (int) Double.parseDouble(tokens[index_stnd80x].replace(",", "."));
+            int kisc00_02 = (int) Double.parseDouble(tokens[index_kisc00_02].replace(",", "."));
+            int kisc03_05 = (int) Double.parseDouble(tokens[index_kisc03_05].replace(",", "."));
+            int kisc06_09 = (int) Double.parseDouble(tokens[index_kisc06_09].replace(",", "."));
+            int kisc10_14 = (int) Double.parseDouble(tokens[index_kisc10_14].replace(",", "."));
+            int kisc15_17 = (int) Double.parseDouble(tokens[index_kisc15_17].replace(",", "."));
+            int kisc18_19 = (int) Double.parseDouble(tokens[index_kisc18_19].replace(",", "."));
+            int kisc20x = (int) Double.parseDouble(tokens[index_kisc20x].replace(",", "."));
+            int[] standard_population = new int[] { stnd00_09, stnd10_19, stnd20_39, (int) (stnd40_59 / 2),
+                    (int) (stnd40_59 / 2), stnd60_79, stnd80x };
+            int[] kita_schul_population = new int[] { kisc00_02, kisc03_05, kisc06_09, kisc10_14, kisc15_17, kisc18_19,
+                    kisc20x };
+            PopulationAttributes attributes = new PopulationAttributes(ew_gesamt, standard_population,
+                    kita_schul_population);
+            Point point = (Point) geom_reader.read(WKBReader.hexToBytes(tokens[index_geom]));
+            Point utm_point = (Point) geom_reader.read(WKBReader.hexToBytes(tokens[index_geom_utm]));
             population.addPopulationPoint(point.getCoordinate(), utm_point.getCoordinate(), attributes);
-		}
+        }
 
-		reader.close();
+        reader.close();
 
         return population;
     }

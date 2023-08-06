@@ -1,40 +1,33 @@
 package org.tud.oas.api.fca;
 
-import java.util.List;
+import org.tud.oas.population.PopulationRequestParams;
+import org.tud.oas.accessibility.distance_decay.DecayRequestParams;
+import org.tud.oas.routing.RoutingRequestParams;
 
+import org.locationtech.jts.geom.Coordinate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FCARequest {
-    @JsonProperty("ranges")
-    private List<Double> ranges;
+import java.util.List;
 
-    @JsonProperty("range_factors")
-    private List<Double> factors;
+class FCARequest {
+    @JsonProperty("ranges")
+    public List<Double> ranges;
+
+    @JsonProperty("population")
+    public PopulationRequestParams population;
+
+    @JsonProperty("distance_decay")
+    public DecayRequestParams distance_decay;
+
+    @JsonProperty("routing")
+    public RoutingRequestParams routing;
 
     @JsonProperty("facility_locations")
-    private Double[][] locations;
+    public double[][] facility_locations;
 
-    public List<Double> getRanges() {
-        return ranges;
-    }
+    @JsonProperty("facility_capacities")
+    public double[] facility_capacities;
 
-    public void setRanges(List<Double> ranges) {
-        this.ranges = ranges;
-    }
-
-    public List<Double> getFactors() {
-        return factors;
-    }
-
-    public void setFactors(List<Double> factors) {
-        this.factors = factors;
-    }
-
-    public Double[][] getLocations() {
-        return locations;
-    }
-
-    public void setLocations(Double[][] locations) {
-        this.locations = locations;
-    }
+    @JsonProperty("mode")
+    public String mode;
 }
