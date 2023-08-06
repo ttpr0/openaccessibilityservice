@@ -6,33 +6,34 @@ import java.util.List;
 import java.util.Map;
 
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
-import org.tud.oas.population.IPopulationView;
+import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.ITDMatrix;
+import org.tud.oas.supply.ISupplyView;
 
 public class Enhanced2SFCA {
 
-    public static float[] calc2SFCA(IPopulationView population, double[][] facilities, double[] capacities,
+    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply,
             List<Double> ranges, IDistanceDecay decay, IRoutingProvider provider, String mode) {
-        float[] populationWeights = new float[population.pointCount()];
-        float[] facilityWeights = new float[facilities.length];
+        float[] populationWeights = new float[demand.pointCount()];
+        float[] facilityWeights = new float[supply.pointCount()];
 
         Map<Integer, List<FacilityReference>> invertedMapping = new HashMap<>();
 
-        ITDMatrix matrix = provider.requestTDMatrix(population, facilities, ranges, mode);
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, ranges, mode);
         try {
             if (matrix == null) {
                 return populationWeights;
             }
-            for (int f = 0; f < facilities.length; f++) {
+            for (int f = 0; f < supply.pointCount(); f++) {
                 float weight = 0;
-                for (int p = 0; p < population.pointCount(); p++) {
+                for (int p = 0; p < demand.pointCount(); p++) {
                     float range = matrix.getRange(f, p);
                     if (range == 9999) {
                         continue;
                     }
                     float rangeFactor = decay.getDistanceWeight(range);
-                    int populationCount = population.getPopulation(p);
+                    int populationCount = demand.getDemand(p);
                     weight += populationCount * rangeFactor;
 
                     if (!invertedMapping.containsKey(p)) {
@@ -43,7 +44,7 @@ public class Enhanced2SFCA {
                 if (weight == 0) {
                     facilityWeights[f] = 0;
                 } else {
-                    facilityWeights[f] = (float) capacities[f] / weight;
+                    facilityWeights[f] = (float) supply.getSupply(f) / weight;
                 }
             }
 

@@ -1,13 +1,43 @@
-package org.tud.oas.population;
+package org.tud.oas.demand.population;
 
 import java.io.FileReader;
 
 import org.locationtech.jts.io.WKBReader;
+import org.tud.oas.demand.DemandManager;
+import org.tud.oas.demand.IDemandView;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 
 import java.io.BufferedReader;
 
 public final class PopulationLoader {
+    private static PopulationContainer population;
+
+    public static void loadPopulation(String filename) {
+        try {
+            PopulationLoader.population = PopulationLoader.loadFromCSV(filename);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static PopulationContainer getPopulation() {
+        return PopulationLoader.population;
+    }
+
+    public static IDemandView createPopulationView(Envelope envelope) {
+        return new PopulationContainerView(population, envelope);
+    }
+
+    public static IDemandView createPopulationView(Envelope envelope, String type, int[] indizes) {
+        return new PopulationContainerView(population, envelope, type, indizes);
+    }
+
+    public static IDemandView createPopulationView(Geometry area) {
+        return new PopulationContainerView(population, area);
+    }
+
     public static PopulationContainer loadFromCSV(String filename) throws Exception {
         FileReader file = new FileReader(filename);
         BufferedReader reader = new BufferedReader(file);

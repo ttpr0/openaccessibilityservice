@@ -1,7 +1,7 @@
 package org.tud.oas.api.responses;
 
 import org.locationtech.jts.geom.Coordinate;
-import org.tud.oas.population.PopulationContainer;
+import org.tud.oas.demand.population.PopulationContainer;
 
 public class GeoJSONResponse {
     public String type;

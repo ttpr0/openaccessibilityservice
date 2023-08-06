@@ -1,9 +1,9 @@
 package org.tud.oas.api.fca;
 
-import org.tud.oas.population.PopulationRequestParams;
 import org.tud.oas.accessibility.distance_decay.DecayRequestParams;
+import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
-
+import org.tud.oas.supply.SupplyRequestParams;
 import org.locationtech.jts.geom.Coordinate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -13,8 +13,8 @@ class FCARequest {
     @JsonProperty("ranges")
     public List<Double> ranges;
 
-    @JsonProperty("population")
-    public PopulationRequestParams population;
+    @JsonProperty("demand")
+    public DemandRequestParams demand;
 
     @JsonProperty("distance_decay")
     public DecayRequestParams distance_decay;
@@ -22,11 +22,8 @@ class FCARequest {
     @JsonProperty("routing")
     public RoutingRequestParams routing;
 
-    @JsonProperty("facility_locations")
-    public double[][] facility_locations;
-
-    @JsonProperty("facility_capacities")
-    public double[] facility_capacities;
+    @JsonProperty("supply")
+    public SupplyRequestParams supply;
 
     @JsonProperty("mode")
     public String mode;

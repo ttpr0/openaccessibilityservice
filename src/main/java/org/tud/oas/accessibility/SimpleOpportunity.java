@@ -4,33 +4,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
-import org.tud.oas.population.IPopulationView;
+import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.ITDMatrix;
+import org.tud.oas.supply.ISupplyView;
 
 public class SimpleOpportunity {
 
-    public static float[] calcAccessibility(IPopulationView population, double[][] facilities,
-            double[] capacities, List<Double> ranges, IDistanceDecay decay, IRoutingProvider provider) {
-        float[] accessibilities = new float[population.pointCount()];
+    public static float[] calcAccessibility(IDemandView demand, ISupplyView supply, List<Double> ranges,
+            IDistanceDecay decay, IRoutingProvider provider) {
+        float[] accessibilities = new float[demand.pointCount()];
 
         List<Double> rangeList = new ArrayList<>(ranges);
 
-        ITDMatrix matrix = provider.requestTDMatrix(population, facilities, rangeList, "isochrones");
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, rangeList, "isochrones");
         try {
             if (matrix == null) {
                 return accessibilities;
             }
 
-            for (int f = 0; f < facilities.length; f++) {
-                for (int p = 0; p < population.pointCount(); p++) {
+            for (int f = 0; f < supply.pointCount(); f++) {
+                for (int p = 0; p < demand.pointCount(); p++) {
                     float range = matrix.getRange(f, p);
                     if (range == 9999) {
                         continue;
                     }
                     float rangeFactor = decay.getDistanceWeight(range);
 
-                    accessibilities[p] += (float) capacities[f] * rangeFactor;
+                    accessibilities[p] += (float) supply.getSupply(f) * rangeFactor;
                 }
             }
 

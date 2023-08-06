@@ -2,7 +2,7 @@ package org.tud.oas.api.utility;
 
 import java.util.UUID;
 
-import org.tud.oas.population.PopulationRequestParams;
+import org.tud.oas.demand.DemandRequestParams;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /// </summary>
 class PopulationStoreRequest {
     @JsonProperty("population")
-    public PopulationRequestParams population;
+    public DemandRequestParams population;
 }
 
 /// <summary>
@@ -26,5 +26,5 @@ class PopulationGetRequest {
     public UUID population_id;
 
     @JsonProperty("population")
-    public PopulationRequestParams population;
+    public DemandRequestParams population;
 }

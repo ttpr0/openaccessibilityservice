@@ -1,4 +1,4 @@
-package org.tud.oas.population;
+package org.tud.oas.demand.population;
 
 public class PopulationAttributes {
     private int index;

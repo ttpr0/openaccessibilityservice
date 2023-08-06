@@ -2,8 +2,9 @@ package org.tud.oas.api.accessibility.gravity;
 
 import java.util.List;
 
-import org.tud.oas.population.PopulationRequestParams;
+import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
+import org.tud.oas.supply.SupplyRequestParams;
 
 /// <summary>
 /// Gravity Request.
@@ -21,13 +22,9 @@ public class GravityRequest {
     /// <example>[1.0, 0.7, 0.5, 0.3, 0.1]</example>
     public List<Double> range_factors;
 
-    /// <summary>
-    /// Facility Locations in geographic coordinates.
-    /// </summary>
-    /// <example>[[9.11, 51.23], [9.35, 50.98], [10.02, 52.10]]</example>
-    public double[][] facility_locations;
+    public DemandRequestParams demand;
 
-    public PopulationRequestParams population;
+    public SupplyRequestParams supply;
 
     public RoutingRequestParams routing;
 }

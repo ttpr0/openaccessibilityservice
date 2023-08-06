@@ -14,10 +14,12 @@ import org.tud.oas.accessibility.GravityAccessibility;
 import org.tud.oas.accessibility.MultiCriteraAccessibility;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.api.responses.ErrorResponse;
-import org.tud.oas.population.IPopulationView;
-import org.tud.oas.population.PopulationManager;
+import org.tud.oas.demand.IDemandView;
+import org.tud.oas.demand.DemandManager;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingManager;
+import org.tud.oas.supply.ISupplyView;
+import org.tud.oas.supply.SupplyManager;
 
 @RestController
 @RequestMapping("/v1/accessibility/multi")
@@ -31,8 +33,8 @@ public class MultiCriteriaController {
     public ResponseEntity<?> calcMultiCriteriaGrid(@RequestBody MultiCriteriaRequest request) {
         IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
 
-        logger.debug("Creating PopulationView");
-        IPopulationView view = PopulationManager.getPopulationView(request.population);
+        logger.debug("Creating DemandView");
+        IDemandView view = DemandManager.getDemandView(request.demand);
         if (view == null) {
             return ResponseEntity.badRequest().body(
                     new ErrorResponse("accessibility/multi", "failed to get population-view, parameters are invalid"));
@@ -47,7 +49,8 @@ public class MultiCriteriaController {
 
         for (Map.Entry<String, InfrastructureParams> entry : request.infrastructures.entrySet()) {
             InfrastructureParams value = entry.getValue();
-            multiCriteria.addAccessibility(entry.getKey(), value.facility_locations, value.ranges, value.range_factors,
+            ISupplyView supply_view = SupplyManager.getSupplyView(value.supply);
+            multiCriteria.addAccessibility(entry.getKey(), supply_view, value.ranges, value.range_factors,
                     value.infrastructure_weight);
         }
         logger.debug("Finished Adding Accessibilities");
@@ -59,7 +62,7 @@ public class MultiCriteriaController {
         return ResponseEntity.ok(new MultiCriteriaResponse(response));
     }
 
-    Map<String, Float>[] buildResponse(IPopulationView population, Map<String, Float>[] accessibilities) {
+    Map<String, Float>[] buildResponse(IDemandView population, Map<String, Float>[] accessibilities) {
         Map<String, Float>[] features = new Map[population.pointCount()];
 
         for (int index = 0; index < population.pointCount(); index++) {

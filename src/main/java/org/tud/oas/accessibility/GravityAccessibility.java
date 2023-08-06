@@ -3,24 +3,25 @@ package org.tud.oas.accessibility;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import org.tud.oas.population.IPopulationView;
 import org.tud.oas.routing.IRoutingProvider;
+import org.tud.oas.supply.ISupplyView;
+import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.INNTable;
 
 public class GravityAccessibility {
 
-    public Access[] calcAccessibility(IPopulationView population, double[][] facilities, List<Double> ranges,
+    public Access[] calcAccessibility(IDemandView demand, ISupplyView supply, List<Double> ranges,
             List<Double> factors, IRoutingProvider provider) {
-        Access[] accessibilities = new Access[population.pointCount()];
+        Access[] accessibilities = new Access[demand.pointCount()];
 
-        INNTable table = provider.requestNearest(population, facilities, ranges, "isochrones");
+        INNTable table = provider.requestNearest(demand, supply, ranges, "isochrones");
         if (table == null) {
             return accessibilities;
         }
 
         float max_value = 0;
         float max_population = 100;
-        for (int p = 0; p < population.pointCount(); p++) {
+        for (int p = 0; p < demand.pointCount(); p++) {
             double range = table.getNearestRange(p);
             double factor = factors.get(ranges.indexOf(range));
 
@@ -44,7 +45,7 @@ public class GravityAccessibility {
                 access.weighted_access = -9999;
             } else {
                 access.access = access.access * 100 / max_value;
-                access.weighted_access = access.access * population.getPopulation(key) / max_population;
+                access.weighted_access = access.access * demand.getDemand(key) / max_population;
             }
         }
         return accessibilities;

@@ -2,8 +2,9 @@ package org.tud.oas.api.queries.aggregate;
 
 import java.util.UUID;
 
-import org.tud.oas.population.PopulationRequestParams;
+import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
+import org.tud.oas.supply.SupplyRequestParams;
 
 /// <summary>
 /// Aggregate Query Request.
@@ -15,21 +16,11 @@ public class AggregateQueryRequest {
     /// <example>smlf-dmxm-xdsd-yxdx</example>
     public UUID session_id;
 
-    public PopulationRequestParams population;
+    public DemandRequestParams demand;
 
     public RoutingRequestParams routing;
 
-    /// <summary>
-    /// Facility Locations in geographic coordinates.
-    /// </summary>
-    /// <example>[[9.11, 51.23], [9.35, 50.98], [10.02, 52.10]]</example>
-    public double[][] facility_locations;
-
-    /// <summary>
-    /// Facility values that will be aggregated.
-    /// </summary>
-    /// <example>[100.1, 23.8, 107.8]</example>
-    public double[] facility_values;
+    public SupplyRequestParams supply;
 
     /// <summary>
     /// Catchment range in seconds.

@@ -1,12 +1,13 @@
 package org.tud.oas.api.queries.n_nearest;
 
 import org.tud.oas.api.responses.ErrorResponse;
-import org.tud.oas.population.IPopulationView;
-import org.tud.oas.population.PopulationManager;
+import org.tud.oas.demand.IDemandView;
+import org.tud.oas.demand.DemandManager;
 import org.tud.oas.routing.IKNNTable;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingManager;
-
+import org.tud.oas.supply.ISupplyView;
+import org.tud.oas.supply.SupplyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +29,13 @@ public class NNearestQueryController {
     @PostMapping
     public ResponseEntity<?> calcQuery(@RequestBody NNearestQueryRequest request) {
         IKNNTable table;
-        IPopulationView view;
+        IDemandView demand_view;
         UUID sessionId;
+        ISupplyView supply_view = SupplyManager.getSupplyView(request.supply);
+        if (supply_view == null) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("queries/n_nearest",
+                    "failed to get supply-view, parameters are invalid"));
+        }
 
         if (request.session_id != null) {
             sessionId = request.session_id;
@@ -38,23 +44,23 @@ public class NNearestQueryController {
             }
             NNearestQuerySession session = sessions.get(sessionId);
             table = session.table;
-            view = session.population_view;
+            demand_view = session.demand_view;
         } else {
-            view = PopulationManager.getPopulationView(request.population);
-            if (view == null) {
+            demand_view = DemandManager.getDemandView(request.demand);
+            if (demand_view == null) {
                 return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity/grid",
                         "failed to get population-view, parameters are invalid"));
             }
 
             IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
-            table = provider.requestKNearest(view, request.facility_locations, request.ranges,
+            table = provider.requestKNearest(demand_view, supply_view, request.ranges,
                     request.facility_count, "isochrones");
 
             sessionId = UUID.randomUUID();
-            sessions.put(sessionId, new NNearestQuerySession(sessionId, view, table));
+            sessions.put(sessionId, new NNearestQuerySession(sessionId, demand_view, table));
         }
 
-        float[] results = NNearestQuery.computeQuery(request.facility_values, table, request.compute_type,
+        float[] results = NNearestQuery.computeQuery(supply_view, table, request.compute_type,
                 request.facility_count);
 
         return ResponseEntity.ok(new NNearestQueryResponse(results, sessionId));

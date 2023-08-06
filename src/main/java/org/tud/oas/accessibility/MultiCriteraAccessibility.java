@@ -4,12 +4,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.tud.oas.population.IPopulationView;
+import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;
+import org.tud.oas.supply.ISupplyView;
 
 public class MultiCriteraAccessibility {
 
-    private IPopulationView population;
+    private IDemandView population;
     private GravityAccessibility gravity;
     private IRoutingProvider provider;
     private float max_population;
@@ -17,7 +18,7 @@ public class MultiCriteraAccessibility {
     private float max_weighted_value;
     private Map<String, Float>[] accessibilities;
 
-    public MultiCriteraAccessibility(IPopulationView population, GravityAccessibility gravity,
+    public MultiCriteraAccessibility(IDemandView population, GravityAccessibility gravity,
             IRoutingProvider provider) {
         this.population = population;
         this.gravity = gravity;
@@ -33,11 +34,11 @@ public class MultiCriteraAccessibility {
         return this.accessibilities;
     }
 
-    public void addAccessibility(String name, double[][] facilities, List<Double> ranges, List<Double> factors,
+    public void addAccessibility(String name, ISupplyView supply, List<Double> ranges, List<Double> factors,
             double weight) {
         Access[] accessibility;
         try {
-            accessibility = this.gravity.calcAccessibility(this.population, facilities, ranges, factors,
+            accessibility = this.gravity.calcAccessibility(this.population, supply, ranges, factors,
                     this.provider);
         } catch (Exception e) {
             e.printStackTrace();
@@ -66,7 +67,7 @@ public class MultiCriteraAccessibility {
             float temp = multi_access.get("multiCritera");
             float weighted_temp = multi_access.get("multiCritera_weighted");
             float new_value = temp + access.access;
-            float new_weighted_value = weighted_temp + access.access * population.getPopulation(index) / max_population;
+            float new_weighted_value = weighted_temp + access.access * population.getDemand(index) / max_population;
             multi_access.put("multiCritera", new_value);
             multi_access.put("multiCritera_weighted", new_weighted_value);
             if (new_value > max_value) {

@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.tud.oas.routing.IKNNTable;
+import org.tud.oas.supply.ISupplyView;
 
 class NNearestQuery {
 
-    public static float[] computeQuery(double[] values, IKNNTable table, String computedType, int count) {
-        float[] results = new float[values.length];
-        for (int i = 0; i < values.length; i++) {
+    public static float[] computeQuery(ISupplyView supply, IKNNTable table, String computedType, int count) {
+        float[] results = new float[supply.pointCount()];
+        for (int i = 0; i < supply.pointCount(); i++) {
             int index = i;
             List<Double> vals = new ArrayList<>();
             for (int item = 0; item < count; item++) {
@@ -17,7 +18,7 @@ class NNearestQuery {
                 if (key == -1) {
                     vals.add(-9999.0);
                 } else {
-                    vals.add(values[key]);
+                    vals.add((double) supply.getSupply(key));
                 }
             }
             vals.removeIf(item -> item == -9999.0);

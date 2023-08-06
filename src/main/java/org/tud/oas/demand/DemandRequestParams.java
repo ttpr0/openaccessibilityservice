@@ -1,43 +1,43 @@
-package org.tud.oas.population;
+package org.tud.oas.demand;
 
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /// <summary>
-/// Population Request Parameters.
-/// Depending on which parameters are not null population view will be created differently.
-/// If "population_id" is not null => stored view will be used.
-/// If "population_locations" and "population_weights" not null => locations and weights will be used.
+/// Demand Request Parameters.
+/// Depending on which parameters are not null demand view will be created differently.
+/// If "view_id" is not null => stored view will be used.
+/// If "demand_locations" and "demand_weights" not null => locations and weights will be used.
 /// Else => envelope and internaly stored population dataset will be used.
 /// </summary>
-public class PopulationRequestParams {
+public class DemandRequestParams {
     // *************************************
-    // stored view
+    // use stored view
     // *************************************
     /// <summary>
-    /// ID of stored population view.
+    /// ID of stored demand view.
     /// </summary>
-    @JsonProperty("population_id")
-    public UUID population_id;
+    @JsonProperty("demand_id")
+    public UUID view_id;
 
     // *************************************
-    // create new view with locations and weights
+    // create new view from locations and weights
     // *************************************
     /// <summary>
-    /// Locations of population points (in geographic coordinates).
+    /// Locations of demand points (in geographic coordinates).
     /// </summary>
     /// <example>[[9.11, 51.23], [9.35, 50.98], [10.02, 52.10]]</example>
-    @JsonProperty("population_locations")
-    public double[][] population_locations;
+    @JsonProperty("demand_locations")
+    public double[][] demand_locations;
 
     /// <summary>
-    /// Weights of population points (e.g. population count).
-    /// Weight for every point in "population_locations".
+    /// Weights of demand points (e.g. population count).
+    /// Weight for every point in "demand_locations".
     /// </summary>
     /// <example>[91, 34, 72]</example>
-    @JsonProperty("population_weights")
-    public double[] population_weights;
+    @JsonProperty("demand_weights")
+    public double[] demand_weights;
 
     // **************************************
     // create new view from internal population data

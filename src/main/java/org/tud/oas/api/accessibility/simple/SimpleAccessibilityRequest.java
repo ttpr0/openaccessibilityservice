@@ -2,8 +2,9 @@ package org.tud.oas.api.accessibility.simple;
 
 import java.util.List;
 
-import org.tud.oas.population.PopulationRequestParams;
+import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
+import org.tud.oas.supply.SupplyRequestParams;
 
 /// <summary>
 /// Simple-accessibility Request.
@@ -15,13 +16,9 @@ public class SimpleAccessibilityRequest {
     /// <example>[180, 360, 540, 720, 900]</example>
     public List<Double> ranges;
 
-    /// <summary>
-    /// Facility Locations in geographic coordinates.
-    /// </summary>
-    /// <example>[[9.11, 51.23], [9.35, 50.98], [10.02, 52.10]]</example>
-    public double[][] facility_locations;
+    public SupplyRequestParams supply;
 
-    public PopulationRequestParams population;
+    public DemandRequestParams demand;
 
     public RoutingRequestParams routing;
 }

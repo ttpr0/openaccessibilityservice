@@ -1,8 +1,9 @@
 package org.tud.oas.routing;
 
-import org.tud.oas.population.IPopulationView;
-
 import java.util.List;
+
+import org.tud.oas.demand.IDemandView;
+import org.tud.oas.supply.ISupplyView;
 
 public interface IRoutingProvider {
     void setProfile(String profile);
@@ -13,49 +14,49 @@ public interface IRoutingProvider {
 
     /**
      * Computes the time-distance-matrix containing travel-times between all
-     * facilities and population points.
+     * supply and demand points.
      * 
-     * @param population
-     * @param facilities
+     * @param demand
+     * @param supply
      * @param ranges
      * @param mode
      * @return
      */
-    ITDMatrix requestTDMatrix(IPopulationView population, double[][] facilities, List<Double> ranges, String mode);
+    ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, List<Double> ranges, String mode);
 
     /**
-     * Computes the nearest facilities to the population points.
+     * Computes the nearest supply to the demand points.
      * 
-     * @param population
-     * @param facilities
+     * @param demand
+     * @param supply
      * @param ranges
      * @param mode
      * @return
      */
-    INNTable requestNearest(IPopulationView population, double[][] facilities, List<Double> ranges, String mode);
+    INNTable requestNearest(IDemandView demand, ISupplyView supply, List<Double> ranges, String mode);
 
     /**
-     * Computes the k-nearest facilities to the population points.
+     * Computes the k-nearest supplies to the demand points.
      * 
-     * @param population
-     * @param facilities
+     * @param demand
+     * @param supply
      * @param ranges
      * @param k
      * @param mode
      * @return
      */
-    IKNNTable requestKNearest(IPopulationView population, double[][] facilities, List<Double> ranges, int k,
+    IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, List<Double> ranges, int k,
             String mode);
 
     /**
-     * Computes all facilities that lie within a given range to the population
+     * Computes all supplies that lie within a given range to the demand
      * points.
      * 
-     * @param population
-     * @param facilities
+     * @param demand
+     * @param supply
      * @param range
      * @param mode
      * @return
      */
-    ICatchment requestCatchment(IPopulationView population, double[][] facilities, double range, String mode);
+    ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, String mode);
 }

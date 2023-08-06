@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.tud.oas.routing.ICatchment;
+import org.tud.oas.supply.ISupplyView;
 
 public class AggregateQuery {
 
-    public static float[] computeQuery(double[] values, ICatchment catchment, String computedType) {
-        float[] results = new float[values.length];
-        for (int i = 0; i < values.length; i++) {
+    public static float[] computeQuery(ISupplyView supply, ICatchment catchment, String computedType) {
+        float[] results = new float[supply.pointCount()];
+        for (int i = 0; i < supply.pointCount(); i++) {
             int index = i;
             List<Integer> facilities = new ArrayList<>();
             for (int key : catchment.getNeighbours(index)) {
@@ -19,13 +20,15 @@ public class AggregateQuery {
                 if (facilities.isEmpty()) {
                     results[i] = -9999;
                 } else {
-                    results[i] = (float) facilities.stream().mapToDouble(item -> values[item]).min().orElse(-9999.0);
+                    results[i] = (float) facilities.stream().mapToDouble(item -> supply.getSupply(item)).min()
+                            .orElse(-9999.0);
                 }
             } else if (computedType.equals("max")) {
                 if (facilities.isEmpty()) {
                     results[i] = -9999;
                 } else {
-                    results[i] = (float) facilities.stream().mapToDouble(item -> values[item]).max().orElse(-9999.0);
+                    results[i] = (float) facilities.stream().mapToDouble(item -> supply.getSupply(item)).max()
+                            .orElse(-9999.0);
                 }
             } else if (computedType.equals("median")) {
                 if (facilities.isEmpty()) {
@@ -33,7 +36,7 @@ public class AggregateQuery {
                 } else {
                     List<Double> temp = new ArrayList<>();
                     for (int item : facilities) {
-                        temp.add(values[item]);
+                        temp.add((double) supply.getSupply(item));
                     }
                     temp.sort(Double::compareTo);
                     if (temp.size() % 2 == 1) {
@@ -51,7 +54,7 @@ public class AggregateQuery {
                 } else {
                     float sum = 0;
                     for (int key : facilities) {
-                        sum += (float) values[key];
+                        sum += (float) supply.getSupply(key);
                     }
                     results[i] = sum / facilities.size();
                 }
@@ -61,7 +64,7 @@ public class AggregateQuery {
                 } else {
                     float sum = 0;
                     for (int key : facilities) {
-                        sum += (float) values[key];
+                        sum += (float) supply.getSupply(key);
                     }
                     results[i] = sum;
                 }

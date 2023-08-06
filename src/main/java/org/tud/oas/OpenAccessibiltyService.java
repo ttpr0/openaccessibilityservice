@@ -2,8 +2,8 @@ package org.tud.oas;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import org.tud.oas.population.PopulationManager;
+import org.tud.oas.demand.DemandManager;
+import org.tud.oas.demand.population.PopulationLoader;
 import org.tud.oas.routing.RoutingManager;
 import org.tud.oas.routing.ors.ORSProvider;
 import org.slf4j.LoggerFactory;
@@ -15,10 +15,10 @@ public class OpenAccessibiltyService {
 
 	public static void main(String[] args) throws Exception {
 		RoutingManager.setRoutingProvider(() -> {
-			return new ORSProvider("http://localhost:8082");
+			return new ORSProvider("http://172.26.62.41:8080/ors");
 		});
-		PopulationManager.loadPopulation("./files/population_hannover.csv");
-		PopulationManager.periodicClearViewStore(60 * 1000, 5 * 60 * 1000);
+		PopulationLoader.loadPopulation("./files/population_hannover.csv");
+		DemandManager.periodicClearViewStore(60 * 1000, 5 * 60 * 1000);
 
 		SpringApplication.run(OpenAccessibiltyService.class, args);
 	}

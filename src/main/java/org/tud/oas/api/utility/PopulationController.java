@@ -4,10 +4,9 @@ import org.locationtech.jts.geom.Coordinate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import org.tud.oas.population.IPopulationView;
-import org.tud.oas.population.PopulationManager;
 import org.tud.oas.api.responses.*;
+import org.tud.oas.demand.IDemandView;
+import org.tud.oas.demand.DemandManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,13 +21,13 @@ public class PopulationController {
     /// </summary>
     @PostMapping("/store")
     public ResponseEntity<?> storePopulationView(@RequestBody PopulationStoreRequest request) {
-        IPopulationView view = PopulationManager.getPopulationView(request.population);
+        IDemandView view = DemandManager.getDemandView(request.population);
         if (view == null) {
             return ResponseEntity.badRequest().body(new ErrorResponse("utility/population/store",
                     "failed to get population-view, parameters are invalid"));
         }
 
-        UUID id = PopulationManager.storePopulationView(view);
+        UUID id = DemandManager.storeDemandView(view);
         return ResponseEntity.ok(new PopulationStoreResponse(id));
     }
 
@@ -37,16 +36,16 @@ public class PopulationController {
     /// </summary>
     @PostMapping("/get")
     public ResponseEntity<?> getPopulationView(@RequestBody PopulationGetRequest request) {
-        IPopulationView view;
+        IDemandView view;
 
         if (request.population_id != null) {
-            view = PopulationManager.getStoredPopulationView(request.population_id);
+            view = DemandManager.getStoredDemandView(request.population_id);
             if (view == null) {
                 return ResponseEntity.badRequest()
                         .body(new ErrorResponse("utility/population/get", "no stored population-view found"));
             }
         } else {
-            view = PopulationManager.getPopulationView(request.population);
+            view = DemandManager.getDemandView(request.population);
             if (view == null) {
                 return ResponseEntity.badRequest().body(new ErrorResponse("utility/population/get",
                         "failed to get population-view, parameters are invalid"));
@@ -58,7 +57,7 @@ public class PopulationController {
         for (int i = 0; i < view.pointCount(); i++) {
             int index = i;
             Coordinate point = view.getCoordinate(index);
-            double weight = view.getPopulation(index);
+            double weight = view.getDemand(index);
 
             locations.add(new double[] { point.getX(), point.getY() });
             weights.add(weight);

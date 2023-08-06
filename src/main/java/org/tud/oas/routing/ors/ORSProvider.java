@@ -1,12 +1,13 @@
 package org.tud.oas.routing.ors;
 
-import org.tud.oas.population.IPopulationView;
 import org.tud.oas.routing.INNTable;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.ITDMatrix;
 import org.tud.oas.routing.TDMatrix;
+import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.routing.NNTable;
 import org.tud.oas.routing.KNNTable;
+import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.Catchment;
 import org.tud.oas.routing.ICatchment;
 import org.tud.oas.routing.IKNNTable;
@@ -88,30 +89,37 @@ public class ORSProvider implements IRoutingProvider {
         }
     }
 
-    public ITDMatrix requestTDMatrix(IPopulationView population, double[][] facilities, List<Double> ranges,
+    public ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, List<Double> ranges,
             String mode) {
         switch (mode) {
             case "isochrones":
-                return this.requestMatrixIsochrones(population, facilities, ranges);
+                return this.requestMatrixIsochrones(demand, supply, ranges);
             case "matrix":
-                return this.requestMatrixMatrix(population, facilities, ranges);
+                return this.requestMatrixMatrix(demand, supply, ranges);
             case "isoraster":
-                return this.requestMatrixIsoraster(population, facilities, ranges);
+                return this.requestMatrixIsoraster(demand, supply, ranges);
             default:
-                return this.requestMatrixMatrix(population, facilities, ranges);
+                return this.requestMatrixMatrix(demand, supply, ranges);
         }
     }
 
-    private ITDMatrix requestMatrixIsochrones(IPopulationView population, double[][] facilities, List<Double> ranges) {
-        double[][] matrix = new double[facilities.length][population.pointCount()];
-        for (int i = 0; i < facilities.length; i++) {
-            for (int j = 0; j < population.pointCount(); j++) {
+    private ITDMatrix requestMatrixIsochrones(IDemandView demand, ISupplyView supply, List<Double> ranges) {
+        double[][] matrix = new double[supply.pointCount()][demand.pointCount()];
+        for (int i = 0; i < supply.pointCount(); i++) {
+            for (int j = 0; j < demand.pointCount(); j++) {
                 matrix[i][j] = 9999;
             }
         }
 
+        int point_count = supply.pointCount();
+        double[][] facilities = new double[point_count][];
+        for (int i = 0; i < point_count; i++) {
+            Coordinate p = supply.getCoordinate(i);
+            facilities[i] = new double[] { p.x, p.y };
+        }
+
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
-        for (int f = 0; f < facilities.length; f++) {
+        for (int f = 0; f < supply.pointCount(); f++) {
             IsochroneCollection isochrones;
             try {
                 isochrones = collection.take();
@@ -132,13 +140,13 @@ public class ORSProvider implements IRoutingProvider {
                 Geometry iso = isochrone.getGeometry();
                 Envelope env = iso.getEnvelopeInternal();
 
-                List<Integer> points = population.getPointsInEnvelop(env);
+                List<Integer> points = demand.getPointsInEnvelop(env);
 
                 for (int index : points) {
                     if (visited.contains(index)) {
                         continue;
                     }
-                    Coordinate p = population.getCoordinate(index);
+                    Coordinate p = demand.getCoordinate(index);
                     int location = SimplePointInAreaLocator.locate(p, iso);
                     if (location == Location.INTERIOR) {
                         matrix[facility_index][index] = (float) range;
@@ -151,17 +159,24 @@ public class ORSProvider implements IRoutingProvider {
         return new TDMatrix(matrix);
     }
 
-    private ITDMatrix requestMatrixMatrix(IPopulationView population, double[][] facilities, List<Double> ranges) {
+    private ITDMatrix requestMatrixMatrix(IDemandView demand, ISupplyView supply, List<Double> ranges) {
         double max_range = ranges.get(ranges.size() - 1);
 
-        int point_count = population.pointCount();
+        int point_count = supply.pointCount();
+        double[][] sources = new double[point_count][];
+        for (int i = 0; i < point_count; i++) {
+            int index = i;
+            Coordinate p = supply.getCoordinate(index);
+            sources[i] = new double[] { p.x, p.y };
+        }
+        point_count = demand.pointCount();
         double[][] destinations = new double[point_count][];
         for (int i = 0; i < point_count; i++) {
             int index = i;
-            Coordinate p = population.getCoordinate(index);
+            Coordinate p = demand.getCoordinate(index);
             destinations[i] = new double[] { p.x, p.y };
         }
-        Matrix matrix = this.requestMatrix(facilities, destinations);
+        Matrix matrix = this.requestMatrix(sources, destinations);
         if (matrix == null || matrix.durations == null) {
             return null;
         }
@@ -169,12 +184,19 @@ public class ORSProvider implements IRoutingProvider {
         return new TDMatrix(matrix.durations);
     }
 
-    private ITDMatrix requestMatrixIsoraster(IPopulationView population, double[][] facilities, List<Double> ranges) {
-        double[][] matrix = new double[facilities.length][population.pointCount()];
-        for (int i = 0; i < facilities.length; i++) {
-            for (int j = 0; j < population.pointCount(); j++) {
+    private ITDMatrix requestMatrixIsoraster(IDemandView demand, ISupplyView supply, List<Double> ranges) {
+        double[][] matrix = new double[supply.pointCount()][demand.pointCount()];
+        for (int i = 0; i < supply.pointCount(); i++) {
+            for (int j = 0; j < demand.pointCount(); j++) {
                 matrix[i][j] = 9999;
             }
+        }
+
+        int point_count = supply.pointCount();
+        double[][] facilities = new double[point_count][];
+        for (int i = 0; i < point_count; i++) {
+            Coordinate p = supply.getCoordinate(i);
+            facilities[i] = new double[] { p.x, p.y };
         }
 
         double max_range = ranges.get(ranges.size() - 1);
@@ -185,10 +207,10 @@ public class ORSProvider implements IRoutingProvider {
 
         double[][] extend = isoraster.getEnvelope();
         Envelope env = new Envelope(extend[0][0], extend[3][0], extend[2][1], extend[1][1]);
-        List<Integer> points = population.getPointsInEnvelop(env);
+        List<Integer> points = demand.getPointsInEnvelop(env);
 
         for (int index : points) {
-            Coordinate p = population.getCoordinate(index, "EPSG:25832");
+            Coordinate p = demand.getCoordinate(index, "EPSG:25832");
             IsoRasterAccessor accessor = isoraster.getAccessor(p);
             if (accessor != null) {
 
@@ -203,18 +225,25 @@ public class ORSProvider implements IRoutingProvider {
         return new TDMatrix(matrix);
     }
 
-    public INNTable requestNearest(IPopulationView population, double[][] facilities, List<Double> ranges,
+    public INNTable requestNearest(IDemandView demand, ISupplyView supply, List<Double> ranges,
             String mode) {
-        int[] nearest_table = new int[population.pointCount()];
-        float[] ranges_table = new float[population.pointCount()];
-        for (int j = 0; j < population.pointCount(); j++) {
+        int[] nearest_table = new int[demand.pointCount()];
+        float[] ranges_table = new float[demand.pointCount()];
+        for (int j = 0; j < demand.pointCount(); j++) {
             nearest_table[j] = -1;
             ranges_table[j] = 9999;
         }
 
+        int point_count = supply.pointCount();
+        double[][] facilities = new double[point_count][];
+        for (int i = 0; i < point_count; i++) {
+            Coordinate p = supply.getCoordinate(i);
+            facilities[i] = new double[] { p.x, p.y };
+        }
+
         Map<Double, Geometry> polygons = new HashMap<Double, Geometry>(ranges.size());
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
-        for (int j = 0; j < facilities.length; j++) {
+        for (int j = 0; j < supply.pointCount(); j++) {
             IsochroneCollection isochrones;
             try {
                 isochrones = collection.take();
@@ -247,7 +276,7 @@ public class ORSProvider implements IRoutingProvider {
             Geometry iso = polygons.get(range);
 
             Envelope env = iso.getEnvelopeInternal();
-            List<Integer> points = population.getPointsInEnvelop(env);
+            List<Integer> points = demand.getPointsInEnvelop(env);
 
             Geometry geom = new PolygonHullSimplifier(iso, false).getResult();
 
@@ -255,7 +284,7 @@ public class ORSProvider implements IRoutingProvider {
                 if (visited.contains(index)) {
                     continue;
                 }
-                Coordinate p = population.getCoordinate(index);
+                Coordinate p = demand.getCoordinate(index);
                 int location = SimplePointInAreaLocator.locate(p, geom);
                 if (location == Location.INTERIOR) {
                     visited.add(index);
@@ -268,19 +297,26 @@ public class ORSProvider implements IRoutingProvider {
         return new NNTable(nearest_table, ranges_table);
     }
 
-    public IKNNTable requestKNearest(IPopulationView population, double[][] facilities, List<Double> ranges, int n,
+    public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, List<Double> ranges, int n,
             String mode) {
-        int[][] nearest_table = new int[population.pointCount()][n];
-        float[][] ranges_table = new float[population.pointCount()][n];
-        for (int j = 0; j < population.pointCount(); j++) {
+        int[][] nearest_table = new int[demand.pointCount()][n];
+        float[][] ranges_table = new float[demand.pointCount()][n];
+        for (int j = 0; j < demand.pointCount(); j++) {
             for (int i = 0; i < n; i++) {
                 nearest_table[j][i] = -1;
                 ranges_table[j][i] = 9999;
             }
         }
 
+        int point_count = supply.pointCount();
+        double[][] facilities = new double[point_count][];
+        for (int i = 0; i < point_count; i++) {
+            Coordinate p = supply.getCoordinate(i);
+            facilities[i] = new double[] { p.x, p.y };
+        }
+
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
-        for (int j = 0; j < facilities.length; j++) {
+        for (int j = 0; j < supply.pointCount(); j++) {
             IsochroneCollection isochrones;
             try {
                 isochrones = collection.take();
@@ -308,13 +344,13 @@ public class ORSProvider implements IRoutingProvider {
                 }
 
                 Envelope env = iso.getEnvelopeInternal();
-                List<Integer> points = population.getPointsInEnvelop(env);
+                List<Integer> points = demand.getPointsInEnvelop(env);
 
                 for (int index : points) {
                     if (visited.contains(index)) {
                         continue;
                     }
-                    Coordinate p = population.getCoordinate(index);
+                    Coordinate p = demand.getCoordinate(index);
                     int location = SimplePointInAreaLocator.locate(p, iso);
                     if (location == Location.INTERIOR) {
                         visited.add(index);
@@ -342,14 +378,21 @@ public class ORSProvider implements IRoutingProvider {
         return new KNNTable(nearest_table, ranges_table);
     }
 
-    public ICatchment requestCatchment(IPopulationView population, double[][] facilities, double range, String mode) {
-        List<Integer>[] accessibilities = new List[population.pointCount()];
+    public ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, String mode) {
+        List<Integer>[] accessibilities = new List[demand.pointCount()];
 
         List<Double> ranges = new ArrayList<>();
         ranges.add(range);
 
+        int point_count = supply.pointCount();
+        double[][] facilities = new double[point_count][];
+        for (int i = 0; i < point_count; i++) {
+            Coordinate p = supply.getCoordinate(i);
+            facilities[i] = new double[] { p.x, p.y };
+        }
+
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
-        for (int f = 0; f < facilities.length; f++) {
+        for (int f = 0; f < supply.pointCount(); f++) {
             IsochroneCollection isochrones;
             try {
                 isochrones = collection.take();
@@ -366,9 +409,9 @@ public class ORSProvider implements IRoutingProvider {
             Geometry iso = isochrone.getGeometry();
 
             Envelope env = iso.getEnvelopeInternal();
-            List<Integer> points = population.getPointsInEnvelop(env);
+            List<Integer> points = demand.getPointsInEnvelop(env);
             for (int index : points) {
-                Coordinate p = population.getCoordinate(index);
+                Coordinate p = demand.getCoordinate(index);
                 int location = SimplePointInAreaLocator.locate(p, iso);
                 if (location == Location.INTERIOR) {
                     List<Integer> access;
