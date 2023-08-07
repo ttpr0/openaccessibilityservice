@@ -3,6 +3,7 @@ package org.tud.oas.api.accessibility.multi_criteria;
 import java.util.List;
 import java.util.Map;
 
+import org.tud.oas.accessibility.distance_decay.DecayRequestParams;
 import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
 import org.tud.oas.supply.SupplyRequestParams;
@@ -37,11 +38,7 @@ class InfrastructureParams {
     /// <example>[180, 360, 540, 720, 900]</example>
     public List<Double> ranges;
 
-    /// <summary>
-    /// Distance-Decay for every catchment (ranges).
-    /// </summary>
-    /// <example>[1.0, 0.7, 0.5, 0.3, 0.1]</example>
-    public List<Double> range_factors;
+    public DecayRequestParams decay;
 
     public SupplyRequestParams supply;
 }

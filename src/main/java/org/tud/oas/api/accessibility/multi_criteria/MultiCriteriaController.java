@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.tud.oas.accessibility.GravityAccessibility;
-import org.tud.oas.accessibility.MultiCriteraAccessibility;
+import org.tud.oas.accessibility.SimpleReachability;
+import org.tud.oas.accessibility.MultiCriteraReachability;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.api.responses.ErrorResponse;
 import org.tud.oas.demand.IDemandView;
@@ -34,49 +34,57 @@ public class MultiCriteriaController {
         IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
 
         logger.debug("Creating DemandView");
-        IDemandView view = DemandManager.getDemandView(request.demand);
-        if (view == null) {
+        IDemandView demand_view = DemandManager.getDemandView(request.demand);
+        if (demand_view == null) {
             return ResponseEntity.badRequest().body(
                     new ErrorResponse("accessibility/multi", "failed to get population-view, parameters are invalid"));
         }
 
         logger.debug("Creating GravityAccessibility");
-        GravityAccessibility gravity = new GravityAccessibility();
+        SimpleReachability gravity = new SimpleReachability();
 
-        MultiCriteraAccessibility multiCriteria = new MultiCriteraAccessibility(view, gravity, provider);
+        MultiCriteraReachability multiCriteria = new MultiCriteraReachability(demand_view, gravity, provider);
 
         logger.debug("Adding Accessbilities");
 
         for (Map.Entry<String, InfrastructureParams> entry : request.infrastructures.entrySet()) {
             InfrastructureParams value = entry.getValue();
             ISupplyView supply_view = SupplyManager.getSupplyView(value.supply);
-            multiCriteria.addAccessibility(entry.getKey(), supply_view, value.ranges, value.range_factors,
-                    value.infrastructure_weight);
+            multiCriteria.addAccessibility(entry.getKey(), (float) value.infrastructure_weight, supply_view,
+                    value.ranges, value.decay);
         }
         logger.debug("Finished Adding Accessibilities");
 
         logger.debug("Building Response");
         multiCriteria.calcAccessibility();
-        Map<String, Float>[] response = this.buildResponse(view, multiCriteria.getAccessibilities());
+        Map<String, float[]> response = this.buildResponse(demand_view, multiCriteria.getAccessibilities());
         logger.debug("Finished Building Response Grid");
         return ResponseEntity.ok(new MultiCriteriaResponse(response));
     }
 
-    Map<String, Float>[] buildResponse(IDemandView population, Map<String, Float>[] accessibilities) {
-        Map<String, Float>[] features = new Map[population.pointCount()];
-
-        for (int index = 0; index < population.pointCount(); index++) {
-            Map<String, Float> values;
-            if (accessibilities[index] != null) {
-                values = accessibilities[index];
-            } else {
-                values = new HashMap<String, Float>();
-                values.put("multiCritera", -9999.0f);
-                values.put("multiCritera_weighted", -9999.0f);
-            }
-            features[index] = values;
+    Map<String, float[]> buildResponse(IDemandView demand, Map<String, float[]> accessibilities) {
+        float[] multi_access;
+        if (accessibilities.containsKey("multiCriteria")) {
+            multi_access = accessibilities.get("multiCriteria");
+        } else {
+            multi_access = new float[demand.pointCount()];
         }
-
-        return features;
+        float max_value = 0;
+        for (int i = 0; i < multi_access.length; i++) {
+            if (multi_access[i] == -9999) {
+                continue;
+            }
+            if (multi_access[i] > max_value) {
+                max_value = multi_access[i];
+            }
+        }
+        for (int i = 0; i < multi_access.length; i++) {
+            if (multi_access[i] == -9999) {
+                continue;
+            }
+            multi_access[i] = multi_access[i] * 100 / max_value;
+        }
+        accessibilities.put("multiCriteria", multi_access);
+        return accessibilities;
     }
 }

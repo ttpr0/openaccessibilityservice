@@ -15,6 +15,8 @@ public interface IRoutingProvider {
     /**
      * Computes the time-distance-matrix containing travel-times between all
      * supply and demand points.
+     * Points that cannot be reached (either because of seperated sub-networks or
+     * max search range will get a value < 0)
      * 
      * @param demand
      * @param supply

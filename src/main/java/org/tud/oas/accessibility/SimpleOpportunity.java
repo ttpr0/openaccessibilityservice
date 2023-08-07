@@ -1,6 +1,5 @@
 package org.tud.oas.accessibility;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
@@ -12,6 +11,26 @@ import org.tud.oas.supply.ISupplyView;
 
 public class SimpleOpportunity {
 
+    /**
+     * Computes a simple opportunity measure. For every demand point the product of
+     * reachable supply and distance decay are summed up.
+     * Example formula for linear decay:
+     * $A_i = \sum{S_j * (1-\frac{d_{ij}}{d_{max}})}$
+     * 
+     * When using the Gravity-Decay function ($d_{ij}^{-\beta}$) this method can
+     * also compute the basic gravity accessibility introduced by Hansen (1959).
+     * Formula:
+     * $A_i = \sum{\frac{S_j}{d_{ij}^{\beta}}}$
+     * 
+     * @param demand   Demand locations (results contains accumulated opportunity
+     *                 for every demand point).
+     * @param supply   Supply locations and weights ($S_j$).
+     * @param ranges   Ranges of isochrones used in computation of distances
+     *                 $d_{ij}$.
+     * @param decay    Distance decay.
+     * @param provider Routing API provider.
+     * @return Accumulated Opportunity for every demand point.
+     */
     public static float[] calcAccessibility(IDemandView demand, ISupplyView supply, List<Double> ranges,
             IDistanceDecay decay, IRoutingProvider provider) {
         float[] accessibilities = new float[demand.pointCount()];
@@ -25,7 +44,7 @@ public class SimpleOpportunity {
             for (int f = 0; f < supply.pointCount(); f++) {
                 for (int p = 0; p < demand.pointCount(); p++) {
                     float range = matrix.getRange(f, p);
-                    if (range == 9999) {
+                    if (range < 0) {
                         continue;
                     }
                     float rangeFactor = decay.getDistanceWeight(range);
@@ -33,17 +52,12 @@ public class SimpleOpportunity {
                     accessibilities[p] += (float) supply.getSupply(f) * rangeFactor;
                 }
             }
-
-            float maxValue = 0;
-            for (float accessibility : accessibilities) {
-                maxValue = Math.max(maxValue, accessibility);
-            }
             for (int i = 0; i < accessibilities.length; i++) {
                 float access = accessibilities[i];
                 if (access == 0) {
                     accessibilities[i] = -9999;
                 } else {
-                    accessibilities[i] = access * 100 / maxValue;
+                    accessibilities[i] = access;
                 }
             }
 

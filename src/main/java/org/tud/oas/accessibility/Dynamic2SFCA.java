@@ -13,6 +13,25 @@ import org.tud.oas.supply.ISupplyView;
 
 public class Dynamic2SFCA {
 
+    /**
+     * Computes a dynamic two-step-floating-catchment-area accessibility as
+     * introduced by McGrail and Humphreys (2014).
+     * Formula:
+     * $A_i = \sum_j{\frac{S_j}{\sum_i{D_i(d_{ij} < d_{max, i})}}(d_{ij} < d_{max,
+     * i})}$
+     * $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the
+     * demand point $i$ and $d_{ij}$ the travel-distance between them. Compared to
+     * the basic 2SFCA method the catchment size and therefore $d_{max}$ is
+     * dependant on the demand point $i$.
+     * 
+     * @param demand       Demand locations and weights ($D_i$).
+     * @param supply       Supply locations and weights ($S_j$).
+     * @param ranges       Catchment-sizes $d_{max}$.
+     * @param rangeIndices Index of the catchment-size (from ranges) for every
+     *                     demand point
+     * @param provider     Routing API provider.
+     * @return two-step-floating-catchment-area value for every demand point.
+     */
     public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, List<Double> ranges, int[] rangeIndices,
             IRoutingProvider provider) {
         float[] populationWeights = new float[demand.pointCount()];

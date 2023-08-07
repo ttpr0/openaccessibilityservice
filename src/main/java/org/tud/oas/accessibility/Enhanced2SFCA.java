@@ -14,8 +14,27 @@ import org.tud.oas.supply.ISupplyView;
 
 public class Enhanced2SFCA {
 
-    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply,
-            List<Double> ranges, IDistanceDecay decay, IRoutingProvider provider, String mode) {
+    /**
+     * Computes the enhanced two-step-floating-catchment-area accessibility
+     * introduced by Luo and Qi (2009).
+     * Formula:
+     * $A_i = \sum_j{\frac{S_j}{\sum_i{D_i * w_{ij}}} * w_{ij}}$
+     * $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the
+     * demand point $i$ and $w_{ij} ~ d_{ij}$ the travel-friction (distance decay)
+     * between them.
+     * 
+     * @param demand   Demand locations and weights ($D_i$).
+     * @param supply   Supply locations and weights ($S_j$).
+     * @param ranges   Ranges of isochrones used in computation of distances
+     *                 $d_{ij}$.
+     * @param decay    Distance decay.
+     * @param provider Routing API provider.
+     * @param mode     Computation mode ("isochrones", "matrix").
+     * @return enhanced two-step-floating-catchment-area value for every demand
+     *         point.
+     */
+    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, List<Double> ranges, IDistanceDecay decay,
+            IRoutingProvider provider, String mode) {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 

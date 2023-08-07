@@ -108,7 +108,7 @@ public class ORSProvider implements IRoutingProvider {
         double[][] matrix = new double[supply.pointCount()][demand.pointCount()];
         for (int i = 0; i < supply.pointCount(); i++) {
             for (int j = 0; j < demand.pointCount(); j++) {
-                matrix[i][j] = 9999;
+                matrix[i][j] = -1;
             }
         }
 
@@ -161,8 +161,6 @@ public class ORSProvider implements IRoutingProvider {
     }
 
     private ITDMatrix requestMatrixMatrix(IDemandView demand, ISupplyView supply, List<Double> ranges) {
-        double max_range = ranges.get(ranges.size() - 1);
-
         int point_count = supply.pointCount();
         double[][] sources = new double[point_count][];
         for (int i = 0; i < point_count; i++) {
@@ -189,7 +187,7 @@ public class ORSProvider implements IRoutingProvider {
         double[][] matrix = new double[supply.pointCount()][demand.pointCount()];
         for (int i = 0; i < supply.pointCount(); i++) {
             for (int j = 0; j < demand.pointCount(); j++) {
-                matrix[i][j] = 9999;
+                matrix[i][j] = -1;
             }
         }
 
@@ -231,7 +229,7 @@ public class ORSProvider implements IRoutingProvider {
         float[] ranges_table = new float[demand.pointCount()];
         for (int j = 0; j < demand.pointCount(); j++) {
             nearest_table[j] = -1;
-            ranges_table[j] = 9999;
+            ranges_table[j] = -1;
         }
 
         List<Double> ranges = options.getRanges();
@@ -306,7 +304,7 @@ public class ORSProvider implements IRoutingProvider {
         for (int j = 0; j < demand.pointCount(); j++) {
             for (int i = 0; i < n; i++) {
                 nearest_table[j][i] = -1;
-                ranges_table[j][i] = 9999;
+                ranges_table[j][i] = -1;
             }
         }
 
@@ -360,13 +358,13 @@ public class ORSProvider implements IRoutingProvider {
                         visited.add(index);
                         // insert new range while keeping array-dimension sorted
                         float last_range = ranges_table[index][n - 1];
-                        if (last_range > range || last_range == 9999) {
+                        if (last_range > range || last_range == -1) {
                             nearest_table[index][n - 1] = facility_index;
                             ranges_table[index][n - 1] = (float) range;
                             for (int k = n - 2; k >= 0; k--) {
                                 float curr_range = ranges_table[index][k];
                                 float prev_range = ranges_table[index][k + 1];
-                                if (curr_range > prev_range || curr_range == 9999) {
+                                if (curr_range > prev_range || curr_range == -1) {
                                     nearest_table[index][k] = nearest_table[index][k + 1];
                                     ranges_table[index][k] = prev_range;
                                 } else {

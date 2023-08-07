@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.tud.oas.accessibility.Access;
-import org.tud.oas.accessibility.GravityAccessibility;
+
+import org.tud.oas.accessibility.SimpleReachability;
+import org.tud.oas.accessibility.distance_decay.DistanceDecay;
+import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.api.responses.ErrorResponse;
 import org.tud.oas.demand.IDemandView;
@@ -39,11 +41,20 @@ public class GravityController {
                     "failed to get supply-view, parameters are invalid"));
         }
         IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
+        IDistanceDecay decay = DistanceDecay.getDistanceDecay(request.distance_decay);
+        if (decay == null) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("accessibility/gravity",
+                            "failed to get distance-decay, parameters are invalid"));
+        }
+        if (request.ranges == null) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity",
+                    "range parameters missing, parameters are invalid"));
+        }
 
         logger.debug("start calculation gravity accessibility");
-        GravityAccessibility gravity = new GravityAccessibility();
-        Access[] access = gravity.calcAccessibility(demand_view, supply_view, request.ranges,
-                request.range_factors, provider);
+        SimpleReachability gravity = new SimpleReachability();
+        float[] access = gravity.calcAccessibility(demand_view, supply_view, request.ranges, decay, provider);
 
         logger.debug("start building response");
         float[] response = this.buildResponse(demand_view, access);
@@ -52,18 +63,24 @@ public class GravityController {
         return ResponseEntity.ok(new GravityResponse(response));
     }
 
-    float[] buildResponse(IDemandView population, Access[] accessibilities) {
-        float[] response = new float[population.pointCount()];
-        for (int i = 0; i < population.pointCount(); i++) {
-            int index = i;
-            float accessibility;
-            if (accessibilities[index] != null) {
-                accessibility = accessibilities[index].access;
+    private float[] buildResponse(IDemandView population, float[] accessibilities) {
+        float maxWeight = 0;
+        for (float w : accessibilities) {
+            if (w > maxWeight) {
+                maxWeight = w;
+            }
+        }
+        float factor = 100 / maxWeight;
+
+        for (int i = 0; i < accessibilities.length; i++) {
+            float accessibility = accessibilities[i];
+            if (accessibility != 0) {
+                accessibility = accessibility * factor;
             } else {
                 accessibility = -9999;
             }
-            response[i] = accessibility;
+            accessibilities[i] = accessibility;
         }
-        return response;
+        return accessibilities;
     }
 }

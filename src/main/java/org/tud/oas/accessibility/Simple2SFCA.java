@@ -13,8 +13,21 @@ import org.tud.oas.supply.ISupplyView;
 
 public class Simple2SFCA {
 
-    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply,
-            double range, IRoutingProvider provider) {
+    /**
+     * Computes the basic two-step-floating-catchment-area accessibility introduced
+     * by Luo and Wang (2003).
+     * Formula:
+     * $A_i = \sum_j{\frac{S_j}{\sum_i{D_i(d_{ij} < d_{max})}}(d_{ij} < d_{max})}$
+     * $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the
+     * demand point $i$ and $d_{ij}$ the travel-distance between them.
+     * 
+     * @param demand   Demand locations and weights ($D_i$).
+     * @param supply   Supply locations and weights ($S_j$).
+     * @param range    Size of the catchment $d_{max}$.
+     * @param provider Routing API provider.
+     * @return two-step-floating-catchment-area value for every demand point.
+     */
+    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, double range, IRoutingProvider provider) {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 
@@ -32,11 +45,11 @@ public class Simple2SFCA {
                 float weight = 0;
                 for (int p = 0; p < demand.pointCount(); p++) {
                     float r = matrix.getRange(f, p);
-                    if (r == 9999) {
+                    if (r < 0 || r > range) {
                         continue;
                     }
-                    int populationCount = demand.getDemand(p);
-                    weight += populationCount;
+                    int demandCount = demand.getDemand(p);
+                    weight += demandCount;
 
                     if (!invertedMapping.containsKey(p)) {
                         invertedMapping.put(p, new ArrayList<>(4));

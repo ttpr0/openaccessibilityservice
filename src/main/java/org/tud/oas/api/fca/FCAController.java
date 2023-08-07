@@ -49,19 +49,19 @@ public class FCAController {
         float[] weights = Enhanced2SFCA.calc2SFCA(demand_view, supply_view,
                 request.ranges, decay, provider, request.mode);
 
+        float[] response = buildResponse(demand_view, weights);
+        return ResponseEntity.ok(new FCAResponse(response));
+    }
+
+    private float[] buildResponse(IDemandView population, float[] accessibilities) {
         float maxWeight = 0;
-        for (float w : weights) {
+        for (float w : accessibilities) {
             if (w > maxWeight) {
                 maxWeight = w;
             }
         }
         float factor = 100 / maxWeight;
 
-        float[] response = buildResponse(demand_view, weights, factor);
-        return ResponseEntity.ok(new FCAResponse(response));
-    }
-
-    private float[] buildResponse(IDemandView population, float[] accessibilities, float factor) {
         for (int i = 0; i < accessibilities.length; i++) {
             float accessibility = accessibilities[i];
             if (accessibility != 0) {

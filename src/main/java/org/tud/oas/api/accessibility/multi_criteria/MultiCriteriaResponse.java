@@ -10,9 +10,9 @@ public class MultiCriteriaResponse {
     /// Multi-criteria values.
     /// </summary>
     /// <example>[{"multiCriteria": 11.3, "multiCriteria_weighted": 14.3}]</example>
-    public Map<String, Float>[] access;
+    public Map<String, float[]> access;
 
-    public MultiCriteriaResponse(Map<String, Float>[] access) {
+    public MultiCriteriaResponse(Map<String, float[]> access) {
         this.access = access;
     }
 }
