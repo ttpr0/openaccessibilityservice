@@ -25,17 +25,17 @@ public class SimpleOpportunity {
      * @param demand   Demand locations (results contains accumulated opportunity
      *                 for every demand point).
      * @param supply   Supply locations and weights ($S_j$).
-     * @param ranges   Ranges of isochrones used in computation of distances
-     *                 $d_{ij}$.
      * @param decay    Distance decay.
      * @param provider Routing API provider.
+     * @param options  Mode and ranges of isochrones used in computation of
+     *                 distances $d_{ij}$.
      * @return Accumulated Opportunity for every demand point.
      */
-    public static float[] calcAccessibility(IDemandView demand, ISupplyView supply, List<Double> ranges,
-            IDistanceDecay decay, IRoutingProvider provider) {
+    public static float[] calcAccessibility(IDemandView demand, ISupplyView supply, IDistanceDecay decay,
+            IRoutingProvider provider, RoutingOptions options) {
         float[] accessibilities = new float[demand.pointCount()];
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, "isochrones", new RoutingOptions(ranges));
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
         try {
             if (matrix == null) {
                 return accessibilities;

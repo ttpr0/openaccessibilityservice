@@ -24,16 +24,15 @@ public class SimpleSupplyDemandRatio {
      * @param supply    Supply locations and weights.
      * @param max_range Max-Range used in computation $d_{max}$.
      * @param provider  Routing API provider.
+     * @param options   Mode and anges of isochrones used in computation of
+     *                  distances $d_{ij}$.
      * @return Supply-Demand Ratio for every demand point.
      */
     public static float[] calcAccessibility(IDemandView demand, ISupplyView supply, double max_range,
-            IRoutingProvider provider) {
+            IRoutingProvider provider, RoutingOptions options) {
         float[] accessibilities = new float[demand.pointCount()];
 
-        List<Double> ranges = new ArrayList();
-        ranges.add(max_range);
-
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, "isochrones", new RoutingOptions(ranges));
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
         try {
             if (matrix == null) {
                 return accessibilities;

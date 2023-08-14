@@ -90,9 +90,8 @@ public class ORSProvider implements IRoutingProvider {
         }
     }
 
-    public ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply,
-            String mode, RoutingOptions options) {
-        switch (mode) {
+    public ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, RoutingOptions options) {
+        switch (options.getMode()) {
             case "isochrones":
                 return this.requestMatrixIsochrones(demand, supply, options.getRanges());
             case "matrix":
@@ -224,7 +223,7 @@ public class ORSProvider implements IRoutingProvider {
         return new TDMatrix(matrix);
     }
 
-    public INNTable requestNearest(IDemandView demand, ISupplyView supply, String mode, RoutingOptions options) {
+    public INNTable requestNearest(IDemandView demand, ISupplyView supply, RoutingOptions options) {
         int[] nearest_table = new int[demand.pointCount()];
         float[] ranges_table = new float[demand.pointCount()];
         for (int j = 0; j < demand.pointCount(); j++) {
@@ -297,8 +296,7 @@ public class ORSProvider implements IRoutingProvider {
         return new NNTable(nearest_table, ranges_table);
     }
 
-    public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int n, String mode,
-            RoutingOptions options) {
+    public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int n, RoutingOptions options) {
         int[][] nearest_table = new int[demand.pointCount()][n];
         float[][] ranges_table = new float[demand.pointCount()][n];
         for (int j = 0; j < demand.pointCount(); j++) {
@@ -380,8 +378,7 @@ public class ORSProvider implements IRoutingProvider {
         return new KNNTable(nearest_table, ranges_table);
     }
 
-    public ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, String mode,
-            RoutingOptions options) {
+    public ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, RoutingOptions options) {
         List<Integer>[] accessibilities = new List[demand.pointCount()];
 
         List<Double> ranges = new ArrayList<>();

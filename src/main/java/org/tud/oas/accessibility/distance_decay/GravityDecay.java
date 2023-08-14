@@ -16,4 +16,12 @@ public class GravityDecay implements IDistanceDecay {
             return (float) Math.pow(distance, -beta);
         }
     }
+
+    public float getMaxDistance() {
+        return this.max_distance;
+    }
+
+    public float[] getDistances() {
+        return null;
+    }
 }

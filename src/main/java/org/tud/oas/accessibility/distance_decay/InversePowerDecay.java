@@ -16,4 +16,12 @@ public class InversePowerDecay implements IDistanceDecay {
             return (float) Math.pow(distance, -impedance);
         }
     }
+
+    public float getMaxDistance() {
+        return this.max_distance;
+    }
+
+    public float[] getDistances() {
+        return null;
+    }
 }

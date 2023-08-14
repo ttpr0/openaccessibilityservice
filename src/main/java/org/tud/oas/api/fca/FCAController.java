@@ -1,5 +1,8 @@
 package org.tud.oas.api.fca;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,7 @@ import org.tud.oas.demand.IDemandView;
 import org.tud.oas.demand.DemandManager;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingManager;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.supply.SupplyManager;
 
@@ -41,13 +45,19 @@ public class FCAController {
             return ResponseEntity.badRequest()
                     .body(new ErrorResponse("2sfca/enhanced", "failed to get distance-decay, parameters are invalid"));
         }
-        if (request.ranges == null) {
-            return ResponseEntity.badRequest().body(new ErrorResponse("2sfca/enhanced",
-                    "range parameters missing, parameters are invalid"));
+        RoutingOptions options;
+        if (decay.getDistances() == null) {
+            options = new RoutingOptions(request.mode, (double) decay.getMaxDistance());
+        } else {
+            float[] distances = decay.getDistances();
+            List<Double> ranges = new ArrayList(distances.length);
+            for (int i = 0; i < distances.length; i++) {
+                ranges.add((double) distances[i]);
+            }
+            options = new RoutingOptions(request.mode, ranges);
         }
 
-        float[] weights = Enhanced2SFCA.calc2SFCA(demand_view, supply_view,
-                request.ranges, decay, provider, request.mode);
+        float[] weights = Enhanced2SFCA.calc2SFCA(demand_view, supply_view, decay, provider, options);
 
         float[] response = buildResponse(demand_view, weights);
         return ResponseEntity.ok(new FCAResponse(response));
@@ -55,11 +65,17 @@ public class FCAController {
 
     private float[] buildResponse(IDemandView population, float[] accessibilities) {
         float maxWeight = 0;
-        for (float w : accessibilities) {
+        for (int i = 0; i < accessibilities.length; i++) {
+            float w = accessibilities[i];
             if (w > maxWeight) {
                 maxWeight = w;
             }
         }
+        // for (float w : accessibilities) {
+        // if (w > maxWeight) {
+        // maxWeight = w;
+        // }
+        // }
         float factor = 100 / maxWeight;
 
         for (int i = 0; i < accessibilities.length; i++) {

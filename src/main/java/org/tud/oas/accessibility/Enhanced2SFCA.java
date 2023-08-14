@@ -25,22 +25,21 @@ public class Enhanced2SFCA {
      * 
      * @param demand   Demand locations and weights ($D_i$).
      * @param supply   Supply locations and weights ($S_j$).
-     * @param ranges   Ranges of isochrones used in computation of distances
-     *                 $d_{ij}$.
      * @param decay    Distance decay.
      * @param provider Routing API provider.
-     * @param mode     Computation mode ("isochrones", "matrix").
+     * @param options  Computation mode ("isochrones", "matrix") and Ranges of
+     *                 isochrones used in computation of distances $d_{ij}$.
      * @return enhanced two-step-floating-catchment-area value for every demand
      *         point.
      */
-    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, List<Double> ranges, IDistanceDecay decay,
-            IRoutingProvider provider, String mode) {
+    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, IDistanceDecay decay,
+            IRoutingProvider provider, RoutingOptions options) {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 
         Map<Integer, List<FacilityReference>> invertedMapping = new HashMap<>();
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, mode, new RoutingOptions(ranges));
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
         try {
             if (matrix == null) {
                 return populationWeights;
@@ -49,7 +48,7 @@ public class Enhanced2SFCA {
                 float weight = 0;
                 for (int p = 0; p < demand.pointCount(); p++) {
                     float range = matrix.getRange(f, p);
-                    if (range == 9999) {
+                    if (range < 0) {
                         continue;
                     }
                     float rangeFactor = decay.getDistanceWeight(range);

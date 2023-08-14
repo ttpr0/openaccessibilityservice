@@ -9,6 +9,7 @@ import org.tud.oas.accessibility.distance_decay.DistanceDecay;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 
 /**
@@ -43,21 +44,19 @@ public class MultiCriteraReachability {
     /**
      * Adds a reachability to the mutli-criteria value.
      * 
-     * @param name         Name of the reachability (stored in the accessibility map
-     *                     under this name).
-     * @param weight       Multi-criteria weight of the results.
-     * @param supply       Supply locations and weights (used in reachability
-     *                     query).
-     * @param ranges       Ranges of isochrones used in computation (used in
-     *                     reachability query).
-     * @param decay_params Distande decay (used in reachability query).
+     * @param name   Name of the reachability (stored in the accessibility map under
+     *               this name).
+     * @param weight Multi-criteria weight of the results.
+     * @param supply Supply locations and weights (used in reachability query).
+     * @param ranges Ranges of isochrones used in computation (used in reachability
+     *               query).
+     * @param decay  Distande decay (used in reachability query).
      */
-    public void addAccessibility(String name, float weight, ISupplyView supply, List<Double> ranges,
-            DecayRequestParams decay_params) {
+    public void addAccessibility(String name, float weight, ISupplyView supply, RoutingOptions options,
+            IDistanceDecay decay) {
         float[] accessibility;
-        IDistanceDecay decay = DistanceDecay.getDistanceDecay(decay_params);
         try {
-            accessibility = this.gravity.calcAccessibility(this.demand, supply, ranges, decay, this.provider);
+            accessibility = this.gravity.calcAccessibility(this.demand, supply, decay, this.provider, options);
         } catch (Exception e) {
             e.printStackTrace();
             return;

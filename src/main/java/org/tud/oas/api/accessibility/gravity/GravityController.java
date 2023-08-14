@@ -1,5 +1,8 @@
 package org.tud.oas.api.accessibility.gravity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,7 @@ import org.tud.oas.api.responses.ErrorResponse;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.demand.DemandManager;
 import org.tud.oas.routing.RoutingManager;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.supply.SupplyManager;
 import org.tud.oas.routing.IRoutingProvider;
@@ -47,14 +51,21 @@ public class GravityController {
                     .body(new ErrorResponse("accessibility/gravity",
                             "failed to get distance-decay, parameters are invalid"));
         }
-        if (request.ranges == null) {
-            return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity",
-                    "range parameters missing, parameters are invalid"));
+        RoutingOptions options;
+        if (decay.getDistances() == null) {
+            options = new RoutingOptions("matrix", (double) decay.getMaxDistance());
+        } else {
+            float[] distances = decay.getDistances();
+            List<Double> ranges = new ArrayList(distances.length);
+            for (int i = 0; i < distances.length; i++) {
+                ranges.add((double) distances[i]);
+            }
+            options = new RoutingOptions("isochrones", ranges);
         }
 
         logger.debug("start calculation gravity accessibility");
         SimpleReachability gravity = new SimpleReachability();
-        float[] access = gravity.calcAccessibility(demand_view, supply_view, request.ranges, decay, provider);
+        float[] access = gravity.calcAccessibility(demand_view, supply_view, decay, provider, options);
 
         logger.debug("start building response");
         float[] response = this.buildResponse(demand_view, access);

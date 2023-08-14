@@ -29,20 +29,19 @@ public class DE2SFCA {
      * @param decays       List of distance-decays.
      * @param decayIndices Index of the decay (from decays) for every demand point
      * @param provider     Routing API provider.
-     * @param mode         Computation mode ("isochrones", "matrix").
-     * @param ranges       Ranges of isochrones used in computation of distances
-     *                     $d_{ij}$.
+     * @param options      Computation mode ("isochrones", "matrix") and ranges of
+     *                     isochrones used in computation of distances $d_{ij}$.
      * @return enhanced two-step-floating-catchment-area value for every demand
      *         point.
      */
     public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, List<IDistanceDecay> decays,
-            int[] decayIndices, IRoutingProvider provider, String mode, List<Double> ranges) {
+            int[] decayIndices, IRoutingProvider provider, RoutingOptions options) {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 
         Map<Integer, List<FacilityReference>> invertedMapping = new HashMap<>();
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, mode, new RoutingOptions(ranges));
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
         try {
             if (matrix == null) {
                 return populationWeights;

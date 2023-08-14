@@ -15,4 +15,12 @@ public class KernelDensityDecay implements IDistanceDecay {
             return factor * (1 - (float) Math.pow(distance / max_distance, 2));
         }
     }
+
+    public float getMaxDistance() {
+        return this.max_distance;
+    }
+
+    public float[] getDistances() {
+        return null;
+    }
 }

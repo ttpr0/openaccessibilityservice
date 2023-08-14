@@ -21,18 +21,18 @@ public class SimpleReachability {
      * 
      * @param demand   Demand locations.
      * @param supply   Supply locations and weights ($S_j$).
-     * @param ranges   Ranges of isochrones used in computation of distances
-     *                 $d_{ij}$.
      * @param decay    Distance decay.
      * @param provider Routing API provider.
+     * @param options  Mode and anges of isochrones used in computation of distances
+     *                 $d_{ij}$.
      * @return Reachability for every demand point.
      */
-    public float[] calcAccessibility(IDemandView demand, ISupplyView supply, List<Double> ranges, IDistanceDecay decay,
-            IRoutingProvider provider) {
+    public float[] calcAccessibility(IDemandView demand, ISupplyView supply, IDistanceDecay decay,
+            IRoutingProvider provider, RoutingOptions options) {
         float[] accessibilities = new float[demand.pointCount()];
-        double max_range = ranges.get(ranges.size() - 1);
+        double max_range = decay.getMaxDistance();
 
-        INNTable table = provider.requestNearest(demand, supply, "isochrones", new RoutingOptions(ranges));
+        INNTable table = provider.requestNearest(demand, supply, options);
         if (table == null) {
             return accessibilities;
         }

@@ -16,4 +16,12 @@ public class GaussianDecay implements IDistanceDecay {
             return (float) Math.exp(-Math.pow(distance, 2) / impedance);
         }
     }
+
+    public float getMaxDistance() {
+        return this.max_distance;
+    }
+
+    public float[] getDistances() {
+        return null;
+    }
 }

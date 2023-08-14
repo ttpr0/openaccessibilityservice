@@ -15,4 +15,12 @@ public class BinaryDecay implements IDistanceDecay {
             return factor;
         }
     }
+
+    public float getMaxDistance() {
+        return this.max_distance;
+    }
+
+    public float[] getDistances() {
+        return null;
+    }
 }

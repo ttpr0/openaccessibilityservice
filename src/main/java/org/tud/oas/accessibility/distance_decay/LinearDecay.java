@@ -14,4 +14,12 @@ public class LinearDecay implements IDistanceDecay {
             return 1 - (distance / max_distance);
         }
     }
+
+    public float getMaxDistance() {
+        return this.max_distance;
+    }
+
+    public float[] getDistances() {
+        return null;
+    }
 }

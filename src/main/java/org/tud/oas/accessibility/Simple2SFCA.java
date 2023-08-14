@@ -25,18 +25,18 @@ public class Simple2SFCA {
      * @param supply   Supply locations and weights ($S_j$).
      * @param range    Size of the catchment $d_{max}$.
      * @param provider Routing API provider.
+     * @param options  Routing options used (mode of matrix computation and
+     *                 ranges of isochrones used)
      * @return two-step-floating-catchment-area value for every demand point.
      */
-    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, double range, IRoutingProvider provider) {
+    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, double range, IRoutingProvider provider,
+            RoutingOptions options) {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 
         Map<Integer, List<Integer>> invertedMapping = new HashMap<>();
 
-        List<Double> ranges = new ArrayList<>();
-        ranges.add(range);
-
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, "isochrones", new RoutingOptions(ranges));
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
         try {
             if (matrix == null) {
                 return populationWeights;

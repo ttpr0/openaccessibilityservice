@@ -1,6 +1,8 @@
 package org.tud.oas.api.accessibility.multi_criteria;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.tud.oas.accessibility.SimpleReachability;
+import org.tud.oas.accessibility.distance_decay.DistanceDecay;
+import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.accessibility.MultiCriteraReachability;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.api.responses.ErrorResponse;
@@ -18,6 +22,7 @@ import org.tud.oas.demand.IDemandView;
 import org.tud.oas.demand.DemandManager;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingManager;
+import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.supply.SupplyManager;
 
@@ -50,8 +55,21 @@ public class MultiCriteriaController {
         for (Map.Entry<String, InfrastructureParams> entry : request.infrastructures.entrySet()) {
             InfrastructureParams value = entry.getValue();
             ISupplyView supply_view = SupplyManager.getSupplyView(value.supply);
-            multiCriteria.addAccessibility(entry.getKey(), (float) value.infrastructure_weight, supply_view,
-                    value.ranges, value.decay);
+            IDistanceDecay decay = DistanceDecay.getDistanceDecay(value.decay);
+            RoutingOptions options;
+            if (decay.getDistances() == null) {
+                options = new RoutingOptions("matrix", (double) decay.getMaxDistance());
+            } else {
+                float[] distances = decay.getDistances();
+                List<Double> ranges = new ArrayList(distances.length);
+                for (int i = 0; i < distances.length; i++) {
+                    ranges.add((double) distances[i]);
+                }
+                options = new RoutingOptions("isochrones", ranges);
+            }
+
+            multiCriteria.addAccessibility(entry.getKey(), (float) value.infrastructure_weight, supply_view, options,
+                    decay);
         }
         logger.debug("Finished Adding Accessibilities");
 

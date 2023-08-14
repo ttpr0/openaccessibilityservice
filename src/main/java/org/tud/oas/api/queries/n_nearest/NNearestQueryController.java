@@ -54,8 +54,8 @@ public class NNearestQueryController {
             }
 
             IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
-            table = provider.requestKNearest(demand_view, supply_view, request.facility_count, "isochrones",
-                    new RoutingOptions(request.ranges));
+            table = provider.requestKNearest(demand_view, supply_view, request.facility_count,
+                    new RoutingOptions("isochrones", request.ranges));
 
             sessionId = UUID.randomUUID();
             sessions.put(sessionId, new NNearestQuerySession(sessionId, demand_view, table));

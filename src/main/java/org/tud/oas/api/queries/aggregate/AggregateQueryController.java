@@ -55,7 +55,7 @@ public class AggregateQueryController {
 
             IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
             catchment = provider.requestCatchment(demand_view, supply_view, request.range,
-                    "isochrones", null);
+                    new RoutingOptions("isochrones"));
         }
 
         UUID id = UUID.randomUUID();

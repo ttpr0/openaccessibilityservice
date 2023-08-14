@@ -32,12 +32,6 @@ class InfrastructureParams {
     /// <example>0.8</example>
     public double infrastructure_weight;
 
-    /// <summary>
-    /// Ranges (in sec) to be used by calculation.
-    /// </summary>
-    /// <example>[180, 360, 540, 720, 900]</example>
-    public List<Double> ranges;
-
     public DecayRequestParams decay;
 
     public SupplyRequestParams supply;

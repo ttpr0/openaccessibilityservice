@@ -38,8 +38,8 @@ public class SimpleAccessibilityController {
                     "failed to get supply-view, parameters are invalid"));
         }
 
-        IKNNTable table = provider.requestKNearest(demand_view, supply_view, 3, "isochrones",
-                new RoutingOptions(request.ranges));
+        IKNNTable table = provider.requestKNearest(demand_view, supply_view, 3,
+                new RoutingOptions("isochrones", request.ranges));
 
         SimpleValue[] response = this.buildResponse(demand_view, table);
 

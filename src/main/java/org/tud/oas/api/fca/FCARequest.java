@@ -10,9 +10,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 class FCARequest {
-    @JsonProperty("ranges")
-    public List<Double> ranges;
-
     @JsonProperty("demand")
     public DemandRequestParams demand;
 

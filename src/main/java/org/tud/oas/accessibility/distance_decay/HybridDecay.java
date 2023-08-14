@@ -31,6 +31,14 @@ public class HybridDecay implements IDistanceDecay {
         }
         return 0;
     }
+
+    public float getMaxDistance() {
+        return this.distances[this.distances.length - 1];
+    }
+
+    public float[] getDistances() {
+        return this.distances;
+    }
 }
 
 class Pair implements Comparable<Pair> {

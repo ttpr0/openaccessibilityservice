@@ -16,4 +16,12 @@ public class ExponentialDecay implements IDistanceDecay {
             return (float) Math.exp(-distance * impedance);
         }
     }
+
+    public float getMaxDistance() {
+        return this.max_distance;
+    }
+
+    public float[] getDistances() {
+        return null;
+    }
 }

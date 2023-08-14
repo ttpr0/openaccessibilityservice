@@ -21,4 +21,12 @@ public class PolynomDecay implements IDistanceDecay {
         }
         return (float) weight;
     }
+
+    public float getMaxDistance() {
+        return this.max_distance;
+    }
+
+    public float[] getDistances() {
+        return null;
+    }
 }

@@ -11,12 +11,6 @@ import org.tud.oas.supply.SupplyRequestParams;
 /// Gravity Request.
 /// </summary>
 public class GravityRequest {
-    /// <summary>
-    /// Ranges (in sec) to be used by calculation.
-    /// </summary>
-    /// <example>[180, 360, 540, 720, 900]</example>
-    public List<Double> ranges;
-
     public DecayRequestParams distance_decay;
 
     public DemandRequestParams demand;

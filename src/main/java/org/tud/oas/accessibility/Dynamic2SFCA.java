@@ -30,16 +30,18 @@ public class Dynamic2SFCA {
      * @param rangeIndices Index of the catchment-size (from ranges) for every
      *                     demand point
      * @param provider     Routing API provider.
+     * @param options      Routing options used (mode of matrix computation and
+     *                     ranges of isochrones used)
      * @return two-step-floating-catchment-area value for every demand point.
      */
     public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, List<Double> ranges, int[] rangeIndices,
-            IRoutingProvider provider) {
+            IRoutingProvider provider, RoutingOptions options) {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 
         Map<Integer, List<Integer>> invertedMapping = new HashMap<>();
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, "isochrones", new RoutingOptions(ranges));
+        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
         try {
             if (matrix == null) {
                 return populationWeights;
