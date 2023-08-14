@@ -2,20 +2,20 @@ package org.tud.oas.api.queries.n_nearest;
 
 import java.util.UUID;
 
-/// <summary>
-/// FCA Response.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "NNearestQueryResponse", description = """
+        N-Nearest Query Response.
+        """)
 public class NNearestQueryResponse {
-    /// <summary>
-    /// FCA Response.
-    /// </summary>
-    /// <example>[72.34, 29.98, 99.21]</example>
+    @Schema(name = "result", description = """
+            Query results.
+            """, example = "[72.34, 29.98, 99.21]")
     public float[] result;
 
-    /// <summary>
-    /// Session id. Can be used in subsequent aggregate-query requests.
-    /// </summary>
-    /// <example>smlf-dmxm-xdsd-yxdx</example>
+    @Schema(name = "session_id", description = """
+            Session id. Can be used in subsequent aggregate-query requests.
+            """, example = "smlf-dmxm-xdsd-yxdx")
     public UUID session_id;
 
     public NNearestQueryResponse(float[] result, UUID session_id) {

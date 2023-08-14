@@ -18,12 +18,24 @@ import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.supply.SupplyManager;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 @RestController()
 @RequestMapping("/v1/accessibility/simple")
 public class SimpleAccessibilityController {
-    /// <summary>
-    /// Calculates simple accessibility.
-    /// </summary>
+
+    @Operation(description = """
+            Calculates simple accessibility.
+            """)
+    @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = SimpleAccessibilityResponse.class))
+    })
+    @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+    })
     @PostMapping
     public ResponseEntity<?> calcSimpleGrid(@RequestBody SimpleAccessibilityRequest request) {
         IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);

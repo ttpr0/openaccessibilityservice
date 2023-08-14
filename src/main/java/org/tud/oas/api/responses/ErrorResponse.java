@@ -1,19 +1,19 @@
 package org.tud.oas.api.responses;
 
-/// <summary>
-/// Error response containing the request endpoint and a error message.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "ErrorResponse", description = """
+        Error response containing the request endpoint and a error message.
+        """)
 public class ErrorResponse {
-    /// <summary>
-    /// The request endpoint.
-    /// </summary>
-    /// <example>api/endpoint/action</example>
+    @Schema(name = "request", description = """
+            The request endpoint.
+            """, example = "api/endpoint/action")
     public String request;
 
-    /// <summary>
-    /// The error message.
-    /// </summary>
-    /// <example>invalid request</example>
+    @Schema(name = "error", description = """
+            The error message.
+            """, example = "invalid request")
     public String error;
 
     public ErrorResponse(String request, String message) {

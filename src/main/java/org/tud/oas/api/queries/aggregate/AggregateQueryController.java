@@ -14,6 +14,11 @@ import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.supply.SupplyManager;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -25,9 +30,15 @@ public class AggregateQueryController {
     static Map<UUID, AggregateQuerySession> sessions = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
-    /// <summary>
-    /// Calculates aggregate query.
-    /// </summary>
+    @Operation(description = """
+            Calculates aggregate query.
+            """)
+    @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = AggregateQueryResponse.class))
+    })
+    @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+    })
     @PostMapping
     public ResponseEntity<?> calcQuery(@RequestBody AggregateQueryRequest request) {
         ICatchment catchment;

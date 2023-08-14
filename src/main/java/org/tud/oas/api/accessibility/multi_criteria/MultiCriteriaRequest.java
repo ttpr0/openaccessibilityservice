@@ -8,13 +8,15 @@ import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
 import org.tud.oas.supply.SupplyRequestParams;
 
-/// <summary>
-/// Multi-criteria Request.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "MultiCriteriaRequest", description = """
+        Multi-criteria Request.
+        """)
 public class MultiCriteriaRequest {
-    /// <summary>
-    /// infrastructure parameters.
-    /// </summary>
+    @Schema(name = "infrastructures", description = """
+            infrastructure parameters.
+            """)
     public Map<String, InfrastructureParams> infrastructures;
 
     public DemandRequestParams demand;
@@ -22,14 +24,13 @@ public class MultiCriteriaRequest {
     public RoutingRequestParams routing;
 }
 
-/// <summary>
-/// Infrastructure parameter.
-/// </summary>
+@Schema(name = "InfrastructureParams", description = """
+        Infrastructure parameter.
+        """)
 class InfrastructureParams {
-    /// <summary>
-    /// Weight of infrastructure in multi-criteria..
-    /// </summary>
-    /// <example>0.8</example>
+    @Schema(name = "infrastructure_weight", description = """
+            Weight of infrastructure in multi-criteria..
+            """, example = "0.8")
     public double infrastructure_weight;
 
     public DecayRequestParams decay;

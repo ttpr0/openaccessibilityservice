@@ -7,14 +7,15 @@ import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
 import org.tud.oas.supply.SupplyRequestParams;
 
-/// <summary>
-/// N-Nearest Query Request.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "NNearestQueryRequest", description = """
+        N-Nearest Query Request.
+        """)
 public class NNearestQueryRequest {
-    /// <summary>
-    /// Session id. Used to reuse precomputed aggregation
-    /// </summary>
-    /// <example>smlf-dmxm-xdsd-yxdx</example>
+    @Schema(name = "session_id", description = """
+            Session id. Used to reuse precomputed aggregation.
+            """, example = "smlf-dmxm-xdsd-yxdx")
     public UUID session_id;
 
     public DemandRequestParams demand;
@@ -23,33 +24,28 @@ public class NNearestQueryRequest {
 
     public SupplyRequestParams supply;
 
-    /// <summary>
-    /// Range-type to be used (One of "continuus", "discrete").
-    /// </summary>
-    /// <example>discrete</example>
+    @Schema(name = "range_type", description = """
+            Range-type to be used (One of "continuus", "discrete").
+            """, example = "discrete")
     public String range_type;
 
-    /// <summary>
-    /// Maximum range (for continuus range_type) in seconds.
-    /// </summary>
-    /// <example>900</example>
+    @Schema(name = "range_max", description = """
+            Maximum range (for continuus range_type) in seconds.
+            """, example = "900")
     public Double range_max;
 
-    /// <summary>
-    /// Ranges (in sec) to be used by calculation.
-    /// </summary>
-    /// <example>[180, 360, 540, 720, 900]</example>
+    @Schema(name = "ranges", description = """
+            Ranges (in sec) to be used by calculation.
+            """, example = "[180, 360, 540, 720, 900]")
     public List<Double> ranges;
 
-    /// <summary>
-    /// Calculation mode (one of "mean", "median", "min", "max").
-    /// </summary>
-    /// <example>mean</example>
+    @Schema(name = "compute_type", description = """
+            Calculation mode (one of "mean", "median", "min", "max").
+            """, example = "mean")
     public String compute_type;
 
-    /// <summary>
-    /// Number (n) of closest facilities to be used.
-    /// </summary>
-    /// <example>3</example>
+    @Schema(name = "facility_count", description = """
+            Number (n) of closest facilities to be used.
+            """, example = "3")
     public int facility_count;
 }

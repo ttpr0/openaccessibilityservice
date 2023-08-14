@@ -1,72 +1,64 @@
 package org.tud.oas.routing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-/// <summary>
-/// Parameters for the routing.
-/// Parameters will be used for queries on routing backend.
-/// All Parameters are optional, is usefull defaults will be set.
-/// </summary>
+@Schema(name = "RoutingRequestParams", description = """
+        Parameters for the routing.
+        Parameters will be used for queries on routing backend.
+        All Parameters are optional, is usefull defaults will be set.
+        """)
 public class RoutingRequestParams {
     // *************************************
     // standard routing params
     // *************************************
-    /// <summary>
-    /// Routing profile to be used (e.g. driving-car, ...).
-    /// </summary>
-    /// <example>driving-car</example>
+    @Schema(name = "profile", description = """
+            Routing profile to be used (e.g. driving-car, ...).
+            """, example = "driving-car")
     @JsonProperty("profile")
     public String profile;
 
-    /// <summary>
-    /// Routing metric (travel-time or distance).
-    /// </summary>
-    /// <example>time</example>
+    @Schema(name = "range_type", description = """
+            Routing metric (travel-time or distance).
+            """, example = "time")
     @JsonProperty("range_type")
     public String range_type;
 
     // *************************************
     // additional routing params
     // *************************************
-    /// <summary>
-    /// Sets weather borders should be avoided (cross country).
-    /// </summary>
-    /// <example>all</example>
+    @Schema(name = "avoid_borders", description = """
+            Sets wheather borders should be avoided (cross country).
+            """, example = "all")
     @JsonProperty("avoid_borders")
     public String avoid_borders;
 
-    /// <summary>
-    /// Sets which road segments should be avoided.
-    /// </summary>
-    /// <example>["highway", "ferries"]</example>
+    @Schema(name = "avoid_features", description = """
+            Sets which road segments should be avoided.
+            """, example = "[\"highway\", \"ferries\"]")
     @JsonProperty("avoid_features")
     public String[] avoid_features;
 
-    /// <summary>
-    /// Sets an area to avid while routing.
-    /// Polygon or MultiPolygon formatted as GeoJSON.
-    /// </summary>
-    /// <example>{"type": "Polygon", "coordinates": [[9.1, 50.1], [9.9, 50.1], [9.4,
-    /// 50.8]]}</example>
+    @Schema(name = "avoid_polygons", description = """
+            Sets an area to avid while routing.
+            Polygon or MultiPolygon formatted as GeoJSON.
+            """, example = "{\"type\": \"Polygon\", \"coordinates\": [[9.1, 50.1], [9.9, 50.1], [9.4, 50.8]]}")
     @JsonProperty("avoid_polygons")
     public Object avoid_polygons;
 
     // *************************************
     // isochrone params
     // *************************************
-    /// <summary>
-    /// Sets weather input locations should be used as origin or destination of
-    // travel.
-    /// </summary>
-    /// <example>start</example>
+    @Schema(name = "location_type", description = """
+            Sets weather input locations should be used as origin or destination of travel.
+            """, example = "start")
     @JsonProperty("location_type")
     public String location_type;
 
-    /// <summary>
-    /// Sets how much isochrones should be smoothed.
-    /// High values lead to a high degree of smoothing.
-    /// </summary>
-    /// <example>25</example>
+    @Schema(name = "isochrone_smoothing", description = """
+            Sets how much isochrones should be smoothed.
+            High values lead to a high degree of smoothing.
+            """, example = "25")
     @JsonProperty("isochrone_smoothing")
     public Float isochrone_smoothing;
 }

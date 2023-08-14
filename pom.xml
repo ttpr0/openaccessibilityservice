@@ -10,13 +10,13 @@
 	<packaging>jar</packaging>
 
 	<properties>
-		<java.version>8</java.version>
-		<maven.compiler.source>8</maven.compiler.source>
-    	<maven.compiler.target>8</maven.compiler.target>
+		<java.version>17</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+    	<maven.compiler.target>${java.version}</maven.compiler.target>
 		<geotools.version>19.1</geotools.version>
-		<spring.version>2.3.5.RELEASE</spring.version>
-		<log4j.version>2.17.1</log4j.version>
-		<slf4j.version>1.7.32</slf4j.version>
+		<spring.version>3.1.1</spring.version>
+		<slf4j.version>2.0.7</slf4j.version>
+        <log4j.version>2.20.0</log4j.version>
 	</properties>
 
 	<dependencies>
@@ -33,6 +33,11 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.1.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.locationtech.jts</groupId>
 			<artifactId>jts-core</artifactId>

@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import org.tud.oas.accessibility.Enhanced2SFCA;
 import org.tud.oas.accessibility.distance_decay.DistanceDecay;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
-import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.api.responses.ErrorResponse;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.demand.DemandManager;
@@ -20,11 +19,25 @@ import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.supply.SupplyManager;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 @RestController
 @RequestMapping("/v1/fca")
 public class FCAController {
     private final Logger logger = LoggerFactory.getLogger(FCAController.class);
 
+    @Operation(description = """
+            Calculates simple floating catchment area.
+            """)
+    @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = FCAResponse.class))
+    })
+    @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+    })
     @PostMapping
     public ResponseEntity<?> calcFCA(@RequestBody FCARequest request) {
         logger.info("Run FCA Request");

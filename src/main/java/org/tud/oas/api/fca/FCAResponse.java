@@ -1,13 +1,14 @@
 package org.tud.oas.api.fca;
 
-/// <summary>
-/// FCA Response.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "FCAResponse", description = """
+        FCA response.
+        """)
 public class FCAResponse {
-    /// <summary>
-    /// FCA Response.
-    /// </summary>
-    /// <example>[72.34, 29.98, 99.21]</example>
+    @Schema(name = "access", description = """
+            Accessibility values.
+            """, example = "[72.34, 29.98, 99.21]")
     public float[] access;
 
     public FCAResponse(float[] access) {

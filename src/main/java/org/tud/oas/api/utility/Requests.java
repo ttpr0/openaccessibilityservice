@@ -5,26 +5,32 @@ import java.util.UUID;
 import org.tud.oas.demand.DemandRequestParams;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-/// <summary>
-/// Request to store population view (from given parameters).
-/// </summary>
+@Schema(name = "PopulationStoreRequest", description = """
+        Request to store population view (from given parameters).
+        """)
 class PopulationStoreRequest {
+    @Schema(name = "population", description = """
+            Parameters of population-view to be stored.
+            """)
     @JsonProperty("population")
     public DemandRequestParams population;
 }
 
-/// <summary>
-/// Request to get data from stored or internal population view.
-/// </summary>
+@Schema(name = "PopulationGetRequest", description = """
+        Request to get data from stored or internal population view.
+        """)
 class PopulationGetRequest {
-    /// <summary>
-    /// Population view id.
-    /// </summary>
-    /// <example>sfjf-djfd-omsf-jjfd</example>
+    @Schema(name = "population_id", description = """
+            Population view id.
+            """, example = "sfjf-djfd-omsf-jjfd")
     @JsonProperty("population_id")
     public UUID population_id;
 
+    @Schema(name = "population", description = """
+            Parameters of population-view to be retrived.
+            """)
     @JsonProperty("population")
     public DemandRequestParams population;
 }

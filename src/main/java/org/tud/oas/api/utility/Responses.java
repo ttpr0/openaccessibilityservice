@@ -3,14 +3,15 @@ package org.tud.oas.api.utility;
 import java.util.List;
 import java.util.UUID;
 
-/// <summary>
-/// Population store response.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "PopulationStoreResponse", description = """
+        Population store response.
+        """)
 class PopulationStoreResponse {
-    /// <summary>
-    /// Population view id.
-    /// </summary>
-    /// <example>sfjf-djfd-omsf-jjfd</example>
+    @Schema(name = "id", description = """
+            Population view id.
+            """, example = "sfjf-djfd-omsf-jjfd")
     public UUID id;
 
     PopulationStoreResponse(UUID id) {
@@ -18,20 +19,18 @@ class PopulationStoreResponse {
     }
 }
 
-/// <summary>
-/// Population get response.
-/// </summary>
+@Schema(name = "PopulationGetResponse", description = """
+        Population get response.
+        """)
 class PopulationGetResponse {
-    /// <summary>
-    /// Locations of population points.
-    /// </summary>
-    /// <example>[[9.11, 51.23], [9.35, 50.98], [10.02, 52.10]]</example>
+    @Schema(name = "locations", description = """
+            Locations of population points.
+            """, example = "[[9.11, 51.23], [9.35, 50.98], [10.02, 52.10]]")
     public List<double[]> locations;
 
-    /// <summary>
-    /// Weights of population points (typically number of people living there).
-    /// </summary>
-    /// <example>[72, 29, 99]</example>
+    @Schema(name = "weights", description = """
+            Weights of population points (typically number of people living there).
+            """, example = "[72, 29, 99]")
     public List<Double> weights;
 
     PopulationGetResponse(List<double[]> locations, List<Double> weights) {

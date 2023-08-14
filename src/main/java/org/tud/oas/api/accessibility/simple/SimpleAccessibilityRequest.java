@@ -6,14 +6,15 @@ import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
 import org.tud.oas.supply.SupplyRequestParams;
 
-/// <summary>
-/// Simple-accessibility Request.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "SimpleAccessibilityRequest", description = """
+        Simple-accessibility Request.
+        """)
 public class SimpleAccessibilityRequest {
-    /// <summary>
-    /// Ranges (in sec) to be used by calculation.
-    /// </summary>
-    /// <example>[180, 360, 540, 720, 900]</example>
+    @Schema(name = "ranges", description = """
+            Ranges (in sec) to be used by calculation.
+            """, example = "[180, 360, 540, 720, 900]")
     public List<Double> ranges;
 
     public SupplyRequestParams supply;

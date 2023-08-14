@@ -1,11 +1,16 @@
 package org.tud.oas.api.utility;
 
 import org.locationtech.jts.geom.Coordinate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tud.oas.api.responses.*;
 import org.tud.oas.demand.IDemandView;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 import org.tud.oas.demand.DemandManager;
 
 import java.util.ArrayList;
@@ -16,9 +21,15 @@ import java.util.UUID;
 @RequestMapping("/v1/utility/population")
 public class PopulationController {
 
-    /// <summary>
-    /// Stores a population view for use in other requests.
-    /// </summary>
+    @Operation(description = """
+            Stores a population view for use in other requests.
+            """)
+    @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = PopulationStoreResponse.class))
+    })
+    @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+    })
     @PostMapping("/store")
     public ResponseEntity<?> storePopulationView(@RequestBody PopulationStoreRequest request) {
         IDemandView view = DemandManager.getDemandView(request.population);
@@ -31,9 +42,15 @@ public class PopulationController {
         return ResponseEntity.ok(new PopulationStoreResponse(id));
     }
 
-    /// <summary>
-    /// Retrives data from stored or internal population view.
-    /// </summary>
+    @Operation(description = """
+            Retrives data from stored or internal population view.
+            """)
+    @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = PopulationGetResponse.class))
+    })
+    @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
+    })
     @PostMapping("/get")
     public ResponseEntity<?> getPopulationView(@RequestBody PopulationGetRequest request) {
         IDemandView view;

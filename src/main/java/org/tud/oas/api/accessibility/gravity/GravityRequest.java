@@ -7,9 +7,11 @@ import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
 import org.tud.oas.supply.SupplyRequestParams;
 
-/// <summary>
-/// Gravity Request.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "GravityRequest", description = """
+        Gravity request.
+        """)
 public class GravityRequest {
     public DecayRequestParams distance_decay;
 

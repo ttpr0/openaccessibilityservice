@@ -1,12 +1,14 @@
 package org.tud.oas.api.accessibility.simple;
 
-/// <summary>
-/// Multi-criteria response.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "SimpleAccessibilityResponse", description = """
+        Simple Accessibility response.
+        """)
 public class SimpleAccessibilityResponse {
-    /// <summary>
-    /// Simple-accessibility values.
-    /// </summary>
+    @Schema(name = "access", description = """
+            Simple-accessibility values.
+            """)
     public SimpleValue[] access;
 
     public SimpleAccessibilityResponse(SimpleValue[] access) {
@@ -14,26 +16,23 @@ public class SimpleAccessibilityResponse {
     }
 }
 
-/// <summary>
-/// Simple value.
-/// </summary>
+@Schema(name = "SimpleValue", description = """
+        Simple value.
+        """)
 class SimpleValue {
-    /// <summary>
-    /// Range to closest facility.
-    /// </summary>
-    /// <example>123</example>
+    @Schema(name = "first", description = """
+            Range to closest facility.
+            """, example = "123")
     public int first;
 
-    /// <summary>
-    /// Range to second closest facility.
-    /// </summary>
-    /// <example>235</example>
+    @Schema(name = "second", description = """
+            Range to second closest facility.
+            """, example = "235")
     public int second;
 
-    /// <summary>
-    /// Range to third closest facility.
-    /// </summary>
-    /// <example>412</example>
+    @Schema(name = "third", description = """
+            Range to third closest facility.
+            """, example = "412")
     public int third;
 
     public SimpleValue(int first, int second, int third) {

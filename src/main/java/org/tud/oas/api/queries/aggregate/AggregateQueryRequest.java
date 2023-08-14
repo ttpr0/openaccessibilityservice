@@ -6,14 +6,15 @@ import org.tud.oas.demand.DemandRequestParams;
 import org.tud.oas.routing.RoutingRequestParams;
 import org.tud.oas.supply.SupplyRequestParams;
 
-/// <summary>
-/// Aggregate Query Request.
-/// </summary>
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "AggregateQueryRequest", description = """
+        Aggregate Query Request.
+        """)
 public class AggregateQueryRequest {
-    /// <summary>
-    /// Session id. Used to reuse precomputed aggregation
-    /// </summary>
-    /// <example>smlf-dmxm-xdsd-yxdx</example>
+    @Schema(name = "session_id", description = """
+            Session id. Used to reuse precomputed aggregation.
+            """, example = "smlf-dmxm-xdsd-yxdx")
     public UUID session_id;
 
     public DemandRequestParams demand;
@@ -22,15 +23,13 @@ public class AggregateQueryRequest {
 
     public SupplyRequestParams supply;
 
-    /// <summary>
-    /// Catchment range in seconds.
-    /// </summary>
-    /// <example>900</example>
+    @Schema(name = "range", description = """
+            Catchment range in seconds.
+            """, example = "900")
     public Double range;
 
-    /// <summary>
-    /// Calculation mode (one of "mean", "median", "min", "max").
-    /// </summary>
-    /// <example>mean</example>
+    @Schema(name = "compute_type", description = """
+            Calculation mode (one of "mean", "median", "min", "max").
+            """, example = "mean")
     public String compute_type;
 }
