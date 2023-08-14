@@ -1,4 +1,4 @@
-package org.tud.oas.api.fca;
+package org.tud.oas.api.accessibility.fca;
 
 import org.tud.oas.accessibility.distance_decay.DecayRequestParams;
 import org.tud.oas.demand.DemandRequestParams;

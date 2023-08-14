@@ -1,4 +1,4 @@
-package org.tud.oas.api.accessibility.gravity;
+package org.tud.oas.api.accessibility.reachability;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,21 +31,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.tud.oas.routing.IRoutingProvider;
 
 @RestController
-@RequestMapping("/v1/accessibility/gravity")
-public class GravityController {
+@RequestMapping("/v1/accessibility/reachability")
+public class ReachabilityController {
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
     @Operation(description = """
-            Calculates simple gravity accessibility.
+            Calculates simple reachability.
             """)
     @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = GravityResponse.class))
+            @Content(mediaType = "application/json", schema = @Schema(implementation = ReachabilityResponse.class))
     })
     @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
     })
     @PostMapping
-    public ResponseEntity<?> calcGravity(@RequestBody GravityRequest request) {
+    public ResponseEntity<?> calcReachability(@RequestBody ReachabilityRequest request) {
         IDemandView demand_view = DemandManager.getDemandView(request.demand);
         if (demand_view == null) {
             return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity",
@@ -83,7 +83,7 @@ public class GravityController {
         float[] response = this.buildResponse(demand_view, access);
         logger.debug("response build successfully");
 
-        return ResponseEntity.ok(new GravityResponse(response));
+        return ResponseEntity.ok(new ReachabilityResponse(response));
     }
 
     private float[] buildResponse(IDemandView population, float[] accessibilities) {

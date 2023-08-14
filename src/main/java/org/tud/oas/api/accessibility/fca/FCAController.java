@@ -1,4 +1,4 @@
-package org.tud.oas.api.fca;
+package org.tud.oas.api.accessibility.fca;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RestController
-@RequestMapping("/v1/fca")
+@RequestMapping("/v1/accessibility/fca")
 public class FCAController {
     private final Logger logger = LoggerFactory.getLogger(FCAController.class);
 

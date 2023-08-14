@@ -1,4 +1,4 @@
-package org.tud.oas.api.accessibility.gravity;
+package org.tud.oas.api.accessibility.reachability;
 
 import java.util.List;
 
@@ -9,10 +9,10 @@ import org.tud.oas.supply.SupplyRequestParams;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(name = "GravityRequest", description = """
-        Gravity request.
+@Schema(name = "ReachabilityRequest", description = """
+        Reachability request.
         """)
-public class GravityRequest {
+public class ReachabilityRequest {
     public DecayRequestParams distance_decay;
 
     public DemandRequestParams demand;

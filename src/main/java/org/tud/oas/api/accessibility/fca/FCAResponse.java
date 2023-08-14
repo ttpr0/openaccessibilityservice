@@ -1,4 +1,4 @@
-package org.tud.oas.api.fca;
+package org.tud.oas.api.accessibility.fca;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

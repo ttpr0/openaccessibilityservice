@@ -1,4 +1,4 @@
-package org.tud.oas.api.utility;
+package org.tud.oas.api.utility.population;
 
 import java.util.UUID;
 
