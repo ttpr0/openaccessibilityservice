@@ -3,7 +3,7 @@ services:
   oas-app:
     container_name: oas-app
     ports:
-      - "5000:5000"
+      - "5001:5001"
     user: "${UID:-0}:${GID:-0}"
     build:
       context: ./

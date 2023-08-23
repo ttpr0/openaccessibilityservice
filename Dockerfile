@@ -1,4 +1,4 @@
-FROM openjdk:11
+FROM openjdk:17
 
 WORKDIR /oas
 
@@ -12,7 +12,7 @@ RUN chmod +x ./mvnw
 
 RUN ./mvnw package
 
-EXPOSE 5000
+EXPOSE 5001
 
 ENTRYPOINT ["java", "-jar", "./target/oas.jar"]
 
