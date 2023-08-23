@@ -13,6 +13,7 @@ import org.tud.oas.routing.Catchment;
 import org.tud.oas.routing.ICatchment;
 import org.tud.oas.routing.IKNNTable;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.locationtech.jts.algorithm.locate.SimplePointInAreaLocator;
@@ -617,10 +618,11 @@ public class ORSProvider implements IRoutingProvider {
         request.put("sources", source);
         request.put("destinations", destination);
         request.put("units", "m");
-        request.put("metrics", this.range_type == "time" ? "duration" : this.range_type);
+        request.put("metrics", new String[] { this.range_type.equals("time") ? "duration" : "distance" });
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
             String req = objectMapper.writeValueAsString(request);
 
@@ -628,8 +630,13 @@ public class ORSProvider implements IRoutingProvider {
 
             Matrix matrix = objectMapper.readValue(response, Matrix.class);
 
+            if (!this.range_type.equals("time")) {
+                matrix.durations = matrix.distances;
+            }
+
             return matrix;
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
