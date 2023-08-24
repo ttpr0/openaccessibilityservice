@@ -1,25 +1,31 @@
-package org.tud.oas.routing;
+package org.tud.oas.services;
 
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.tud.oas.requests.RoutingRequestParams;
+import org.tud.oas.routing.IRoutingProvider;
+import org.tud.oas.routing.embedded.EmbeddedRoutingProvider;
+import org.tud.oas.routing.ors.ORSProvider;
 
-public class RoutingManager {
-    static final Logger logger = LoggerFactory.getLogger(RoutingManager.class);
-    private static Supplier<IRoutingProvider> cls;
+@Service
+public class RoutingService {
+    static final Logger logger = LoggerFactory.getLogger(RoutingService.class);
+    static Supplier<IRoutingProvider> cls;
 
     public static void setRoutingProvider(Supplier<IRoutingProvider> cls) {
-        RoutingManager.cls = cls;
+        RoutingService.cls = cls;
     }
 
-    public static IRoutingProvider getRoutingProvider() {
-        IRoutingProvider provider = RoutingManager.cls.get();
+    public IRoutingProvider getRoutingProvider() {
+        IRoutingProvider provider = RoutingService.cls.get();
         return provider;
     }
 
-    public static IRoutingProvider getRoutingProvider(RoutingRequestParams param) {
-        IRoutingProvider provider = RoutingManager.cls.get();
+    public IRoutingProvider getRoutingProvider(RoutingRequestParams param) {
+        IRoutingProvider provider = RoutingService.cls.get();
 
         if (param == null) {
             return provider;

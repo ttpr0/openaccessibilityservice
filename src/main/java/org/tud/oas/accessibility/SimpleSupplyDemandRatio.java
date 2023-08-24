@@ -1,8 +1,5 @@
 package org.tud.oas.accessibility;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.ITDMatrix;

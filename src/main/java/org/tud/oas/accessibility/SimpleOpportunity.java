@@ -1,7 +1,5 @@
 package org.tud.oas.accessibility;
 
-import java.util.List;
-
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;

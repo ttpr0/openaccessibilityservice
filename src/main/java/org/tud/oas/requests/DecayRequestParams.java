@@ -1,4 +1,4 @@
-package org.tud.oas.accessibility.distance_decay;
+package org.tud.oas.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -1,4 +1,4 @@
-package org.tud.oas.api.responses;
+package org.tud.oas.responses;
 
 import java.util.List;
 import java.util.UUID;

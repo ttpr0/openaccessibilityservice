@@ -1,11 +1,8 @@
 package org.tud.oas.accessibility;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.tud.oas.accessibility.distance_decay.DecayRequestParams;
-import org.tud.oas.accessibility.distance_decay.DistanceDecay;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IRoutingProvider;

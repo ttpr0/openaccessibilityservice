@@ -1,20 +1,30 @@
-package org.tud.oas.demand;
+package org.tud.oas.services;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.locationtech.jts.geom.*;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.springframework.stereotype.Service;
+import org.tud.oas.demand.DemandView;
+import org.tud.oas.demand.IDemandView;
 import org.tud.oas.demand.population.PopulationLoader;
+import org.tud.oas.requests.DemandRequestParams;
 import org.tud.oas.util.Pair;
 
-public class DemandManager {
+@Service
+public class DemandService {
     private static Map<UUID, Pair<IDemandView, Date>> stored_views = new ConcurrentHashMap<>();
 
-    public static IDemandView getDemandView(DemandRequestParams param) {
+    public IDemandView getDemandView(DemandRequestParams param) {
         IDemandView view;
         try {
             if (param.view_id != null) {
-                view = DemandManager.getStoredDemandView(param.view_id);
+                view = this.getStoredDemandView(param.view_id);
                 if (view != null) {
                     return view;
                 }
@@ -26,7 +36,7 @@ public class DemandManager {
                 } else {
                     envelope = null;
                 }
-                view = DemandManager.createDemandView(param.demand_locations, param.demand_weights,
+                view = this.createDemandView(param.demand_locations, param.demand_weights,
                         envelope);
                 if (view != null) {
                     return view;
@@ -53,7 +63,7 @@ public class DemandManager {
         return null;
     }
 
-    public static IDemandView createDemandView(double[][] locations, double[] weights, Envelope envelop) {
+    public IDemandView createDemandView(double[][] locations, double[] weights, Envelope envelop) {
         List<Coordinate> points = new ArrayList<>();
         List<Integer> counts = new ArrayList<>();
         for (int i = 0; i < locations.length; i++) {
@@ -64,7 +74,7 @@ public class DemandManager {
         return new DemandView(points, null, counts);
     }
 
-    public static IDemandView createDemandView(double[][] locations, Envelope envelop) {
+    public IDemandView createDemandView(double[][] locations, Envelope envelop) {
         List<Coordinate> points = new ArrayList<>();
         for (int i = 0; i < locations.length; i++) {
             double[] location = locations[i];
@@ -73,14 +83,14 @@ public class DemandManager {
         return new DemandView(points, null, null);
     }
 
-    public static UUID storeDemandView(IDemandView view) {
+    public UUID storeDemandView(IDemandView view) {
         UUID id = UUID.randomUUID();
-        stored_views.put(id, new Pair<>(view, new Date()));
+        DemandService.stored_views.put(id, new Pair<>(view, new Date()));
         return id;
     }
 
-    public static IDemandView getStoredDemandView(UUID id) {
-        Pair<IDemandView, Date> pair = stored_views.get(id);
+    public IDemandView getStoredDemandView(UUID id) {
+        Pair<IDemandView, Date> pair = DemandService.stored_views.get(id);
         if (pair != null) {
             pair.setSecond(new Date()); // Update the timestamp
             return pair.getFirst();

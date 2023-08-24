@@ -1,7 +1,5 @@
 package org.tud.oas.accessibility;
 
-import java.util.List;
-
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;

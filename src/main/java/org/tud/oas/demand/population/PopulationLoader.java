@@ -3,7 +3,6 @@ package org.tud.oas.demand.population;
 import java.io.FileReader;
 
 import org.locationtech.jts.io.WKBReader;
-import org.tud.oas.demand.DemandManager;
 import org.tud.oas.demand.IDemandView;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,16 +13,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.tud.oas.accessibility.SimpleReachability;
-import org.tud.oas.accessibility.distance_decay.DistanceDecay;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
-import org.tud.oas.api.responses.ErrorResponse;
 import org.tud.oas.demand.IDemandView;
-import org.tud.oas.demand.DemandManager;
-import org.tud.oas.routing.RoutingManager;
+import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.RoutingOptions;
+import org.tud.oas.services.DecayService;
+import org.tud.oas.services.DemandService;
+import org.tud.oas.services.RoutingService;
+import org.tud.oas.services.SupplyService;
 import org.tud.oas.supply.ISupplyView;
-import org.tud.oas.supply.SupplyManager;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -35,6 +36,15 @@ import org.tud.oas.routing.IRoutingProvider;
 public class ReachabilityController {
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
+    @Autowired
+    private RoutingService routing_service;
+    @Autowired
+    private DemandService demand_service;
+    @Autowired
+    private SupplyService supply_service;
+    @Autowired
+    private DecayService decay_service;
+
     @Operation(description = """
             Calculates simple reachability.
             """)
@@ -46,18 +56,18 @@ public class ReachabilityController {
     })
     @PostMapping
     public ResponseEntity<?> calcReachability(@RequestBody ReachabilityRequest request) {
-        IDemandView demand_view = DemandManager.getDemandView(request.demand);
+        IDemandView demand_view = demand_service.getDemandView(request.demand);
         if (demand_view == null) {
             return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity",
                     "failed to get demand-view, parameters are invalid"));
         }
-        ISupplyView supply_view = SupplyManager.getSupplyView(request.supply);
+        ISupplyView supply_view = supply_service.getSupplyView(request.supply);
         if (supply_view == null) {
             return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity",
                     "failed to get supply-view, parameters are invalid"));
         }
-        IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
-        IDistanceDecay decay = DistanceDecay.getDistanceDecay(request.distance_decay);
+        IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
+        IDistanceDecay decay = decay_service.getDistanceDecay(request.distance_decay);
         if (decay == null) {
             return ResponseEntity.badRequest()
                     .body(new ErrorResponse("accessibility/gravity",

@@ -2,17 +2,19 @@ package org.tud.oas.api.queries.aggregate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.tud.oas.api.responses.ErrorResponse;
 import org.tud.oas.demand.IDemandView;
-import org.tud.oas.demand.DemandManager;
+import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.ICatchment;
 import org.tud.oas.routing.IRoutingProvider;
-import org.tud.oas.routing.RoutingManager;
 import org.tud.oas.routing.RoutingOptions;
+import org.tud.oas.services.DecayService;
+import org.tud.oas.services.DemandService;
+import org.tud.oas.services.RoutingService;
+import org.tud.oas.services.SupplyService;
 import org.tud.oas.supply.ISupplyView;
-import org.tud.oas.supply.SupplyManager;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,6 +32,13 @@ public class AggregateQueryController {
     static Map<UUID, AggregateQuerySession> sessions = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
+    @Autowired
+    private RoutingService routing_service;
+    @Autowired
+    private DemandService demand_service;
+    @Autowired
+    private SupplyService supply_service;
+
     @Operation(description = """
             Calculates aggregate query.
             """)
@@ -43,7 +52,7 @@ public class AggregateQueryController {
     public ResponseEntity<?> calcQuery(@RequestBody AggregateQueryRequest request) {
         ICatchment catchment;
         IDemandView demand_view;
-        ISupplyView supply_view = SupplyManager.getSupplyView(request.supply);
+        ISupplyView supply_view = supply_service.getSupplyView(request.supply);
         if (supply_view == null) {
             return ResponseEntity.badRequest().body(new ErrorResponse("queries/aggregate",
                     "failed to get supply-view, parameters are invalid"));
@@ -58,13 +67,13 @@ public class AggregateQueryController {
             catchment = session.catchment;
             demand_view = session.demand_view;
         } else {
-            demand_view = DemandManager.getDemandView(request.demand);
+            demand_view = demand_service.getDemandView(request.demand);
             if (demand_view == null) {
                 return ResponseEntity.badRequest().body(new ErrorResponse("queries/aggregate",
                         "failed to get population-view, parameters are invalid"));
             }
 
-            IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
+            IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
             catchment = provider.requestCatchment(demand_view, supply_view, request.range,
                     new RoutingOptions("isochrones"));
         }

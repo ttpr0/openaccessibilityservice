@@ -1,7 +1,20 @@
-package org.tud.oas.accessibility.distance_decay;
+package org.tud.oas.services;
 
-public class DistanceDecay {
-    public static IDistanceDecay getDistanceDecay(DecayRequestParams param) {
+import org.springframework.stereotype.Service;
+import org.tud.oas.accessibility.distance_decay.BinaryDecay;
+import org.tud.oas.accessibility.distance_decay.ExponentialDecay;
+import org.tud.oas.accessibility.distance_decay.GaussianDecay;
+import org.tud.oas.accessibility.distance_decay.HybridDecay;
+import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
+import org.tud.oas.accessibility.distance_decay.InversePowerDecay;
+import org.tud.oas.accessibility.distance_decay.KernelDensityDecay;
+import org.tud.oas.accessibility.distance_decay.LinearDecay;
+import org.tud.oas.accessibility.distance_decay.PolynomDecay;
+import org.tud.oas.requests.DecayRequestParams;
+
+@Service
+public class DecayService {
+    public IDistanceDecay getDistanceDecay(DecayRequestParams param) {
         switch (param.decay_type) {
             case "hybrid":
                 if (param.ranges == null || param.range_factors == null) {

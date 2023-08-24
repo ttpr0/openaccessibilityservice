@@ -23,7 +23,7 @@ cgiar_cache
 !/files/population_hannover.csv
 src/main/files/*.pbf
 !src/main/files/hannover.pbf
+/files/*
 
 # vs-code
 .vscode
-

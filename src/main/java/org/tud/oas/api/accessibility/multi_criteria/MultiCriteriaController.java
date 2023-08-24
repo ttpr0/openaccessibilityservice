@@ -7,24 +7,25 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.tud.oas.accessibility.SimpleReachability;
-import org.tud.oas.accessibility.distance_decay.DistanceDecay;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.accessibility.MultiCriteraReachability;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
-import org.tud.oas.api.responses.ErrorResponse;
 import org.tud.oas.demand.IDemandView;
-import org.tud.oas.demand.DemandManager;
+import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.IRoutingProvider;
-import org.tud.oas.routing.RoutingManager;
 import org.tud.oas.routing.RoutingOptions;
+import org.tud.oas.services.DecayService;
+import org.tud.oas.services.DemandService;
+import org.tud.oas.services.RoutingService;
+import org.tud.oas.services.SupplyService;
 import org.tud.oas.supply.ISupplyView;
-import org.tud.oas.supply.SupplyManager;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -35,6 +36,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestMapping("/v1/accessibility/multi")
 public class MultiCriteriaController {
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
+
+    @Autowired
+    private RoutingService routing_service;
+    @Autowired
+    private DemandService demand_service;
+    @Autowired
+    private SupplyService supply_service;
+    @Autowired
+    private DecayService decay_service;
 
     @Operation(description = """
             Calculates simple multi-criteria accessibility based on gravity.
@@ -47,10 +57,10 @@ public class MultiCriteriaController {
     })
     @PostMapping
     public ResponseEntity<?> calcMultiCriteriaGrid(@RequestBody MultiCriteriaRequest request) {
-        IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
+        IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
 
         logger.debug("Creating DemandView");
-        IDemandView demand_view = DemandManager.getDemandView(request.demand);
+        IDemandView demand_view = demand_service.getDemandView(request.demand);
         if (demand_view == null) {
             return ResponseEntity.badRequest().body(
                     new ErrorResponse("accessibility/multi", "failed to get population-view, parameters are invalid"));
@@ -65,8 +75,8 @@ public class MultiCriteriaController {
 
         for (Map.Entry<String, InfrastructureParams> entry : request.infrastructures.entrySet()) {
             InfrastructureParams value = entry.getValue();
-            ISupplyView supply_view = SupplyManager.getSupplyView(value.supply);
-            IDistanceDecay decay = DistanceDecay.getDistanceDecay(value.decay);
+            ISupplyView supply_view = supply_service.getSupplyView(value.supply);
+            IDistanceDecay decay = decay_service.getDistanceDecay(value.decay);
             RoutingOptions options;
             if (decay.getDistances() == null) {
                 options = new RoutingOptions("matrix", (double) decay.getMaxDistance());

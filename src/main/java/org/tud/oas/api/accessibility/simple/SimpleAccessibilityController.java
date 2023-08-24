@@ -3,20 +3,21 @@ package org.tud.oas.api.accessibility.simple;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.tud.oas.api.responses.ErrorResponse;
 import org.tud.oas.demand.IDemandView;
-import org.tud.oas.demand.DemandManager;
+import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.IKNNTable;
 import org.tud.oas.routing.IRoutingProvider;
-import org.tud.oas.routing.RoutingManager;
 import org.tud.oas.routing.RoutingOptions;
+import org.tud.oas.services.DemandService;
+import org.tud.oas.services.RoutingService;
+import org.tud.oas.services.SupplyService;
 import org.tud.oas.supply.ISupplyView;
-import org.tud.oas.supply.SupplyManager;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,6 +27,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RestController()
 @RequestMapping("/v1/accessibility/simple")
 public class SimpleAccessibilityController {
+
+    @Autowired
+    private RoutingService routing_service;
+    @Autowired
+    private DemandService demand_service;
+    @Autowired
+    private SupplyService supply_service;
 
     @Operation(description = """
             Calculates simple accessibility.
@@ -38,13 +46,13 @@ public class SimpleAccessibilityController {
     })
     @PostMapping
     public ResponseEntity<?> calcSimpleGrid(@RequestBody SimpleAccessibilityRequest request) {
-        IRoutingProvider provider = RoutingManager.getRoutingProvider(request.routing);
-        IDemandView demand_view = DemandManager.getDemandView(request.demand);
+        IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
+        IDemandView demand_view = demand_service.getDemandView(request.demand);
         if (demand_view == null) {
             return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity/grid",
                     "failed to get demand-view, parameters are invalid"));
         }
-        ISupplyView supply_view = SupplyManager.getSupplyView(request.supply);
+        ISupplyView supply_view = supply_service.getSupplyView(request.supply);
         if (supply_view == null) {
             return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity",
                     "failed to get supply-view, parameters are invalid"));

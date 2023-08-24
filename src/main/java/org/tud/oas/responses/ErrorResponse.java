@@ -1,4 +1,4 @@
-package org.tud.oas.api.responses;
+package org.tud.oas.responses;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
