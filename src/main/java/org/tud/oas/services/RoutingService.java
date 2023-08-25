@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.tud.oas.requests.RoutingRequestParams;
 import org.tud.oas.routing.IRoutingProvider;
-import org.tud.oas.routing.embedded.EmbeddedRoutingProvider;
 import org.tud.oas.routing.ors.ORSProvider;
 
 @Service
