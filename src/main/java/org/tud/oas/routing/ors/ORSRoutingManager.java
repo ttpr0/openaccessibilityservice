@@ -19,7 +19,7 @@ public class ORSRoutingManager {
             Map<String, String> options = props.getRouting().getProviderOptions().get("ors_api");
             if (options == null) {
                 this.host = "http://localhost:8082";
-            } else if (options.containsKey("host")) {
+            } else if (options.containsKey("url")) {
                 this.host = options.get("url");
             } else {
                 this.host = "http://localhost:8082";
