@@ -37,14 +37,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 public class MultiCriteriaController {
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
-    @Autowired
     private RoutingService routing_service;
-    @Autowired
     private DemandService demand_service;
-    @Autowired
     private SupplyService supply_service;
-    @Autowired
     private DecayService decay_service;
+
+    @Autowired
+    public MultiCriteriaController(RoutingService routing, DemandService demand, SupplyService supply,
+            DecayService decay) {
+        this.routing_service = routing;
+        this.demand_service = demand;
+        this.supply_service = supply;
+        this.decay_service = decay;
+    }
 
     @Operation(description = """
             Calculates simple multi-criteria accessibility based on gravity.

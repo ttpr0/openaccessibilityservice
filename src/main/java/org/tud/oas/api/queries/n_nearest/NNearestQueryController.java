@@ -32,12 +32,16 @@ public class NNearestQueryController {
     static Map<UUID, NNearestQuerySession> sessions = new ConcurrentHashMap<>();
     private final Logger logger = LoggerFactory.getLogger(NNearestQueryController.class);
 
-    @Autowired
     private RoutingService routing_service;
-    @Autowired
     private DemandService demand_service;
-    @Autowired
     private SupplyService supply_service;
+
+    @Autowired
+    public NNearestQueryController(RoutingService routing, DemandService demand, SupplyService supply) {
+        this.routing_service = routing;
+        this.demand_service = demand;
+        this.supply_service = supply;
+    }
 
     @Operation(description = """
             Calculates nnearest query.

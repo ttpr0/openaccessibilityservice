@@ -14,6 +14,7 @@ import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.IKNNTable;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingOptions;
+import org.tud.oas.services.DecayService;
 import org.tud.oas.services.DemandService;
 import org.tud.oas.services.RoutingService;
 import org.tud.oas.services.SupplyService;
@@ -28,12 +29,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestMapping("/v1/accessibility/simple")
 public class SimpleAccessibilityController {
 
-    @Autowired
     private RoutingService routing_service;
-    @Autowired
     private DemandService demand_service;
-    @Autowired
     private SupplyService supply_service;
+
+    @Autowired
+    public SimpleAccessibilityController(RoutingService routing, DemandService demand, SupplyService supply) {
+        this.routing_service = routing;
+        this.demand_service = demand;
+        this.supply_service = supply;
+    }
 
     @Operation(description = """
             Calculates simple accessibility.

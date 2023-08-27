@@ -30,14 +30,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 public class FCAController {
     private final Logger logger = LoggerFactory.getLogger(FCAController.class);
 
-    @Autowired
     private RoutingService routing_service;
-    @Autowired
     private DemandService demand_service;
-    @Autowired
     private SupplyService supply_service;
-    @Autowired
     private DecayService decay_service;
+
+    @Autowired
+    public FCAController(RoutingService routing, DemandService demand, SupplyService supply, DecayService decay) {
+        this.routing_service = routing;
+        this.demand_service = demand;
+        this.supply_service = supply;
+        this.decay_service = decay;
+    }
 
     @Operation(description = """
             Calculates simple floating catchment area.

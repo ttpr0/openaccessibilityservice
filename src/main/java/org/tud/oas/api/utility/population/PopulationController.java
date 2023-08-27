@@ -6,7 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.responses.ErrorResponse;
+import org.tud.oas.services.DecayService;
 import org.tud.oas.services.DemandService;
+import org.tud.oas.services.RoutingService;
+import org.tud.oas.services.SupplyService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,8 +24,12 @@ import java.util.UUID;
 @RequestMapping("/v1/utility/population")
 public class PopulationController {
 
-    @Autowired
     private DemandService demand_service;
+
+    @Autowired
+    public PopulationController(DemandService demand) {
+        this.demand_service = demand;
+    }
 
     @Operation(description = """
             Stores a population view for use in other requests.

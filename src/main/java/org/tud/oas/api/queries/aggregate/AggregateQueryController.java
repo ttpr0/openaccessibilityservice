@@ -32,12 +32,16 @@ public class AggregateQueryController {
     static Map<UUID, AggregateQuerySession> sessions = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
-    @Autowired
     private RoutingService routing_service;
-    @Autowired
     private DemandService demand_service;
-    @Autowired
     private SupplyService supply_service;
+
+    @Autowired
+    public AggregateQueryController(RoutingService routing, DemandService demand, SupplyService supply) {
+        this.routing_service = routing;
+        this.demand_service = demand;
+        this.supply_service = supply;
+    }
 
     @Operation(description = """
             Calculates aggregate query.
