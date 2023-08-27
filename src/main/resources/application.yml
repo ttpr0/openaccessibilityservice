@@ -1,0 +1,16 @@
+##### General server settings #####
+server:
+  port: 5001
+  error:
+    whitelabel:
+      enabled: false
+
+##### Logging settings #####
+logging:
+  level:
+    root: WARN
+    org:
+      tud:
+        oas: DEBUG
+      heigit:
+        ors: DEBUG

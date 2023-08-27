@@ -1,4 +1,4 @@
-package org.tud.oas.config;
+package org.tud.oas;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +14,8 @@ public class CORSConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**").allowedMethods("GET", "POST", "PUT", "DELETE")
-                .allowedOrigins("*")
-                .allowedHeaders("*");
+                        .allowedOrigins("*")
+                        .allowedHeaders("*");
             }
         };
     }

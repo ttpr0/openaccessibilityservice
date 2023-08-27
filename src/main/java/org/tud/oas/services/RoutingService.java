@@ -1,30 +1,54 @@
 package org.tud.oas.services;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.tud.oas.config.OASProperties;
 import org.tud.oas.requests.RoutingRequestParams;
 import org.tud.oas.routing.IRoutingProvider;
-import org.tud.oas.routing.ors.ORSProvider;
 
 @Service
 public class RoutingService {
     static final Logger logger = LoggerFactory.getLogger(RoutingService.class);
-    static Supplier<IRoutingProvider> cls;
 
-    public static void setRoutingProvider(Supplier<IRoutingProvider> cls) {
-        RoutingService.cls = cls;
+    static Map<String, Supplier<IRoutingProvider>> providers;
+    static String defaultProvider;
+
+    public static void setDefaultProvider(String name) {
+        RoutingService.defaultProvider = name;
+    }
+
+    public static void addRoutingProvider(String name, Supplier<IRoutingProvider> cls) {
+        RoutingService.providers.put(name, cls);
+    }
+
+    public static IRoutingProvider getDefaultProvider() {
+        return RoutingService.providers.get(RoutingService.defaultProvider).get();
+    }
+
+    public static IRoutingProvider getRoutingProvider(String name) {
+        return RoutingService.providers.get(name).get();
+    }
+
+    @Autowired
+    public RoutingService(OASProperties props) {
+        String default_provider = props.getRouting().getDefaultProvider();
+        RoutingService.defaultProvider = default_provider;
+        RoutingService.providers = new HashMap<>();
     }
 
     public IRoutingProvider getRoutingProvider() {
-        IRoutingProvider provider = RoutingService.cls.get();
+        IRoutingProvider provider = RoutingService.getDefaultProvider();
         return provider;
     }
 
     public IRoutingProvider getRoutingProvider(RoutingRequestParams param) {
-        IRoutingProvider provider = RoutingService.cls.get();
+        IRoutingProvider provider = RoutingService.getDefaultProvider();
 
         if (param == null) {
             return provider;

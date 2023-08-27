@@ -9,7 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.tud.oas.config.OASProperties;
 import org.tud.oas.demand.DemandView;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.demand.population.PopulationLoader;
@@ -19,6 +21,14 @@ import org.tud.oas.util.Pair;
 @Service
 public class DemandService {
     private static Map<UUID, Pair<IDemandView, Date>> stored_views = new ConcurrentHashMap<>();
+
+    @Autowired
+    public DemandService(OASProperties props) {
+        var demand_props = props.getDemand();
+        PopulationLoader.loadPopulation(demand_props.getPopulationFile());
+        DemandService.periodicClearViewStore(demand_props.getRunInterval() * 60 * 1000,
+                demand_props.getDeleteInterval() * 60 * 1000);
+    }
 
     public IDemandView getDemandView(DemandRequestParams param) {
         IDemandView view;
