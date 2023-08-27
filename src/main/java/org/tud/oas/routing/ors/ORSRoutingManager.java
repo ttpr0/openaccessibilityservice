@@ -13,18 +13,18 @@ public class ORSRoutingManager {
     private String host;
 
     @Autowired
-    public ORSRoutingManager(OASProperties props) {
+    public ORSRoutingManager(OASProperties props, RoutingService routing_service) {
         List<String> provider = props.getRouting().getProviders();
         if (provider.contains("ors_api")) {
             Map<String, String> options = props.getRouting().getProviderOptions().get("ors_api");
             if (options == null) {
-                this.host = "localhost:8082";
+                this.host = "http://localhost:8082";
             } else if (options.containsKey("host")) {
-                this.host = options.get("host");
+                this.host = options.get("url");
             } else {
-                this.host = "localhost:8082";
+                this.host = "http://localhost:8082";
             }
-            RoutingService.addRoutingProvider("ors_api", this::getProvider);
+            routing_service.addRoutingProvider("ors_api", this::getProvider);
         }
     }
 

@@ -4,7 +4,7 @@ routing:
   default_provider: ors_api
   provider_options:
     ors_api:
-      host: localhost:8082
+      url: http://localhost:8082
 demand:
   population_file: ./files/population_hannover.csv
   run_interval: 1

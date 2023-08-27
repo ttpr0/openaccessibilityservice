@@ -16,39 +16,31 @@ import org.tud.oas.routing.IRoutingProvider;
 public class RoutingService {
     static final Logger logger = LoggerFactory.getLogger(RoutingService.class);
 
-    static Map<String, Supplier<IRoutingProvider>> providers;
-    static String defaultProvider;
-
-    public static void setDefaultProvider(String name) {
-        RoutingService.defaultProvider = name;
-    }
-
-    public static void addRoutingProvider(String name, Supplier<IRoutingProvider> cls) {
-        RoutingService.providers.put(name, cls);
-    }
-
-    public static IRoutingProvider getDefaultProvider() {
-        return RoutingService.providers.get(RoutingService.defaultProvider).get();
-    }
-
-    public static IRoutingProvider getRoutingProvider(String name) {
-        return RoutingService.providers.get(name).get();
-    }
+    private Map<String, Supplier<IRoutingProvider>> providers;
+    private String defaultProvider;
 
     @Autowired
     public RoutingService(OASProperties props) {
         String default_provider = props.getRouting().getDefaultProvider();
-        RoutingService.defaultProvider = default_provider;
-        RoutingService.providers = new HashMap<>();
+        this.defaultProvider = default_provider;
+        this.providers = new HashMap<>();
+    }
+
+    public void setDefaultProvider(String name) {
+        this.defaultProvider = name;
+    }
+
+    public void addRoutingProvider(String name, Supplier<IRoutingProvider> cls) {
+        this.providers.put(name, cls);
     }
 
     public IRoutingProvider getRoutingProvider() {
-        IRoutingProvider provider = RoutingService.getDefaultProvider();
+        IRoutingProvider provider = this.providers.get(this.defaultProvider).get();
         return provider;
     }
 
     public IRoutingProvider getRoutingProvider(RoutingRequestParams param) {
-        IRoutingProvider provider = RoutingService.getDefaultProvider();
+        IRoutingProvider provider = this.providers.get(this.defaultProvider).get();
 
         if (param == null) {
             return provider;
