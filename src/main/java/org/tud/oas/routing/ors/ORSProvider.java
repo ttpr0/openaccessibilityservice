@@ -12,6 +12,7 @@ import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.Catchment;
 import org.tud.oas.routing.ICatchment;
 import org.tud.oas.routing.IKNNTable;
+import org.tud.oas.util.Util;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -639,21 +640,5 @@ public class ORSProvider implements IRoutingProvider {
             e.printStackTrace();
             return null;
         }
-    }
-}
-
-class Util {
-    static String sendPOST(String url, String request_body) throws Exception {
-        Builder builder = HttpRequest.newBuilder();
-        builder.uri(new URI(url));
-        builder.header("Content-Type", "application/json");
-        builder.POST(BodyPublishers.ofString(request_body));
-        HttpRequest request = builder.build();
-
-        HttpClient client = HttpClient.newHttpClient();
-        BodyHandler<String> bodyHandler = BodyHandlers.ofString();
-        HttpResponse<String> response = client.send(request, bodyHandler);
-
-        return response.body();
     }
 }
