@@ -10,6 +10,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
                 """)
 public class RoutingRequestParams {
         // *************************************
+        // routing provider
+        // *************************************
+        @Schema(name = "routing_provider", description = """
+                        Routing Provider used (e.g. ors-api, ...).
+                        """, example = "driving-car")
+        @JsonProperty("routing_provider")
+        public String routing_provider;
+
+        // *************************************
         // standard routing params
         // *************************************
         @Schema(name = "profile", description = """

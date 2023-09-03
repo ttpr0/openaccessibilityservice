@@ -15,8 +15,8 @@ public class ORSRoutingManager {
     @Autowired
     public ORSRoutingManager(OASProperties props, RoutingService routing_service) {
         List<String> provider = props.getRouting().getProviders();
-        if (provider.contains("ors_api")) {
-            Map<String, String> options = props.getRouting().getProviderOptions().get("ors_api");
+        if (provider.contains("ors-api")) {
+            Map<String, String> options = props.getRouting().getProviderOptions().get("ors-api");
             if (options == null) {
                 this.host = "http://localhost:8082";
             } else if (options.containsKey("url")) {
@@ -24,7 +24,7 @@ public class ORSRoutingManager {
             } else {
                 this.host = "http://localhost:8082";
             }
-            routing_service.addRoutingProvider("ors_api", this::getProvider);
+            routing_service.addRoutingProvider("ors-api", this::getProvider);
         }
     }
 

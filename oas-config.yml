@@ -1,9 +1,10 @@
 routing:
   providers: 
-    - ors_api
-  default_provider: ors_api
+    - ors-api
+    - routing-api
+  default_provider: ors-api
   provider_options:
-    ors_api:
+    ors-api:
       url: http://localhost:8082
 demand:
   population_file: ./files/population_hannover.csv
