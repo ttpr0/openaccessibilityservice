@@ -5,7 +5,7 @@ import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.demand.IDemandView;
-import org.tud.oas.routing.INNTable;
+import org.tud.oas.routing.IKNNTable;
 
 public class SimpleReachability {
 
@@ -30,29 +30,20 @@ public class SimpleReachability {
         float[] accessibilities = new float[demand.pointCount()];
         double max_range = decay.getMaxDistance();
 
-        INNTable table = provider.requestNearest(demand, supply, options);
+        IKNNTable table = provider.requestKNearest(demand, supply, 1, options);
         if (table == null) {
             return accessibilities;
         }
 
         for (int p = 0; p < demand.pointCount(); p++) {
-            float range = table.getNearestRange(p);
+            float range = table.getKNearestRange(p, 0);
             if (range < 0 || range > max_range) {
                 continue;
             }
-            int f = table.getNearest(p);
+            int f = table.getKNearest(p, 0);
             float rangeFactor = decay.getDistanceWeight(range);
 
             accessibilities[p] = (float) supply.getSupply(f) * rangeFactor;
-        }
-
-        for (int i = 0; i < accessibilities.length; i++) {
-            float access = accessibilities[i];
-            if (access == 0) {
-                accessibilities[i] = -9999;
-            } else {
-                accessibilities[i] = access;
-            }
         }
 
         return accessibilities;
