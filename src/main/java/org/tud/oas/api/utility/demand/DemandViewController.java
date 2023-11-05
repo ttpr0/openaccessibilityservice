@@ -1,4 +1,4 @@
-package org.tud.oas.api.utility.population;
+package org.tud.oas.api.utility.demand;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +22,12 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1/utility/population")
-public class PopulationController {
+public class DemandViewController {
 
     private DemandService demand_service;
 
     @Autowired
-    public PopulationController(DemandService demand) {
+    public DemandViewController(DemandService demand) {
         this.demand_service = demand;
     }
 

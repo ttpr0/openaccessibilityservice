@@ -1,4 +1,4 @@
-package org.tud.oas.accessibility;
+package org.tud.oas.accessibility.fca;
 
 class FacilityReference {
     public int index;

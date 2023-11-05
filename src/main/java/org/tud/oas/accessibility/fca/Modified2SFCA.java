@@ -1,4 +1,4 @@
-package org.tud.oas.accessibility;
+package org.tud.oas.accessibility.fca;
 
 import java.util.ArrayList;
 import java.util.HashMap;

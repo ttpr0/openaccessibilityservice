@@ -9,12 +9,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.tud.oas.config.OASProperties;
 import org.tud.oas.demand.DemandView;
 import org.tud.oas.demand.IDemandView;
-import org.tud.oas.demand.population.PopulationLoader;
+import org.tud.oas.demand.population.PopulationManager;
 import org.tud.oas.requests.DemandRequestParams;
 import org.tud.oas.util.Pair;
 
@@ -25,7 +27,7 @@ public class DemandService {
     @Autowired
     public DemandService(OASProperties props) {
         var demand_props = props.getDemand();
-        PopulationLoader.loadPopulation(demand_props.getPopulationFile());
+        PopulationManager.loadPopulation("dvan_population", demand_props.getPopulationFile());
         DemandService.periodicClearViewStore(demand_props.getRunInterval() * 60 * 1000,
                 demand_props.getDeleteInterval() * 60 * 1000);
     }
@@ -53,14 +55,33 @@ public class DemandService {
                 }
             }
             if (true) {
+                if (param.area != null) {
+                    GeometryFactory geom_factory = new GeometryFactory();
+                    Coordinate[] coordinates = new Coordinate[param.area.length];
+                    for (int j = 0; j < param.area.length; j++) {
+                        coordinates[j] = new Coordinate(param.area[j][0], param.area[j][1]);
+                    }
+                    Geometry area = geom_factory.createPolygon(coordinates);
+                    if (param.population_factors != null) {
+                        view = PopulationManager.createPopulationView(param.population_name, area,
+                                param.population_indizes, param.population_factors);
+                    } else {
+                        view = PopulationManager.createPopulationView(param.population_name, area,
+                                param.population_indizes);
+                    }
+                    if (view != null) {
+                        return view;
+                    }
+                }
                 if (param.envelop != null) {
                     Envelope envelope = new Envelope(param.envelop[0], param.envelop[2], param.envelop[1],
                             param.envelop[3]);
-                    if (param.population_type != null) {
-                        view = PopulationLoader.createPopulationView(envelope, param.population_type,
-                                param.population_indizes);
+                    if (param.population_factors != null) {
+                        view = PopulationManager.createPopulationView(param.population_name, envelope,
+                                param.population_indizes, param.population_factors);
                     } else {
-                        view = PopulationLoader.createPopulationView(envelope);
+                        view = PopulationManager.createPopulationView(param.population_name, envelope,
+                                param.population_indizes);
                     }
                     if (view != null) {
                         return view;

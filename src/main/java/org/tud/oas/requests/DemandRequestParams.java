@@ -41,6 +41,12 @@ public class DemandRequestParams {
         // **************************************
         // create new view from internal population data
         // **************************************
+        @Schema(name = "population_name", description = """
+                        Name of the internally stored population data.
+                        """, example = "default_population")
+        @JsonProperty("population_name")
+        public String population_name;
+
         @Schema(name = "envelop", description = """
                         Envelope for which population data should be used.
                         [minx, miny, maxx, maxy]
@@ -48,18 +54,22 @@ public class DemandRequestParams {
         @JsonProperty("envelop")
         public double[] envelop;
 
-        @Schema(name = "population_type", description = """
-                        Type of population to be used (one of "standard_all", "standard", "kita_schul").
-                        Specifies how "population_indizes" should be interpreted.
-                        Defaults to "standard_all".
-                        """, example = "standard_all")
-        @JsonProperty("population_type")
-        public String population_type;
+        @Schema(name = "area", description = """
+                        Polygon-area for which population data should be used (no-holes).
+                        """, example = "[[1, 1], [10, 1], [10, 10], [1, 10]]")
+        @JsonProperty("area")
+        public double[][] area;
 
         @Schema(name = "population_indizes", description = """
-                        Gives the indizes of population data (DVAN) to be included in population count.
-                        E.g. for 20-39 and 40-59 => [2, 3]
+                        Gives the indizes of population data to be included in population count.
+                        E.g. for DVAN-Data: 20-39 and 40-59 => [2, 3]
                         """, example = "[2, 3]")
         @JsonProperty("population_indizes")
         public int[] population_indizes;
+
+        @Schema(name = "population_factors", description = """
+                        Scaling factor for every given index of population data.
+                        """, example = "[1.0, 0.3]")
+        @JsonProperty("population_factors")
+        public float[] population_factors;
 }

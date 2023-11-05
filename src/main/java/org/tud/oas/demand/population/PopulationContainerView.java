@@ -12,12 +12,12 @@ public class PopulationContainerView implements IDemandView {
     private KdTree index;
     private List<Integer> points;
     private PopulationContainer population;
-    private Geometry area;
     private Envelope envelope;
-    private String population_type;
     private int[] population_indizes;
+    private float[] population_factors;
 
-    public PopulationContainerView(PopulationContainer population, Envelope envelope) {
+    public PopulationContainerView(PopulationContainer population, Envelope envelope, int[] population_indizes,
+            float[] population_factors) {
         this.index = new KdTree();
         this.points = new ArrayList<>();
         List<Integer> indizes = population.getPointsInEnvelop(envelope);
@@ -27,30 +27,12 @@ public class PopulationContainerView implements IDemandView {
         }
         this.population = population;
         this.envelope = envelope;
-        this.area = null;
-        this.population_type = "standard_all";
-    }
-
-    public PopulationContainerView(PopulationContainer population, Envelope envelope, String population_type,
-            int[] population_indizes) {
-        this.index = new KdTree();
-        this.points = new ArrayList<>();
-        List<Integer> indizes = population.getPointsInEnvelop(envelope);
-        for (Integer index : indizes) {
-            this.index.insert(population.getPoint(index), this.points.size());
-            this.points.add(index);
-        }
-        this.population = population;
-        this.envelope = envelope;
-        this.area = null;
-        if (population_indizes == null && !population_type.equals("standard_all")) {
-            throw new IllegalArgumentException("invalid arguments passed to constructor");
-        }
-        this.population_type = population_type;
         this.population_indizes = population_indizes;
+        this.population_factors = population_factors;
     }
 
-    public PopulationContainerView(PopulationContainer population, Geometry area) {
+    public PopulationContainerView(PopulationContainer population, Geometry area, int[] population_indizes,
+            float[] population_factors) {
         this.index = new KdTree();
         this.points = new ArrayList<>();
         List<Integer> indizes = population.getPointsInGeometry(area);
@@ -60,10 +42,10 @@ public class PopulationContainerView implements IDemandView {
         }
         this.population = population;
         if (area != null) {
-            this.area = area;
             this.envelope = area.getEnvelopeInternal();
         }
-        this.population_type = "standard_all";
+        this.population_indizes = population_indizes;
+        this.population_factors = population_factors;
     }
 
     public Envelope getEnvelope() {
@@ -85,16 +67,10 @@ public class PopulationContainerView implements IDemandView {
 
     public int getDemand(int index) {
         PopulationAttributes attrs = this.population.getAttributes(this.points.get(index));
-        if (this.population_type == null || this.population_type.equals("standard_all")) {
-            return attrs.getPopulationCount();
+        if (this.population_factors != null) {
+            return attrs.getPopulationCount(this.population_indizes, this.population_factors);
         }
-        if (this.population_type.equals("standard")) {
-            return attrs.getStandardPopulation(population_indizes);
-        }
-        if (this.population_type.equals("kita_schul")) {
-            return attrs.getKitaSchulPopulation(population_indizes);
-        }
-        return 0;
+        return attrs.getPopulationCount(this.population_indizes);
     }
 
     public int pointCount() {
@@ -124,21 +100,5 @@ public class PopulationContainerView implements IDemandView {
         });
 
         return points;
-    }
-
-    public String getPopulationType() {
-        return population_type;
-    }
-
-    public void setPopulationType(String population_type) {
-        this.population_type = population_type;
-    }
-
-    public int[] getPopulationIndizes() {
-        return population_indizes;
-    }
-
-    public void setPopulationIndizes(int[] population_indizes) {
-        this.population_indizes = population_indizes;
     }
 }

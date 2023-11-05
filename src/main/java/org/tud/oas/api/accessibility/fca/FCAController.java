@@ -8,9 +8,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.tud.oas.accessibility.Enhanced2SFCA;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
+import org.tud.oas.accessibility.fca.Enhanced2SFCA;
 import org.tud.oas.demand.IDemandView;
+import org.tud.oas.responses.AccessResponse;
 import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingOptions;
@@ -47,7 +48,7 @@ public class FCAController {
             Calculates simple floating catchment area.
             """)
     @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = FCAResponse.class))
+            @Content(mediaType = "application/json", schema = @Schema(implementation = AccessResponse.class))
     })
     @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
@@ -86,8 +87,10 @@ public class FCAController {
 
         float[] weights = Enhanced2SFCA.calc2SFCA(demand_view, supply_view, decay, provider, options);
 
-        float[] response = buildResponse(demand_view, weights);
-        return ResponseEntity.ok(new FCAResponse(response));
+        // float[] response = buildResponse(demand_view, weights);
+
+        return ResponseEntity.ok(new AccessResponse(weights, demand_view, request.response_params));
+        // return ResponseEntity.ok(new FCAResponse(response));
     }
 
     private float[] buildResponse(IDemandView population, float[] accessibilities) {

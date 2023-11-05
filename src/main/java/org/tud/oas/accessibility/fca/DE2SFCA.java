@@ -1,4 +1,4 @@
-package org.tud.oas.accessibility;
+package org.tud.oas.accessibility.fca;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,30 +12,30 @@ import org.tud.oas.routing.ITDMatrix;
 import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 
-public class Enhanced3SFCA {
+public class DE2SFCA {
 
     /**
-     * Computes the enhanced three-step-floating-catchment-area accessibility
-     * introduced by Wan et al. (2012).
+     * Computes a dynamic enhanced two-step-floating-catchment-area accessibility
+     * similar to the method introduced by McGrail and Humphreys (2014).
      * Formula:
-     * $A_i = \sum_j{\frac{S_j}{\sum_i{D_i * w_{ij} * G_{ij}}} * w_{ij} * G_{ij}}$
+     * $A_i = \sum_j{\frac{S_j}{\sum_i{D_i * w_{ij, i}}} * w_{ij, i}}$
      * $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the
      * demand point $i$ and $w_{ij} ~ d_{ij}$ the travel-friction (distance decay)
-     * between them and $G_{ij} the propability of demand $D_i$ choosing supply
-     * $S_j$ (Propabilities are computed using the Huff Model, see Luo 2014).
+     * between them. The distance decay used depends on the demand point ($i$).
+     * Therefore different travel characteristics can be included.
      * 
-     * @param demand     Demand locations and weights ($D_i$).
-     * @param supply     Supply locations and weights ($S_j$).
-     * @param attraction Supply weights used in propability computation (all ones
-     *                   will result in original 3SFCA method).
-     * @param decay      Distance decay.
-     * @param provider   Routing API provider.
-     * @param options    Computation mode ("isochrones", "matrix") and Ranges of
-     *                   isochrones used in computation of distances $d_{ij}$.
-     * @return three-step-floating-catchment-area value for every demand point.
+     * @param demand       Demand locations and weights ($D_i$).
+     * @param supply       Supply locations and weights ($S_j$).
+     * @param decays       List of distance-decays.
+     * @param decayIndices Index of the decay (from decays) for every demand point
+     * @param provider     Routing API provider.
+     * @param options      Computation mode ("isochrones", "matrix") and ranges of
+     *                     isochrones used in computation of distances $d_{ij}$.
+     * @return enhanced two-step-floating-catchment-area value for every demand
+     *         point.
      */
-    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, float[] attraction, IDistanceDecay decay,
-            IRoutingProvider provider, RoutingOptions options) {
+    public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, List<IDistanceDecay> decays,
+            int[] decayIndices, IRoutingProvider provider, RoutingOptions options) {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 
@@ -46,34 +46,17 @@ public class Enhanced3SFCA {
             if (matrix == null) {
                 return populationWeights;
             }
-
-            // compute propabilities
-            float[][] selection_weights = new float[demand.pointCount()][supply.pointCount()];
-            for (int p = 0; p < demand.pointCount(); p++) {
-                float sum = 0;
-                for (int f = 0; f < supply.pointCount(); f++) {
-                    float range = matrix.getRange(f, p);
-                    sum += attraction[f] * decay.getDistanceWeight(range);
-                }
-                for (int f = 0; f < supply.pointCount(); f++) {
-                    float range = matrix.getRange(f, p);
-                    float val = attraction[f] * decay.getDistanceWeight(range);
-                    selection_weights[p][f] = val / sum;
-                }
-            }
-
-            // compute supply ratios
             for (int f = 0; f < supply.pointCount(); f++) {
                 float weight = 0;
                 for (int p = 0; p < demand.pointCount(); p++) {
                     float range = matrix.getRange(f, p);
-                    if (range < 0) {
+                    if (range == 9999) {
                         continue;
                     }
+                    IDistanceDecay decay = decays.get(decayIndices[p]);
                     float rangeFactor = decay.getDistanceWeight(range);
                     int populationCount = demand.getDemand(p);
-                    float propability = selection_weights[p][f];
-                    weight += populationCount * rangeFactor * propability;
+                    weight += populationCount * rangeFactor;
 
                     if (!invertedMapping.containsKey(p)) {
                         invertedMapping.put(p, new ArrayList<>(4));
@@ -87,7 +70,6 @@ public class Enhanced3SFCA {
                 }
             }
 
-            // sum up supply ratios on demand points
             for (int index : invertedMapping.keySet()) {
                 List<FacilityReference> refs = invertedMapping.get(index);
                 if (refs == null) {
@@ -95,9 +77,9 @@ public class Enhanced3SFCA {
                 } else {
                     float weight = 0;
                     for (FacilityReference fref : refs) {
+                        IDistanceDecay decay = decays.get(decayIndices[index]);
                         double rangeFactor = decay.getDistanceWeight(fref.range);
-                        float propability = selection_weights[index][fref.index];
-                        weight += facilityWeights[fref.index] * rangeFactor * propability;
+                        weight += facilityWeights[fref.index] * rangeFactor;
                     }
                     populationWeights[index] = weight;
                 }

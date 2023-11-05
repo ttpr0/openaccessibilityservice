@@ -1,4 +1,4 @@
-package org.tud.oas.accessibility;
+package org.tud.oas.accessibility.fca;
 
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.demand.IDemandView;

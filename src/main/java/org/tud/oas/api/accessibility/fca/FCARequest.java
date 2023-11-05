@@ -1,5 +1,6 @@
 package org.tud.oas.api.accessibility.fca;
 
+import org.tud.oas.requests.AccessResponseParams;
 import org.tud.oas.requests.DecayRequestParams;
 import org.tud.oas.requests.DemandRequestParams;
 import org.tud.oas.requests.RoutingRequestParams;
@@ -30,4 +31,7 @@ class FCARequest {
                         """, example = "isochrones")
         @JsonProperty("mode")
         public String mode;
+
+        @JsonProperty("response")
+        public AccessResponseParams response_params;
 }

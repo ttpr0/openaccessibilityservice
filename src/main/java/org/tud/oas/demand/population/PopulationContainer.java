@@ -1,6 +1,7 @@
 package org.tud.oas.demand.population;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.locationtech.jts.algorithm.locate.SimplePointInAreaLocator;
 import org.locationtech.jts.geom.Coordinate;
@@ -11,32 +12,28 @@ import org.locationtech.jts.index.kdtree.*;
 
 public class PopulationContainer {
     private KdTree index;
-    private List<Coordinate> points;
-    private List<Coordinate> utm_points;
+    private HashMap<Integer, String> population_keys;
     private List<PopulationAttributes> attributes;
 
-    public PopulationContainer(int initial_size) {
+    public PopulationContainer(int initial_size, HashMap<Integer, String> keys) {
         this.index = new KdTree();
-        this.points = new ArrayList<>(initial_size);
-        this.utm_points = new ArrayList<>(initial_size);
+        this.population_keys = keys;
         this.attributes = new ArrayList<>(initial_size);
     }
 
-    public void addPopulationPoint(Coordinate point, Coordinate utm_point, PopulationAttributes attributes) {
-        int index = this.points.size();
-        attributes.setIndex(index);
-        this.points.add(point);
-        this.utm_points.add(utm_point);
-        this.attributes.add(attributes);
+    public void addPopulationPoint(Coordinate point, Coordinate utm_point, int[] values) {
+        int index = this.attributes.size();
+        PopulationAttributes attr = new PopulationAttributes(point, utm_point, values);
+        this.attributes.add(attr);
         this.index.insert(point, index);
     }
 
     public Coordinate getPoint(int index) {
-        return this.points.get(index);
+        return this.attributes.get(index).getPoint();
     }
 
     public Coordinate getUTMPoint(int index) {
-        return this.utm_points.get(index);
+        return this.attributes.get(index).getUTMPoint();
     }
 
     public PopulationAttributes getAttributes(int index) {
@@ -44,11 +41,25 @@ public class PopulationContainer {
     }
 
     public int getPointCount() {
-        return this.points.size();
+        return this.attributes.size();
     }
 
     public KdTree getIndex() {
         return this.index;
+    }
+
+    /**
+     * Returns the number of population values per location.
+     */
+    public int getValueCount() {
+        return this.population_keys.size();
+    }
+
+    /**
+     * Returns the Key of a given population value (at index).
+     */
+    public String getValueKey(int index) {
+        return this.population_keys.get(index);
     }
 
     public List<Integer> getPointsInEnvelop(Envelope envelope) {
