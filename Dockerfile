@@ -3,7 +3,6 @@ FROM openjdk:17
 WORKDIR /oas
 
 COPY src /oas/src
-COPY files /oas/files
 COPY pom.xml /oas/pom.xml
 COPY .mvn /oas/.mvn
 COPY mvnw /oas/mvnw

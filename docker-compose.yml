@@ -7,5 +7,3 @@ services:
     user: "${UID:-0}:${GID:-0}"
     build:
       context: ./
-    volumes:
-      - ./files:/oas/files
