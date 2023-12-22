@@ -10,12 +10,10 @@ import java.util.List;
 public class DemandView implements IDemandView {
     private KdTree index;
     private List<Coordinate> points;
-    private List<Coordinate> utm_points;
     private List<Integer> counts;
 
-    public DemandView(List<Coordinate> points, List<Coordinate> utm_points, List<Integer> counts) {
+    public DemandView(List<Coordinate> points, List<Integer> counts) {
         this.points = points;
-        this.utm_points = utm_points;
         this.counts = counts;
         this.index = new KdTree();
         int i = 0;
@@ -29,18 +27,6 @@ public class DemandView implements IDemandView {
         return this.points.get(index);
     }
 
-    public Coordinate getCoordinate(int index, String crs) {
-        if ("EPSG:4326".equals(crs)) {
-            return this.points.get(index);
-        } else if ("EPSG:25832".equals(crs)) {
-            if (this.utm_points == null) {
-                return new Coordinate(0, 0);
-            }
-            return this.utm_points.get(index);
-        }
-        return new Coordinate(0, 0);
-    }
-
     public int getDemand(int index) {
         if (this.counts == null) {
             return 1;
@@ -52,7 +38,7 @@ public class DemandView implements IDemandView {
         return this.points.size();
     }
 
-    public List<Integer> getPointsInEnvelop(Envelope envelope) {
+    public Iterable<Integer> getPointsInEnvelop(Envelope envelope) {
         Envelope env = envelope;
         if (env == null) {
             List<Integer> result = new ArrayList<>();
@@ -72,7 +58,7 @@ public class DemandView implements IDemandView {
         return points;
     }
 
-    public List<Integer> getPointsInArea(Geometry area) {
+    public Iterable<Integer> getPointsInArea(Geometry area) {
         Envelope env = area.getEnvelopeInternal();
         if (env == null) {
             List<Integer> result = new ArrayList<>();

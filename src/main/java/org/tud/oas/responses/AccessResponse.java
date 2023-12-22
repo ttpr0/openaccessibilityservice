@@ -79,7 +79,8 @@ public class AccessResponse {
             }
             access[i] = accessibility;
             if (return_locs) {
-                Coordinate loc = population.getCoordinate(i, loc_crs);
+                Coordinate loc = population.getCoordinate(i);
+                // TODO: Project to loc_crs
                 locs[i] = new float[] { (float) loc.x, (float) loc.y };
             }
         }

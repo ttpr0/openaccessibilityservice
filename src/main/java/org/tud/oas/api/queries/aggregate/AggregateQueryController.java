@@ -21,15 +21,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/v1/queries/aggregate")
 public class AggregateQueryController {
-
-    static Map<UUID, AggregateQuerySession> sessions = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
     private RoutingService routing_service;
@@ -62,32 +56,18 @@ public class AggregateQueryController {
                     "failed to get supply-view, parameters are invalid"));
         }
 
-        if (request.session_id != null) {
-            UUID sessionId = request.session_id;
-            if (!sessions.containsKey(sessionId)) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("n_nearest", "no active session found"));
-            }
-            AggregateQuerySession session = sessions.get(sessionId);
-            catchment = session.catchment;
-            demand_view = session.demand_view;
-        } else {
-            demand_view = demand_service.getDemandView(request.demand);
-            if (demand_view == null) {
-                return ResponseEntity.badRequest().body(new ErrorResponse("queries/aggregate",
-                        "failed to get population-view, parameters are invalid"));
-            }
-
-            IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
-            catchment = provider.requestCatchment(demand_view, supply_view, request.range,
-                    new RoutingOptions("isochrones"));
+        demand_view = demand_service.getDemandView(request.demand);
+        if (demand_view == null) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("queries/aggregate",
+                    "failed to get population-view, parameters are invalid"));
         }
 
-        UUID id = UUID.randomUUID();
-
-        sessions.put(id, new AggregateQuerySession(id, demand_view, catchment));
+        IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
+        catchment = provider.requestCatchment(demand_view, supply_view, request.range,
+                new RoutingOptions("isochrones"));
 
         float[] results = AggregateQuery.computeQuery(supply_view, catchment, request.compute_type);
 
-        return ResponseEntity.ok(new AggregateQueryResponse(results, id));
+        return ResponseEntity.ok(new AggregateQueryResponse(results));
     }
 }

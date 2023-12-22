@@ -7,6 +7,5 @@ routing:
     ors-api:
       url: http://localhost:8082
 demand:
-  population_file: ./files/population_hannover.csv
   run_interval: 1
   delete_interval: 5

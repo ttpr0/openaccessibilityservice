@@ -142,7 +142,7 @@ public class ORSProvider implements IRoutingProvider {
                 Geometry iso = isochrone.getGeometry();
                 Envelope env = iso.getEnvelopeInternal();
 
-                List<Integer> points = demand.getPointsInEnvelop(env);
+                Iterable<Integer> points = demand.getPointsInEnvelop(env);
 
                 for (int index : points) {
                     if (visited.contains(index)) {
@@ -207,10 +207,10 @@ public class ORSProvider implements IRoutingProvider {
 
         double[][] extend = isoraster.getEnvelope();
         Envelope env = new Envelope(extend[0][0], extend[3][0], extend[2][1], extend[1][1]);
-        List<Integer> points = demand.getPointsInEnvelop(env);
+        Iterable<Integer> points = demand.getPointsInEnvelop(env);
 
         for (int index : points) {
-            Coordinate p = demand.getCoordinate(index, "EPSG:25832");
+            Coordinate p = demand.getCoordinate(index);
             IsoRasterAccessor accessor = isoraster.getAccessor(p);
             if (accessor != null) {
 
@@ -277,7 +277,7 @@ public class ORSProvider implements IRoutingProvider {
             Geometry iso = polygons.get(range);
 
             Envelope env = iso.getEnvelopeInternal();
-            List<Integer> points = demand.getPointsInEnvelop(env);
+            Iterable<Integer> points = demand.getPointsInEnvelop(env);
 
             Geometry geom = new PolygonHullSimplifier(iso, false).getResult();
 
@@ -346,7 +346,7 @@ public class ORSProvider implements IRoutingProvider {
                 }
 
                 Envelope env = iso.getEnvelopeInternal();
-                List<Integer> points = demand.getPointsInEnvelop(env);
+                Iterable<Integer> points = demand.getPointsInEnvelop(env);
 
                 for (int index : points) {
                     if (visited.contains(index)) {
@@ -411,7 +411,7 @@ public class ORSProvider implements IRoutingProvider {
             Geometry iso = isochrone.getGeometry();
 
             Envelope env = iso.getEnvelopeInternal();
-            List<Integer> points = demand.getPointsInEnvelop(env);
+            Iterable<Integer> points = demand.getPointsInEnvelop(env);
             for (int index : points) {
                 Coordinate p = demand.getCoordinate(index);
                 int location = SimplePointInAreaLocator.locate(p, iso);

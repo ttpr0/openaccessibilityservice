@@ -12,11 +12,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
                 Aggregate Query Request.
                 """)
 public class AggregateQueryRequest {
-        @Schema(name = "session_id", description = """
-                        Session id. Used to reuse precomputed aggregation.
-                        """, example = "smlf-dmxm-xdsd-yxdx")
-        public UUID session_id;
-
         public DemandRequestParams demand;
 
         public RoutingRequestParams routing;

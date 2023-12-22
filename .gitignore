@@ -20,7 +20,6 @@ build/
 logs/
 cgiar_cache
 /files/*.csv
-!/files/population_hannover.csv
 src/main/files/*.pbf
 !src/main/files/hannover.pbf
 /files/*

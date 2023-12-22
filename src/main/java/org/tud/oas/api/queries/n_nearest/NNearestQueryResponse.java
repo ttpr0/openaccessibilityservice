@@ -13,13 +13,7 @@ public class NNearestQueryResponse {
             """, example = "[72.34, 29.98, 99.21]")
     public float[] result;
 
-    @Schema(name = "session_id", description = """
-            Session id. Can be used in subsequent aggregate-query requests.
-            """, example = "smlf-dmxm-xdsd-yxdx")
-    public UUID session_id;
-
-    public NNearestQueryResponse(float[] result, UUID session_id) {
+    public NNearestQueryResponse(float[] result) {
         this.result = result;
-        this.session_id = session_id;
     }
 }
