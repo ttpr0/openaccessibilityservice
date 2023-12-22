@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.locationtech.jts.geom.Coordinate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.tud.oas.accessibility.SimpleReachability;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
-import org.tud.oas.accessibility.MultiCriteraReachability;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.demand.IDemandView;
+import org.tud.oas.requests.AccessResponseParams;
 import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingOptions;
@@ -74,11 +75,11 @@ public class MultiCriteriaController {
         logger.debug("Creating GravityAccessibility");
         SimpleReachability gravity = new SimpleReachability();
 
-        MultiCriteraReachability multiCriteria = new MultiCriteraReachability(demand_view, gravity, provider);
-
         logger.debug("Adding Accessbilities");
-
+        Map<String, float[]> accessibilities = new HashMap<>();
+        float[] multi_access = new float[demand_view.pointCount()];
         for (Map.Entry<String, InfrastructureParams> entry : request.infrastructures.entrySet()) {
+            String name = entry.getKey();
             InfrastructureParams value = entry.getValue();
             ISupplyView supply_view = supply_service.getSupplyView(value.supply);
             IDistanceDecay decay = decay_service.getDistanceDecay(value.decay);
@@ -94,41 +95,100 @@ public class MultiCriteriaController {
                 options = new RoutingOptions("isochrones", ranges);
             }
 
-            multiCriteria.addAccessibility(entry.getKey(), (float) value.infrastructure_weight, supply_view, options,
-                    decay);
+            float[] accessibility;
+            try {
+                accessibility = gravity.calcAccessibility(demand_view, supply_view, decay, provider, options);
+            } catch (Exception e) {
+                e.printStackTrace();
+                continue;
+            }
+            if (request.return_all) {
+                accessibilities.put(name, accessibility);
+            }
+            for (int i = 0; i < multi_access.length; i++) {
+                if (accessibility[i] == -9999) {
+                    continue;
+                }
+                multi_access[i] = multi_access[i] + value.infrastructure_weight * accessibility[i];
+            }
         }
+        accessibilities.put("multiCriteria", multi_access);
         logger.debug("Finished Adding Accessibilities");
 
         logger.debug("Building Response");
-        multiCriteria.calcAccessibility();
-        Map<String, float[]> response = this.buildResponse(demand_view, multiCriteria.getAccessibilities());
+        Map<String, float[]> response = this.buildResponse(demand_view, accessibilities, request.return_weighted,
+                request.response_params);
         logger.debug("Finished Building Response Grid");
         return ResponseEntity.ok(new MultiCriteriaResponse(response));
     }
 
-    Map<String, float[]> buildResponse(IDemandView demand, Map<String, float[]> accessibilities) {
-        float[] multi_access;
-        if (accessibilities.containsKey("multiCriteria")) {
-            multi_access = accessibilities.get("multiCriteria");
-        } else {
-            multi_access = new float[demand.pointCount()];
-        }
-        float max_value = 0;
-        for (int i = 0; i < multi_access.length; i++) {
-            if (multi_access[i] == -9999) {
-                continue;
+    Map<String, float[]> buildResponse(IDemandView demand, Map<String, float[]> accessibilities,
+            boolean build_weighted, AccessResponseParams params) {
+        boolean scale = false;
+        int[] scale_range = { 0, 100 };
+        float no_data_value = -9999;
+        if (params != null) {
+            if (params.scale != null) {
+                scale = params.scale;
             }
-            if (multi_access[i] > max_value) {
-                max_value = multi_access[i];
+            if (scale && params.scale_range != null) {
+                scale_range = params.scale_range;
+            }
+            if (params.no_data_value != null) {
+                no_data_value = params.no_data_value;
             }
         }
-        for (int i = 0; i < multi_access.length; i++) {
-            if (multi_access[i] == -9999) {
-                continue;
+
+        Map<String, float[]> new_map = new HashMap<>();
+        for (Map.Entry<String, float[]> entry : accessibilities.entrySet()) {
+            String name = entry.getKey();
+            float[] access = entry.getValue();
+            float[] access_weighted;
+            if (build_weighted) {
+                access_weighted = new float[access.length];
+            } else {
+                access_weighted = new float[0];
             }
-            multi_access[i] = multi_access[i] * 100 / max_value;
+
+            float max = -1000000000;
+            float min = 1000000000;
+            if (scale) {
+                for (float w : access) {
+                    if (w > max) {
+                        max = w;
+                    }
+                    if (w < min) {
+                        min = w;
+                    }
+                }
+            }
+
+            for (int i = 0; i < access.length; i++) {
+                float val = access[i];
+                float val_weighted = 0;
+                int dem = demand.getDemand(i);
+                if (val != 0) {
+                    if (scale) {
+                        val = (val + scale_range[0] - min)
+                                * ((scale_range[1] - scale_range[0]) / (max - min));
+                        val_weighted = val / dem;
+                    } else {
+                        val_weighted = val / dem;
+                    }
+                } else {
+                    val = no_data_value;
+                    val_weighted = no_data_value;
+                }
+                access[i] = val;
+                if (build_weighted) {
+                    access_weighted[i] = val_weighted;
+                }
+            }
+            new_map.put(name, access);
+            if (build_weighted) {
+                new_map.put(name, access_weighted);
+            }
         }
-        accessibilities.put("multiCriteria", multi_access);
-        return accessibilities;
+        return new_map;
     }
 }
