@@ -1,4 +1,4 @@
-package org.tud.oas.api.accessibility.multi_criteria;
+package org.tud.oas.api.multicriteria;
 
 import java.util.Map;
 

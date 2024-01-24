@@ -1,4 +1,4 @@
-package org.tud.oas.api.accessibility.reachability;
+package org.tud.oas.api.accessibility.opportunity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import org.tud.oas.accessibility.SimpleReachability;
+import org.tud.oas.accessibility.SimpleOpportunity;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.demand.IDemandView;
@@ -33,8 +32,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.tud.oas.routing.IRoutingProvider;
 
 @RestController
-@RequestMapping("/v1/accessibility/reachability")
-public class ReachabilityController {
+@RequestMapping("/v1/accessibility/opportunity")
+public class OpportunityController {
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
     private RoutingService routing_service;
@@ -43,7 +42,7 @@ public class ReachabilityController {
     private DecayService decay_service;
 
     @Autowired
-    public ReachabilityController(RoutingService routing, DemandService demand, SupplyService supply,
+    public OpportunityController(RoutingService routing, DemandService demand, SupplyService supply,
             DecayService decay) {
         this.routing_service = routing;
         this.demand_service = demand;
@@ -61,7 +60,7 @@ public class ReachabilityController {
             @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
     })
     @PostMapping
-    public ResponseEntity<?> calcReachability(@RequestBody ReachabilityRequest request) {
+    public ResponseEntity<?> calcReachability(@RequestBody OpportunityRequest request) {
         IDemandView demand_view = demand_service.getDemandView(request.demand);
         if (demand_view == null) {
             return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity",
@@ -92,7 +91,7 @@ public class ReachabilityController {
         }
 
         logger.debug("start calculation gravity accessibility");
-        float[] access = SimpleReachability.calcAccessibility(demand_view, supply_view, decay, provider, options);
+        float[] access = SimpleOpportunity.calcAccessibility(demand_view, supply_view, decay, provider, options);
 
         logger.debug("start building response");
         return ResponseEntity.ok(new AccessResponse(access, demand_view, request.response_params));

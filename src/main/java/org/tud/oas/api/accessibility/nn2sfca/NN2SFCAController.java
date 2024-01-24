@@ -1,4 +1,4 @@
-package org.tud.oas.api.accessibility.fca;
+package org.tud.oas.api.accessibility.nn2sfca;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
-import org.tud.oas.accessibility.fca.Enhanced2SFCA;
+import org.tud.oas.accessibility.fca.NNM2SFCA;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.responses.AccessResponse;
 import org.tud.oas.responses.ErrorResponse;
@@ -27,9 +27,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RestController
-@RequestMapping("/v1/accessibility/fca")
-public class FCAController {
-    private final Logger logger = LoggerFactory.getLogger(FCAController.class);
+@RequestMapping("/v1/accessibility/nearest_neighbour_2sfca")
+public class NN2SFCAController {
+    private final Logger logger = LoggerFactory.getLogger(NN2SFCAController.class);
 
     private RoutingService routing_service;
     private DemandService demand_service;
@@ -37,7 +37,7 @@ public class FCAController {
     private DecayService decay_service;
 
     @Autowired
-    public FCAController(RoutingService routing, DemandService demand, SupplyService supply, DecayService decay) {
+    public NN2SFCAController(RoutingService routing, DemandService demand, SupplyService supply, DecayService decay) {
         this.routing_service = routing;
         this.demand_service = demand;
         this.supply_service = supply;
@@ -45,7 +45,7 @@ public class FCAController {
     }
 
     @Operation(description = """
-            Calculates simple floating catchment area.
+            Calculates nearest-neighbour modified two-step-floating-catchment-area.
             """)
     @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = AccessResponse.class))
@@ -54,9 +54,10 @@ public class FCAController {
             @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
     })
     @PostMapping
-    public ResponseEntity<?> calcFCA(@RequestBody FCARequest request) {
+    public ResponseEntity<?> calcFCA(@RequestBody NN2SFCARequest request) {
         logger.info("Run FCA Request");
 
+        // get parameters from request
         IDemandView demand_view = demand_service.getDemandView(request.demand);
         if (demand_view == null) {
             return ResponseEntity.badRequest()
@@ -67,6 +68,11 @@ public class FCAController {
             return ResponseEntity.badRequest().body(new ErrorResponse("2sfca/enhanced",
                     "failed to get supply-view, parameters are invalid"));
         }
+        Integer count = request.nearest_count;
+        if (count == null) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("2sfca/enhanced",
+                    "failed to retrive nearest_count, parameter is invalid"));
+        }
         IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
         IDistanceDecay decay = decay_service.getDistanceDecay(request.distance_decay);
         if (decay == null) {
@@ -75,48 +81,20 @@ public class FCAController {
         }
         RoutingOptions options;
         if (decay.getDistances() == null) {
-            options = new RoutingOptions(request.mode, (double) decay.getMaxDistance());
+            options = new RoutingOptions("matrix", (double) decay.getMaxDistance());
         } else {
             float[] distances = decay.getDistances();
             List<Double> ranges = new ArrayList(distances.length);
             for (int i = 0; i < distances.length; i++) {
                 ranges.add((double) distances[i]);
             }
-            options = new RoutingOptions(request.mode, ranges);
+            options = new RoutingOptions("isochrones", ranges);
         }
 
-        float[] weights = Enhanced2SFCA.calc2SFCA(demand_view, supply_view, decay, provider, options);
+        // compute accessibility result
+        float[] weights = NNM2SFCA.calc2SFCA(demand_view, supply_view, count, decay, provider, options);
 
-        // float[] response = buildResponse(demand_view, weights);
-
+        // build response
         return ResponseEntity.ok(new AccessResponse(weights, demand_view, request.response_params));
-        // return ResponseEntity.ok(new FCAResponse(response));
-    }
-
-    private float[] buildResponse(IDemandView population, float[] accessibilities) {
-        float maxWeight = 0;
-        for (int i = 0; i < accessibilities.length; i++) {
-            float w = accessibilities[i];
-            if (w > maxWeight) {
-                maxWeight = w;
-            }
-        }
-        // for (float w : accessibilities) {
-        // if (w > maxWeight) {
-        // maxWeight = w;
-        // }
-        // }
-        float factor = 100 / maxWeight;
-
-        for (int i = 0; i < accessibilities.length; i++) {
-            float accessibility = accessibilities[i];
-            if (accessibility != 0) {
-                accessibility = accessibility * factor;
-            } else {
-                accessibility = -9999;
-            }
-            accessibilities[i] = accessibility;
-        }
-        return accessibilities;
     }
 }

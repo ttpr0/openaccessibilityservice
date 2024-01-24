@@ -1,4 +1,4 @@
-package org.tud.oas.api.accessibility.reachability;
+package org.tud.oas.api.accessibility.opportunity;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(name = "ReachabilityRequest", description = """
         Reachability request.
         """)
-public class ReachabilityRequest {
+public class OpportunityRequest {
     @JsonProperty("demand")
     public DemandRequestParams demand;
 

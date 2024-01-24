@@ -16,21 +16,21 @@ public class AggregateQuery {
             for (int key : catchment.getNeighbours(index)) {
                 facilities.add(key);
             }
-            if (computedType.equals("min")) {
+            if (computedType.equals("MIN")) {
                 if (facilities.isEmpty()) {
                     results[i] = -9999;
                 } else {
                     results[i] = (float) facilities.stream().mapToDouble(item -> supply.getSupply(item)).min()
                             .orElse(-9999.0);
                 }
-            } else if (computedType.equals("max")) {
+            } else if (computedType.equals("MAX")) {
                 if (facilities.isEmpty()) {
                     results[i] = -9999;
                 } else {
                     results[i] = (float) facilities.stream().mapToDouble(item -> supply.getSupply(item)).max()
                             .orElse(-9999.0);
                 }
-            } else if (computedType.equals("median")) {
+            } else if (computedType.equals("MEDIAN")) {
                 if (facilities.isEmpty()) {
                     results[i] = -9999;
                 } else {
@@ -48,7 +48,7 @@ public class AggregateQuery {
                         results[i] = (float) ((temp.get(key1) + temp.get(key2)) / 2);
                     }
                 }
-            } else if (computedType.equals("mean")) {
+            } else if (computedType.equals("MEAN")) {
                 if (facilities.isEmpty()) {
                     results[i] = -9999;
                 } else {
@@ -58,7 +58,7 @@ public class AggregateQuery {
                     }
                     results[i] = sum / facilities.size();
                 }
-            } else if (computedType.equals("sum")) {
+            } else if (computedType.equals("SUM")) {
                 if (facilities.isEmpty()) {
                     results[i] = -9999;
                 } else {

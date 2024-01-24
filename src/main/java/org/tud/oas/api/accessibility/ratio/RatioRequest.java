@@ -1,4 +1,4 @@
-package org.tud.oas.api.accessibility.reachability;
+package org.tud.oas.api.accessibility.ratio;
 
 import java.util.List;
 
@@ -15,15 +15,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(name = "ReachabilityRequest", description = """
         Reachability request.
         """)
-public class ReachabilityRequest {
+public class RatioRequest {
     @JsonProperty("demand")
     public DemandRequestParams demand;
 
     @JsonProperty("supply")
     public SupplyRequestParams supply;
 
-    @JsonProperty("decay")
-    public DecayRequestParams distance_decay;
+    @Schema(name = "catchment", description = """
+            Travel threshold (depending on routing mode in seconds or meters).
+            """, example = "900")
+    @JsonProperty("catchment")
+    public Float catchment;
 
     @JsonProperty("routing")
     public RoutingRequestParams routing;

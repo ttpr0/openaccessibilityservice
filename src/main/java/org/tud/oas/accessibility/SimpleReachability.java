@@ -25,7 +25,7 @@ public class SimpleReachability {
      *                 $d_{ij}$.
      * @return Reachability for every demand point.
      */
-    public float[] calcAccessibility(IDemandView demand, ISupplyView supply, IDistanceDecay decay,
+    public static float[] calcAccessibility(IDemandView demand, ISupplyView supply, IDistanceDecay decay,
             IRoutingProvider provider, RoutingOptions options) {
         float[] accessibilities = new float[demand.pointCount()];
         double max_range = decay.getMaxDistance();

@@ -23,19 +23,19 @@ class NNearestQuery {
             }
             vals.removeIf(item -> item == -9999.0);
 
-            if (computedType.equals("min")) {
+            if (computedType.equals("MIN")) {
                 if (vals.isEmpty()) {
                     results[i] = -9999;
                 } else {
                     results[i] = (float) vals.stream().mapToDouble(Double::doubleValue).min().orElse(-9999.0);
                 }
-            } else if (computedType.equals("max")) {
+            } else if (computedType.equals("MAX")) {
                 if (vals.size() < count) {
                     results[i] = -9999;
                 } else {
                     results[i] = (float) vals.stream().mapToDouble(Double::doubleValue).max().orElse(-9999.0);
                 }
-            } else if (computedType.equals("median")) {
+            } else if (computedType.equals("MEDIAN")) {
                 if (vals.size() < count) {
                     results[i] = -9999;
                 } else {
@@ -49,13 +49,13 @@ class NNearestQuery {
                         results[i] = (float) ((vals.get(key1) + vals.get(key2)) / 2);
                     }
                 }
-            } else if (computedType.equals("mean")) {
+            } else if (computedType.equals("MEAN")) {
                 if (vals.size() < count) {
                     results[i] = -9999;
                 } else {
                     results[i] = (float) (vals.stream().mapToDouble(Double::doubleValue).sum() / vals.size());
                 }
-            } else if (computedType.equals("sum")) {
+            } else if (computedType.equals("SUM")) {
                 if (vals.size() < count) {
                     results[i] = -9999;
                 } else {

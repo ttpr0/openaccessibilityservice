@@ -1,4 +1,4 @@
-package org.tud.oas.api.accessibility.multi_criteria;
+package org.tud.oas.api.multicriteria;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +34,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RestController
-@RequestMapping("/v1/accessibility/multi")
+@RequestMapping("/v1/multicriteria/multi")
 public class MultiCriteriaController {
     private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
