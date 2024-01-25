@@ -6,6 +6,7 @@ import org.tud.oas.routing.ITDMatrix;
 import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 
+// TODO: update computation to use both demand and supply within catchments
 public class SimpleSupplyDemandRatio {
 
     /**
