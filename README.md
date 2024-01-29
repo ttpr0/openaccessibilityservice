@@ -58,7 +58,7 @@ Generally most endpoints share a set of request parameters, including parameters
 
 Parameters describing the distance-decay look as follows:
 
-```json
+```js
 {
   "decay_type": "hybrid", // the type of decay
   "max_range": 900, // the maximum distance threshold (distance weight goes to 0 outside)
@@ -69,7 +69,7 @@ Parameters describing the distance-decay look as follows:
 
 Depending on the type of decay only some parameters may be used (mostly only "max_range"). The resulting distance decay can be descibed as follows:
 
-$$ w_{ij} = \left\{ \begin{array}{rcl} f(d_{ij}) & \mbox{for} \ d_{ij} \leq d_{max} \\ 0 & \mbox{for} \ d_{ij} > d_{max} \end{array}\right $$
+$$ w_{ij} = \begin{cases} f(d_{ij}) \ for \ d_{ij} \leq d_{max} \\\ 0 \ \ \ \ \ \ \ \ \ for \ d_{ij} > d_{max} \end{cases} $$
 
 ($d_{max}$ is either taken from the "max_range" or the "ranges" parameter depending on which of these is provided)
 
@@ -81,7 +81,7 @@ Available distance-decays are:
 * **gaussian** - expontential weighting $f(d_{ij}) = e^{\frac{-d_{ij}^2}{\delta}}$ with impedance factor $\delta = -\frac{d_{max}^2}{log(0.01)}$
 * **inverse-power** - power weighting $f(d_{ij}) = d_{ij}^{-\delta}$ with impedance factor $\delta = log_{d_{max}}(100)$
 * **kernel-density** - density weighting $f(d_{ij}) = 0.75 * (1 - (\frac{d_{ij}}{d_{max}})^2)$
-* **hybrid** - step-function $f(d_{max, i-1} < d_{ij} < d_{max, i}) = w_i$ using "ranges" $d_{max, i}$ and their corresponding "range_factors" $w_i$
+* **hybrid** - step-function $f(d_{max, n-1} < d_{ij} < d_{max, n}) = w_n$ using "ranges" $d_{max, n}$ and their corresponding "range_factors" $w_n$
 * **polynom** - weighting polynom $f(d_{ij}) = a_0 d_{ij}^{n} + a_1 d_{ij}^{n-1} + ... + a_n$ given the coefficients $a_0, a_1, ..., a_n$ from "range_factors"
 
 (Note that it is generally recomended to use either binary or hybrid decay functions, see Luo and Qi 2009)
@@ -110,7 +110,7 @@ $$ A_i = S_j * f(d_{ij}) $$
 
 $S_j$ denotes the closest supply point $j$ to the demand point $i$. $d_{ij}$ the distance between them.
 
-```json
+```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
@@ -136,7 +136,7 @@ When using a Gravity-Decay function ($d_{ij}^{-\delta}$) this method can also co
 
 $$ A_i = \sum{\frac{S_j}{d_{ij}^{\beta}}} $$
 
-```json
+```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
@@ -160,7 +160,7 @@ $$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i(d_{ij} < d_{max})}}(d_{ij} < d_{max})} $$
 
 $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the demand point $i$ and $d_{ij}$ the travel-distance between them.
 
-```json
+```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
@@ -186,7 +186,7 @@ $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the de
 
 A Possibile usecases would e.g. be different travel characteristics between population living in cities or nearby rural areas. Since people from rural areas are used to longer distances to reach their destination there might be a higher threshold to which travel-times are stil acceptable. Thus different catchment sizes lead to more realistic results.
 
-```json
+```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
@@ -211,7 +211,7 @@ $$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i * f(d_{ij})}} * f(d_{ij})} $$
 
 $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the demand point $i$ and $w_{ij} = f(d_{ij})$ the travel-friction (distance decay) between them.
 
-```json
+```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
@@ -236,7 +236,7 @@ $$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i * f_i(d_{ij})}} * f_i(d_{ij})} $$
 $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the demand point $i$ and $w_{ij} = f_i(d_{ij})$ the travel-friction (distance decay) between them. The distance-decay function used depends on the demand point ($i$).
 Therefore different travel characteristics can be included.
 
-```json
+```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
@@ -257,11 +257,11 @@ Therefore different travel characteristics can be included.
 
 Computes the modified two-step-floating-catchment-area accessibility.
 
-$$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i * w_{ij}}} * w_{ij}^2} $$
+$$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i * f(d_{ij})}} * f(d_{ij})^2} $$
 
-$S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the demand point $i$ and $w_{ij} ~ d_{ij}$ the travel-friction (distance decay) between them.
+$S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the demand point $i$ and $w_{ij} = f(d_{ij})$ the travel-friction (distance decay) between them.
 
-```json
+```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
@@ -281,11 +281,11 @@ $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the de
 
 Computes the nearest-neighbour modified two-step-floating-catchment-area accessibility introduced by Jamtsho et al. 2015.
 
-$$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i * w_{ij}}} * w_{ij}^2} $$
+$$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i * f(d_{ij})}} * f(d_{ij})^2} $$
 
-$S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the demand point $i$ and $w_{ij} ~ d_{ij}$ the travel-friction (distance decay) between them. Compared to the modified 2sfca method at max n nearest neighbours are considered.
+$S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the demand point $i$ and $w_{ij} = f(d_{ij})$ the travel-friction (distance decay) between them. Compared to the modified 2sfca method at max n nearest neighbours are considered.
 
-```json
+```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
@@ -306,11 +306,11 @@ $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the de
 
 Computes the enhanced three-step-floating-catchment-area accessibility introduced by Wan et al. (2012).
 
-$A_i = \sum_j{\frac{S_j}{\sum_i{D_i * w_{ij} * G_{ij}}} * w_{ij} * G_{ij}}$
+$A_i = \sum_j{\frac{S_j}{\sum_i{D_i * f(d_{ij}) * G_{ij}}} * f(d_{ij}) * G_{ij}}$
 
-$S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the demand point $i$ and $w_{ij} ~ d_{ij}$ the travel-friction (distance decay) between them and $G_{ij} the propability of demand $D_i$ choosing supply $S_j$ (Propabilities are computed using the Huff Model, see Luo 2014). Therefore every supply-points has an additional attraction value (all ones will result in original 3SFCA method).
+$S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the demand point $i$ and $w_{ij} = f(d_{ij})$ the travel-friction (distance decay) between them and $G_{ij} the propability of demand $D_i$ choosing supply $S_j$ (Propabilities are computed using the Huff Model, see Luo 2014). Therefore every supply-points has an additional attraction value (all ones will result in original 3SFCA method).
 
-```json
+```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
