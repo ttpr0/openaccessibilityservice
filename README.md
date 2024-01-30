@@ -37,14 +37,14 @@ For configuration (especially which routing-backends are available) use the *oas
 
 ```yaml
 routing:
-  providers:
+  providers: # list of available routing providers (at least one)
     - ors-api
     - routing-api
-  default_provider: ors-api
-  provider_options:
-    ors-api:
+  default_provider: ors-api # provider used when no parameter specified
+  provider_options: # optional parameters for every routing provider
+    ors-api: # needs parameter "url" pointing to the ORS-instance
       url: http://localhost:8082
-    routing-api:
+    routing-api: # needs parameter "url" pointing to the go-routing-instance
       url: http://localhost:5002
 ```
 
@@ -96,13 +96,26 @@ To be added...
 
 ## Accessibility
 
-TODO
+The endpoints compute different metrics describing the quality of locations based on the availability of infrastructures (supply) and demand for those infrastructures (demand) as well as their geographical relationship (e.g. distance or travel duration between them).
+
+Results generally look as follows:
+
+```js
+{
+  "access": [a, ...], // the resulting accessibilities
+  "locations": [[x, y], ...], // optionally the locations results have been computed for
+}
+```
 
 ### Supply-Demand-Ratio
+
+*/v1/accessibility/supply_demand_ratio*
 
 To be added...
 
 ### Reachability
+
+*/v1/accessibility/reachability*
 
 Computes a simple reachability measure. For every demand point the closest reachable supply (multiplied by distance decay) is computed.
 
@@ -127,6 +140,8 @@ $S_j$ denotes the closest supply point $j$ to the demand point $i$. $d_{ij}$ the
 ```
 
 ### Opportunity
+
+*/v1/accessibility/opportunity*
 
 Computes a simple opportunity measure. For every demand point the product of reachable supply and distance decay are summed up.
 
@@ -154,6 +169,8 @@ $$ A_i = \sum{\frac{S_j}{d_{ij}^{\beta}}} $$
 
 ### Two-Step-Floating-Catchment-Area (2SFCA)
 
+*/v1/accessibility/2sfca*
+
 Computes the basic two-step-floating-catchment-area accessibility introduced by Luo and Wang (2003).
 
 $$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i(d_{ij} < d_{max})}}(d_{ij} < d_{max})} $$
@@ -177,6 +194,8 @@ $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the de
 ```
 
 ### Dynamic 2SFCA
+
+*/v1/accessibility/dynamic_2sfca*
 
 Computes a dynamic two-step-floating-catchment-area accessibility as introduced by McGrail and Humphreys (2014).
 
@@ -205,6 +224,8 @@ A Possibile usecases would e.g. be different travel characteristics between popu
 
 ### Enhanced 2SFCA
 
+*/v1/accessibility/enhanced_2sfca*
+
 Computes the enhanced two-step-floating-catchment-area accessibility introduced by Luo and Qi (2009).
 
 $$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i * f(d_{ij})}} * f(d_{ij})} $$
@@ -228,6 +249,8 @@ $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the de
 ```
 
 ### Dynamic-Enhanced 2SFCA
+
+*/v1/accessibility/dynamic_enhanced_2sfca*
 
 Computes a dynamic enhanced two-step-floating-catchment-area accessibility similar to the method introduced by McGrail and Humphreys (2014).
 
@@ -255,6 +278,8 @@ Therefore different travel characteristics can be included.
 
 ### Modified 2SFCA
 
+*/v1/accessibility/modified_2sfca*
+
 Computes the modified two-step-floating-catchment-area accessibility.
 
 $$ A_i = \sum_j{\frac{S_j}{\sum_i{D_i * f(d_{ij})}} * f(d_{ij})^2} $$
@@ -278,6 +303,8 @@ $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the de
 ```
 
 ### Nearest-Neighbour-Modified 2SFCA
+
+*/v1/accessibility/nearest_neighbour_2sfca*
 
 Computes the nearest-neighbour modified two-step-floating-catchment-area accessibility introduced by Jamtsho et al. 2015.
 
@@ -303,6 +330,8 @@ $S_j$ denotes the weight of the reachable supply $j$, $D_i$ the demand of the de
 ```
 
 ### Enhanced Three-Step-Floating-Catchment-Area (3SFCA)
+
+*/v1/accessibility/enhanced_3sfca*
 
 Computes the enhanced three-step-floating-catchment-area accessibility introduced by Wan et al. (2012).
 
