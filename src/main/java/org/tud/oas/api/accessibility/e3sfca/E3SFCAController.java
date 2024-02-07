@@ -86,6 +86,10 @@ public class E3SFCAController {
             }
             options = new RoutingOptions("isochrones", ranges);
         }
+        if (!AccessResponse.checkParams(request.response_params)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "response parameters are invalid");
+        }
 
         // compute accessibility result
         float[] weights = Enhanced3SFCA.calc2SFCA(demand_view, supply_view, attraction, decay, provider, options);

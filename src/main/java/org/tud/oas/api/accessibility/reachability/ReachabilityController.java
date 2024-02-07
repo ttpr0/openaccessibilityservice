@@ -85,6 +85,10 @@ public class ReachabilityController {
             }
             options = new RoutingOptions("isochrones", ranges);
         }
+        if (!AccessResponse.checkParams(request.response_params)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "response parameters are invalid");
+        }
 
         logger.debug("start calculation gravity accessibility");
         float[] access = SimpleReachability.calcAccessibility(demand_view, supply_view, decay, provider, options);

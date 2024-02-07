@@ -92,6 +92,10 @@ public class DE2SFCAController {
             }
         }
         RoutingOptions options = new RoutingOptions("matrix", max_range);
+        if (!AccessResponse.checkParams(request.response_params)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "response parameters are invalid");
+        }
 
         // compute accessibility result
         float[] weights = DE2SFCA.calc2SFCA(demand_view, supply_view, decays, decay_indices, provider,

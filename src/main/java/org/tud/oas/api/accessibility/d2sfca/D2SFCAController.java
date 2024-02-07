@@ -80,6 +80,10 @@ public class D2SFCAController {
             ranges.add((double) catchments[i]);
         }
         RoutingOptions options = new RoutingOptions("isochrones", ranges);
+        if (!AccessResponse.checkParams(request.response_params)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "response parameters are invalid");
+        }
 
         // compute accessibility result
         float[] weights = Dynamic2SFCA.calc2SFCA(demand_view, supply_view, ranges, catchment_indices, provider,

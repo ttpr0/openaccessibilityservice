@@ -68,6 +68,10 @@ public class S2SFCAController {
 					"failed to get catchment size, parameter is missing");
 		}
 		RoutingOptions options = new RoutingOptions("isochrones", (double) catchment);
+		if (!AccessResponse.checkParams(request.response_params)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"response parameters are invalid");
+		}
 
 		float[] weights = Simple2SFCA.calc2SFCA(demand_view, supply_view, catchment, provider, options);
 

@@ -71,6 +71,10 @@ public class RatioController {
 					"failed to get catchment size, parameter is missing");
 		}
 		RoutingOptions options = new RoutingOptions("isochrones", (double) catchment);
+		if (!AccessResponse.checkParams(request.response_params)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"response parameters are invalid");
+		}
 
 		logger.debug("start calculation gravity accessibility");
 		float[] access = SimpleSupplyDemandRatio.calcAccessibility(demand_view, supply_view, catchment, provider,

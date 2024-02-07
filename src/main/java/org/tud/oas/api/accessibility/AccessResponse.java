@@ -25,6 +25,9 @@ public class AccessResponse {
     public float[][] locations;
 
     public AccessResponse(float[] access, IDemandView population, AccessResponseParams params) {
+        if (!checkParams(params)) {
+            return;
+        }
         boolean scale = false;
         int[] scale_range = { 0, 100 };
         float no_data_value = -9999;
@@ -86,5 +89,19 @@ public class AccessResponse {
         }
         this.access = access;
         this.locations = locs;
+    }
+
+    public static boolean checkParams(AccessResponseParams params) {
+        if (params != null) {
+            if (params.scale && params.scale_range != null) {
+                if (params.scale_range.length != 2) {
+                    return false;
+                }
+                if (params.scale_range[0] >= params.scale_range[1]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
