@@ -62,6 +62,9 @@ public class RoutingService {
         if (param.isochrone_smoothing != null) {
             provider.setParameter("isochrone_smoothing", param.isochrone_smoothing);
         }
+        if (param.avg_speed != null) {
+            provider.setParameter("avg_speed", param.avg_speed);
+        }
 
         return provider;
     }

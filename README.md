@@ -40,12 +40,16 @@ routing:
   providers: # list of available routing providers (at least one)
     - ors-api
     - routing-api
+    - distance
   default_provider: ors-api # provider used when no parameter specified
   provider_options: # optional parameters for every routing provider
     ors-api: # needs parameter "url" pointing to the ORS-instance
       url: http://localhost:8082
     routing-api: # needs parameter "url" pointing to the go-routing-instance
       url: http://localhost:5002
+    distance: # parameters "metric" and "speed"
+      metric: spherical # one of eucledian (coordinates as x,y) or spherical (coordinates as lon,lat)
+      speed: 50 # average speed used for distance to time conversion (in km/h)
 ```
 
 ## Usage

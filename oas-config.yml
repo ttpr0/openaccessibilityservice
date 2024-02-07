@@ -1,11 +1,14 @@
 routing:
-  providers: 
+  providers:
     - ors-api
-    - routing-api
-  default_provider: ors-api
+    - distance
+  default_provider: distance
   provider_options:
     ors-api:
-      url: http://localhost:8082
+      url: http://172.26.62.41:8080/ors
+    distance:
+      metric: spherical
+      speed: 50
 demand:
   run_interval: 1
   delete_interval: 5
