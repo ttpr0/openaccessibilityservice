@@ -25,7 +25,7 @@ public class DistanceManager {
                     this.dist_type = options.get("metric");
                 }
                 if (options.containsKey("speed")) {
-                    this.dist_type = options.get("speed");
+                    this.avg_speed = Double.parseDouble(options.get("speed"));
                 }
             }
             routing_service.addRoutingProvider("distance", this::getProvider);

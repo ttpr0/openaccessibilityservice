@@ -26,6 +26,11 @@ public class DemandService {
                 if (view != null) {
                     return view;
                 }
+            } else if (param.demand_locations != null) {
+                view = this.createDemandView(param.demand_locations);
+                if (view != null) {
+                    return view;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

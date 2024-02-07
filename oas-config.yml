@@ -7,7 +7,7 @@ routing:
     ors-api:
       url: http://172.26.62.41:8080/ors
     distance:
-      metric: spherical
+      metric: eucledian
       speed: 50
 demand:
   run_interval: 1

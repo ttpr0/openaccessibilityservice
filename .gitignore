@@ -26,3 +26,6 @@ src/main/files/*.pbf
 
 # vs-code
 .vscode
+
+# python
+__pycache__

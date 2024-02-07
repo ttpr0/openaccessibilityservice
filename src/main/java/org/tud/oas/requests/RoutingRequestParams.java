@@ -28,7 +28,7 @@ public class RoutingRequestParams {
 	public String profile;
 
 	@Schema(name = "range_type", description = """
-			Routing metric (travel-time or distance).
+			Routing metric (time or distance).
 			""", example = "time")
 	@JsonProperty("range_type")
 	public String range_type;
