@@ -3,14 +3,13 @@ package org.tud.oas.api.queries.aggregate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.tud.oas.demand.IDemandView;
-import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.ICatchment;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingOptions;
-import org.tud.oas.services.DecayService;
 import org.tud.oas.services.DemandService;
 import org.tud.oas.services.RoutingService;
 import org.tud.oas.services.SupplyService;
@@ -24,50 +23,47 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RestController
 @RequestMapping("/v1/queries/aggregate")
 public class AggregateQueryController {
-    private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
+	private final Logger logger = LoggerFactory.getLogger(AggregateQueryController.class);
 
-    private RoutingService routing_service;
-    private DemandService demand_service;
-    private SupplyService supply_service;
+	private RoutingService routing_service;
+	private DemandService demand_service;
+	private SupplyService supply_service;
 
-    @Autowired
-    public AggregateQueryController(RoutingService routing, DemandService demand, SupplyService supply) {
-        this.routing_service = routing;
-        this.demand_service = demand;
-        this.supply_service = supply;
-    }
+	@Autowired
+	public AggregateQueryController(RoutingService routing, DemandService demand, SupplyService supply) {
+		this.routing_service = routing;
+		this.demand_service = demand;
+		this.supply_service = supply;
+	}
 
-    @Operation(description = """
-            Calculates aggregate query.
-            """)
-    @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = AggregateQueryResponse.class))
-    })
-    @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-    })
-    @PostMapping
-    public ResponseEntity<?> calcQuery(@RequestBody AggregateQueryRequest request) {
-        ICatchment catchment;
-        IDemandView demand_view;
-        ISupplyView supply_view = supply_service.getSupplyView(request.supply);
-        if (supply_view == null) {
-            return ResponseEntity.badRequest().body(new ErrorResponse("queries/aggregate",
-                    "failed to get supply-view, parameters are invalid"));
-        }
+	@Operation(description = """
+			Calculates aggregate query.
+			""")
+	@ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
+			@Content(mediaType = "application/json", schema = @Schema(implementation = AggregateQueryResponse.class))
+	})
+	@PostMapping
+	public AggregateQueryResponse calcQuery(@RequestBody AggregateQueryRequest request) {
+		ICatchment catchment;
+		IDemandView demand_view;
+		ISupplyView supply_view = supply_service.getSupplyView(request.supply);
+		if (supply_view == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"failed to get supply-view, parameters are invalid");
+		}
 
-        demand_view = demand_service.getDemandView(request.demand);
-        if (demand_view == null) {
-            return ResponseEntity.badRequest().body(new ErrorResponse("queries/aggregate",
-                    "failed to get population-view, parameters are invalid"));
-        }
+		demand_view = demand_service.getDemandView(request.demand);
+		if (demand_view == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"failed to get population-view, parameters are invalid");
+		}
 
-        IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
-        catchment = provider.requestCatchment(demand_view, supply_view, request.range,
-                new RoutingOptions("isochrones"));
+		IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
+		catchment = provider.requestCatchment(demand_view, supply_view, request.range,
+				new RoutingOptions("isochrones"));
 
-        float[] results = AggregateQuery.computeQuery(supply_view, catchment, request.compute_type);
+		float[] results = AggregateQuery.computeQuery(supply_view, catchment, request.compute_type);
 
-        return ResponseEntity.ok(new AggregateQueryResponse(results));
-    }
+		return new AggregateQueryResponse(results);
+	}
 }

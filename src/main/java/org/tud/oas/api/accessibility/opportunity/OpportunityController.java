@@ -6,17 +6,17 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.tud.oas.accessibility.SimpleOpportunity;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
+import org.tud.oas.api.accessibility.AccessResponse;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.demand.IDemandView;
-import org.tud.oas.responses.AccessResponse;
-import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.services.DecayService;
 import org.tud.oas.services.DemandService;
@@ -56,27 +56,23 @@ public class OpportunityController {
     @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = AccessResponse.class))
     })
-    @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-    })
     @PostMapping
-    public ResponseEntity<?> calcReachability(@RequestBody OpportunityRequest request) {
+    public AccessResponse calcReachability(@RequestBody OpportunityRequest request) {
         IDemandView demand_view = demand_service.getDemandView(request.demand);
         if (demand_view == null) {
-            return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity",
-                    "failed to get demand-view, parameters are invalid"));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "failed to get demand-view, parameters are invalid");
         }
         ISupplyView supply_view = supply_service.getSupplyView(request.supply);
         if (supply_view == null) {
-            return ResponseEntity.badRequest().body(new ErrorResponse("accessibility/gravity",
-                    "failed to get supply-view, parameters are invalid"));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "failed to get supply-view, parameters are invalid");
         }
         IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
         IDistanceDecay decay = decay_service.getDistanceDecay(request.distance_decay);
         if (decay == null) {
-            return ResponseEntity.badRequest()
-                    .body(new ErrorResponse("accessibility/gravity",
-                            "failed to get distance-decay, parameters are invalid"));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "failed to get distance-decay, parameters are invalid");
         }
         RoutingOptions options;
         if (decay.getDistances() == null) {
@@ -94,6 +90,6 @@ public class OpportunityController {
         float[] access = SimpleOpportunity.calcAccessibility(demand_view, supply_view, decay, provider, options);
 
         logger.debug("start building response");
-        return ResponseEntity.ok(new AccessResponse(access, demand_view, request.response_params));
+        return new AccessResponse(access, demand_view, request.response_params);
     }
 }

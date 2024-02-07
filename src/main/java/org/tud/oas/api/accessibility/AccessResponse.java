@@ -1,4 +1,4 @@
-package org.tud.oas.responses;
+package org.tud.oas.api.accessibility;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.tud.oas.demand.IDemandView;

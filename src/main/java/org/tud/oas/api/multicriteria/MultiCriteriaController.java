@@ -5,21 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.locationtech.jts.geom.Coordinate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.tud.oas.accessibility.SimpleReachability;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.requests.AccessResponseParams;
-import org.tud.oas.responses.ErrorResponse;
 import org.tud.oas.routing.IRoutingProvider;
 import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.services.DecayService;
@@ -58,18 +57,15 @@ public class MultiCriteriaController {
     @ApiResponse(responseCode = "200", description = "Standard response for successfully processed requests.", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = MultiCriteriaResponse.class))
     })
-    @ApiResponse(responseCode = "400", description = "The request is incorrect and therefore can not be processed.", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-    })
     @PostMapping
-    public ResponseEntity<?> calcMultiCriteriaGrid(@RequestBody MultiCriteriaRequest request) {
+    public MultiCriteriaResponse calcMultiCriteriaGrid(@RequestBody MultiCriteriaRequest request) {
         IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
 
         logger.debug("Creating DemandView");
         IDemandView demand_view = demand_service.getDemandView(request.demand);
         if (demand_view == null) {
-            return ResponseEntity.badRequest().body(
-                    new ErrorResponse("accessibility/multi", "failed to get population-view, parameters are invalid"));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "failed to get population-view, parameters are invalid");
         }
 
         logger.debug("Creating GravityAccessibility");
@@ -119,7 +115,7 @@ public class MultiCriteriaController {
         Map<String, float[]> response = this.buildResponse(demand_view, accessibilities, request.return_weighted,
                 request.response_params);
         logger.debug("Finished Building Response Grid");
-        return ResponseEntity.ok(new MultiCriteriaResponse(response));
+        return new MultiCriteriaResponse(response);
     }
 
     Map<String, float[]> buildResponse(IDemandView demand, Map<String, float[]> accessibilities,

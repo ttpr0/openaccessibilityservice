@@ -4,6 +4,8 @@ server:
   error:
     whitelabel:
       enabled: false
+    include-stacktrace: never
+    include-message: always
 
 ##### Logging settings #####
 logging:
