@@ -363,10 +363,14 @@ public class ORSProvider implements IRoutingProvider {
                             ranges_table[index][n - 1] = (float) range;
                             for (int k = n - 2; k >= 0; k--) {
                                 float curr_range = ranges_table[index][k];
+                                int curr_index = nearest_table[index][k];
                                 float prev_range = ranges_table[index][k + 1];
+                                int prev_index = nearest_table[index][k + 1];
                                 if (curr_range > prev_range || curr_range == -1) {
-                                    nearest_table[index][k] = nearest_table[index][k + 1];
+                                    nearest_table[index][k] = prev_index;
+                                    nearest_table[index][k + 1] = curr_index;
                                     ranges_table[index][k] = prev_range;
+                                    ranges_table[index][k + 1] = curr_range;
                                 } else {
                                     break;
                                 }

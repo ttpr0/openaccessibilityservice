@@ -35,8 +35,8 @@ public class NNearestQueryRequest {
     public List<Double> ranges;
 
     @Schema(name = "compute_type", description = """
-            Calculation mode (one of "mean", "median", "min", "max").
-            """, example = "mean")
+            Calculation mode (one of "MEAN", "MEDIAN", "MIN", "MAX", "SUM").
+            """, example = "MEAN")
     public String compute_type;
 
     @Schema(name = "facility_count", description = """

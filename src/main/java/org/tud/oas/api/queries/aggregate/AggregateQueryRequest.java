@@ -24,7 +24,7 @@ public class AggregateQueryRequest {
         public Double range;
 
         @Schema(name = "compute_type", description = """
-                        Calculation mode (one of "mean", "median", "min", "max").
-                        """, example = "mean")
+                        Calculation mode (one of "MEAN", "MEDIAN", "MIN", "MAX", "SUM").
+                        """, example = "SUM")
         public String compute_type;
 }
