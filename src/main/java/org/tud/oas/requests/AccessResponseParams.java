@@ -26,16 +26,4 @@ public class AccessResponseParams {
             """, example = "-9999")
     @JsonProperty("no_data_value")
     public Float no_data_value;
-
-    @Schema(name = "return_locs", description = """
-            True if demand locations should be returned with response.
-            """, example = "true")
-    @JsonProperty("return_locs")
-    public Boolean return_locs;
-
-    @Schema(name = "loc_crs", description = """
-            Specifies the crs of the returned locations if 'return_locs' is true.
-            """, example = "EPSG:28532")
-    @JsonProperty("loc_crs")
-    public String loc_crs;
 }

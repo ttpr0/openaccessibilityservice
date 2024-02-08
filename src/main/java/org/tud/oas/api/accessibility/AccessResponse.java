@@ -1,6 +1,5 @@
 package org.tud.oas.api.accessibility;
 
-import org.locationtech.jts.geom.Coordinate;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.requests.AccessResponseParams;
 
@@ -19,11 +18,6 @@ public class AccessResponse {
             """, example = "[72.34, 29.98, 99.21]")
     public float[] access;
 
-    @Schema(name = "locations", description = """
-            Demand locations.
-            """, example = "[[9.53, 51.27], [8.67, 50.98], [10.21, 49.30]]")
-    public float[][] locations;
-
     public AccessResponse(float[] access, IDemandView population, AccessResponseParams params) {
         if (!checkParams(params)) {
             return;
@@ -31,8 +25,6 @@ public class AccessResponse {
         boolean scale = false;
         int[] scale_range = { 0, 100 };
         float no_data_value = -9999;
-        boolean return_locs = true;
-        String loc_crs = "EPSG:4326";
         if (params != null) {
             if (params.scale != null) {
                 scale = params.scale;
@@ -42,12 +34,6 @@ public class AccessResponse {
             }
             if (params.no_data_value != null) {
                 no_data_value = params.no_data_value;
-            }
-            if (params.return_locs != null) {
-                return_locs = params.return_locs;
-            }
-            if (return_locs && params.loc_crs != null) {
-                loc_crs = params.loc_crs;
             }
         }
 
@@ -62,12 +48,6 @@ public class AccessResponse {
             }
         }
 
-        float[][] locs;
-        if (return_locs) {
-            locs = new float[access.length][];
-        } else {
-            locs = null;
-        }
         for (int i = 0; i < access.length; i++) {
             float accessibility = access[i];
             if (accessibility != 0) {
@@ -81,14 +61,8 @@ public class AccessResponse {
                 accessibility = no_data_value;
             }
             access[i] = accessibility;
-            if (return_locs) {
-                Coordinate loc = population.getCoordinate(i);
-                // TODO: Project to loc_crs
-                locs[i] = new float[] { (float) loc.x, (float) loc.y };
-            }
         }
         this.access = access;
-        this.locations = locs;
     }
 
     public static boolean checkParams(AccessResponseParams params) {

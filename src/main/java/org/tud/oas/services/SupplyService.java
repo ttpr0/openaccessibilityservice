@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.proj4j.CRSFactory;
+import org.locationtech.proj4j.CoordinateReferenceSystem;
+import org.locationtech.proj4j.CoordinateTransform;
+import org.locationtech.proj4j.CoordinateTransformFactory;
+import org.locationtech.proj4j.ProjCoordinate;
 import org.springframework.stereotype.Service;
 import org.tud.oas.requests.SupplyRequestParams;
 import org.tud.oas.supply.ISupplyView;
@@ -12,24 +17,21 @@ import org.tud.oas.supply.SupplyView;
 @Service
 public class SupplyService {
     public ISupplyView getSupplyView(SupplyRequestParams param) {
-        ISupplyView view;
         try {
             if (param.supply_locations != null && param.supply_weights != null) {
-                view = this.createSupplyView(param.supply_locations, param.supply_weights);
-                if (view != null) {
-                    return view;
+                if (param.loc_crs != null) {
+                    return this.createSupplyView(param.supply_locations, param.supply_weights, param.loc_crs);
+                } else {
+                    return this.createSupplyView(param.supply_locations, param.supply_weights);
                 }
             } else if (param.supply_locations != null) {
-                view = this.createSupplyView(param.supply_locations);
-                if (view != null) {
-                    return view;
-                }
-            } else if (param.supply_weights != null) {
-                view = this.createSupplyView(param.supply_weights);
-                if (view != null) {
-                    return view;
+                if (param.loc_crs != null) {
+                    return this.createSupplyView(param.supply_locations, param.loc_crs);
+                } else {
+                    return this.createSupplyView(param.supply_locations);
                 }
             }
+            return null;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -56,11 +58,55 @@ public class SupplyService {
         return new SupplyView(points, null);
     }
 
-    public ISupplyView createSupplyView(double[] weights) {
+    public ISupplyView createSupplyView(double[][] locations, double[] weights, String crs) {
+        if (crs.equals("EPSG:4326")) {
+            return this.createSupplyView(locations);
+        }
+        CoordinateTransform projection = this.createProjection(crs);
+
+        // preallocate coordinates to save unneccessary allocations
+        ProjCoordinate in = new ProjCoordinate();
+        ProjCoordinate out = new ProjCoordinate();
+
+        List<Coordinate> points = new ArrayList<>();
         List<Integer> counts = new ArrayList<>();
-        for (int i = 0; i < weights.length; i++) {
+        for (int i = 0; i < locations.length; i++) {
+            double[] location = locations[i];
+            in.x = location[0];
+            in.y = location[1];
+            projection.transform(in, out);
+            points.add(new Coordinate(out.x, out.y));
             counts.add((int) (weights[i]));
         }
-        return new SupplyView(null, counts);
+        return new SupplyView(points, counts);
+    }
+
+    public ISupplyView createSupplyView(double[][] locations, String crs) {
+        if (crs.equals("EPSG:4326")) {
+            return this.createSupplyView(locations);
+        }
+        CoordinateTransform projection = this.createProjection(crs);
+
+        // preallocate coordinates to save unneccessary allocations
+        ProjCoordinate in = new ProjCoordinate();
+        ProjCoordinate out = new ProjCoordinate();
+
+        List<Coordinate> points = new ArrayList<>();
+        for (int i = 0; i < locations.length; i++) {
+            double[] location = locations[i];
+            in.x = location[0];
+            in.y = location[1];
+            projection.transform(in, out);
+            points.add(new Coordinate(out.x, out.y));
+        }
+        return new SupplyView(points, null);
+    }
+
+    private CoordinateTransform createProjection(String crs) {
+        CRSFactory crsFactory = new CRSFactory();
+        CoordinateReferenceSystem geographic = crsFactory.createFromName("EPSG:4326");
+        CoordinateReferenceSystem other = crsFactory.createFromName(crs);
+        CoordinateTransformFactory ctFactory = new CoordinateTransformFactory();
+        return ctFactory.createTransform(other, geographic);
     }
 }

@@ -1,7 +1,5 @@
 package org.tud.oas.requests;
 
-import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -26,4 +24,11 @@ public class DemandRequestParams {
             """, example = "[91, 34, 72]")
     @JsonProperty("demand_weights")
     public double[] demand_weights;
+
+    @Schema(name = "loc_crs", description = """
+            Optionally specifies the CRS of the locations.
+            If not specified locations are already expected to be geographic.
+            """, example = "EPSG:28532")
+    @JsonProperty("loc_crs")
+    public String loc_crs;
 }
