@@ -44,7 +44,7 @@ public class RoutingService {
             return this.providers.get(this.defaultProvider).get();
         }
         IRoutingProvider provider;
-        if (param.routing_provider == null || this.providers.containsKey(param.routing_provider)) {
+        if (param.routing_provider == null || !this.providers.containsKey(param.routing_provider)) {
             provider = this.providers.get(this.defaultProvider).get();
         } else {
             provider = this.providers.get(param.routing_provider).get();

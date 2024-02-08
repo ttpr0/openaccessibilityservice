@@ -19,7 +19,7 @@ routing = {
 }
 
 def test_matrix():
-    global demand, supply, routing, response
+    global demand, supply, routing
     data = {
         "demand": demand,
         "supply": supply,
@@ -31,14 +31,14 @@ def test_matrix():
     access = resp["matrix"]
     assert len(access) == len(demand["demand_locations"])
     assert len(access[0]) == len(supply["supply_locations"])
-    assert access[0][0] - 122.065 <= 0.001
-    assert access[1][2] - 56.569 <= 0.001
-    assert access[2][1] - 78.102 <= 0.001
-    assert access[3][2] - 67.082 <= 0.001
-    assert access[4][0] - 20.000 <= 0.001
+    assert abs(access[0][0] - 122.065) <= 0.001
+    assert abs(access[1][2] - 56.569) <= 0.001
+    assert abs(access[2][1] - 78.102) <= 0.001
+    assert abs(access[3][2] - 67.082) <= 0.001
+    assert abs(access[4][0] - 20.000) <= 0.001
 
 def test_nearest():
-    global demand, supply, routing, response
+    global demand, supply, routing
     data = {
         "demand": demand,
         "supply": supply,
@@ -50,18 +50,18 @@ def test_nearest():
     access = resp["nearest"]
     assert len(access) == len(demand["demand_locations"])
     assert access[0]["id"] == 2
-    assert access[0]["range"] - 53.852 <= 0.001
+    assert abs(access[0]["range"] - 53.852) <= 0.001
     assert access[1]["id"] == 0
-    assert access[1]["range"] - 14.142 <= 0.001
+    assert abs(access[1]["range"] - 14.142) <= 0.001
     assert access[2]["id"] == 2
-    assert access[2]["range"] - 53.852 <= 0.001
+    assert abs(access[2]["range"] - 53.852) <= 0.001
     assert access[3]["id"] == 0
-    assert access[3]["range"] - 22.361 <= 0.001
+    assert abs(access[3]["range"] - 22.361) <= 0.001
     assert access[4]["id"] == 0
-    assert access[4]["range"] - 20.000 <= 0.001
+    assert abs(access[4]["range"] - 20.000) <= 0.001
 
 def test_k_nearest():
-    global demand, supply, routing, response
+    global demand, supply, routing
     data = {
         "demand": demand,
         "supply": supply,
@@ -74,18 +74,18 @@ def test_k_nearest():
     access = resp["k_nearest"]
     assert len(access) == len(demand["demand_locations"])
     assert access[0][1]["id"] == 1
-    assert access[0][0]["range"] - 53.852 <= 0.001
+    assert abs(access[0][0]["range"] - 53.852) <= 0.001
     assert access[1][0]["id"] == 0
-    assert access[1][1]["range"] - 50.990 <= 0.001
+    assert abs(access[1][1]["range"] - 50.990) <= 0.001
     assert access[2][1]["id"] == 0
-    assert access[2][0]["range"] - 53.852 <= 0.001
+    assert abs(access[2][0]["range"] - 53.852) <= 0.001
     assert access[3][0]["id"] == 0
-    assert access[3][1]["range"] - 50.000 <= 0.001
+    assert abs(access[3][1]["range"] - 50.000) <= 0.001
     assert access[4][1]["id"] == 1
-    assert access[4][0]["range"] - 20.000 <= 0.001
+    assert abs(access[4][0]["range"] - 20.000) <= 0.001
 
 def test_catchment():
-    global demand, supply, routing, response
+    global demand, supply, routing
     data = {
         "demand": demand,
         "supply": supply,

@@ -38,11 +38,11 @@ def test_opportunity():
     assert "access" in resp
     access = resp["access"]
     assert len(access) == len(demand["demand_locations"])
-    assert access[0] - 8.000 <= 0.001
-    assert access[1] - 28.000 <= 0.001
-    assert access[2] - 12.000 <= 0.001
-    assert access[3] - 25.500 <= 0.001
-    assert access[4] - 28.000 <= 0.001
+    assert abs(access[0] - 8.000) <= 0.001
+    assert abs(access[1] - 28.000) <= 0.001
+    assert abs(access[2] - 12.000) <= 0.001
+    assert abs(access[3] - 25.500) <= 0.001
+    assert abs(access[4] - 28.000) <= 0.001
 
 def test_reachability():
     global demand, supply, routing, response
@@ -61,11 +61,11 @@ def test_reachability():
     assert "access" in resp
     access = resp["access"]
     assert len(access) == len(demand["demand_locations"])
-    assert access[0] - 3.000 <= 0.001
-    assert access[1] - 20.000 <= 0.001
-    assert access[2] - 3.000 <= 0.001
-    assert access[3] - 10.000 <= 0.001
-    assert access[4] - 20.000 <= 0.001
+    assert abs(access[0] - 3.000) <= 0.001
+    assert abs(access[1] - 20.000) <= 0.001
+    assert abs(access[2] - 3.000) <= 0.001
+    assert abs(access[3] - 10.000) <= 0.001
+    assert abs(access[4] - 20.000) <= 0.001
 
 def test_2sfca():
     global demand, supply, routing, response
@@ -80,11 +80,11 @@ def test_2sfca():
     assert "access" in resp
     access = resp["access"]
     assert len(access) == len(demand["demand_locations"])
-    assert access[0] - 0.405 <= 0.001
-    assert access[1] - 1.620 <= 0.001
-    assert access[2] - 0.405 <= 0.001
-    assert access[3] - 1.214 <= 0.001
-    assert access[4] - 0.500 <= 0.001
+    assert abs(access[0] - 0.405) <= 0.001
+    assert abs(access[1] - 1.620) <= 0.001
+    assert abs(access[2] - 0.405) <= 0.001
+    assert abs(access[3] - 1.214) <= 0.001
+    assert abs(access[4] - 0.500) <= 0.001
 
 def test_enhanced_2sfca():
     global demand, supply, routing, response
@@ -103,8 +103,8 @@ def test_enhanced_2sfca():
     assert "access" in resp
     access = resp["access"]
     assert len(access) == len(demand["demand_locations"])
-    assert access[0] - 0.514 <= 0.001
-    assert access[1] - 1.131 <= 0.001
-    assert access[2] - 0.637 <= 0.001
-    assert access[3] - 1.230 <= 0.001
-    assert access[4] - 1.131 <= 0.001
+    assert abs(access[0] - 0.514) <= 0.001
+    assert abs(access[1] - 1.131) <= 0.001
+    assert abs(access[2] - 0.637) <= 0.001
+    assert abs(access[3] - 1.230) <= 0.001
+    assert abs(access[4] - 1.131) <= 0.001
