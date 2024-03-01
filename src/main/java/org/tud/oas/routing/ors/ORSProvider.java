@@ -121,6 +121,7 @@ public class ORSProvider implements IRoutingProvider {
         }
 
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
+        boolean has_failed = false;
         for (int f = 0; f < supply.pointCount(); f++) {
             IsochroneCollection isochrones;
             try {
@@ -129,35 +130,45 @@ public class ORSProvider implements IRoutingProvider {
                 e.printStackTrace();
                 continue;
             }
-            if (isochrones.isNull()) {
+            if (has_failed || isochrones.isNull()) {
+                has_failed = true;
                 continue;
             }
-            int facility_index = isochrones.getID();
 
-            Set<Integer> visited = new HashSet<Integer>(10000);
-            for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
-                Isochrone isochrone = isochrones.getIsochrone(i);
-                double range = isochrone.getValue();
+            try {
+                int facility_index = isochrones.getID();
 
-                Geometry iso = isochrone.getGeometry();
-                Envelope env = iso.getEnvelopeInternal();
+                Set<Integer> visited = new HashSet<Integer>(10000);
+                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
+                    Isochrone isochrone = isochrones.getIsochrone(i);
+                    double range = isochrone.getValue();
 
-                Iterable<Integer> points = demand.getPointsInEnvelop(env);
+                    Geometry iso = isochrone.getGeometry();
+                    Envelope env = iso.getEnvelopeInternal();
 
-                for (int index : points) {
-                    if (visited.contains(index)) {
-                        continue;
-                    }
-                    Coordinate p = demand.getCoordinate(index);
-                    int location = SimplePointInAreaLocator.locate(p, iso);
-                    if (location == Location.INTERIOR) {
-                        matrix[facility_index][index] = (float) range;
-                        visited.add(index);
+                    Iterable<Integer> points = demand.getPointsInEnvelop(env);
+
+                    for (int index : points) {
+                        if (visited.contains(index)) {
+                            continue;
+                        }
+                        Coordinate p = demand.getCoordinate(index);
+                        int location = SimplePointInAreaLocator.locate(p, iso);
+                        if (location == Location.INTERIOR) {
+                            matrix[facility_index][index] = (float) range;
+                            visited.add(index);
+                        }
                     }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                has_failed = true;
             }
         }
 
+        if (has_failed) {
+            return null;
+        }
         return new TDMatrix(matrix);
     }
 
@@ -244,6 +255,7 @@ public class ORSProvider implements IRoutingProvider {
 
         Map<Double, Geometry> polygons = new HashMap<Double, Geometry>(ranges.size());
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
+        boolean has_failed = false;
         for (int j = 0; j < supply.pointCount(); j++) {
             IsochroneCollection isochrones;
             try {
@@ -252,49 +264,67 @@ public class ORSProvider implements IRoutingProvider {
                 e.printStackTrace();
                 continue;
             }
-            if (isochrones.isNull()) {
+            if (has_failed || isochrones.isNull()) {
+                has_failed = true;
                 continue;
             }
 
-            for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
-                Isochrone isochrone = isochrones.getIsochrone(i);
-                double range = isochrone.getValue();
+            try {
+                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
+                    Isochrone isochrone = isochrones.getIsochrone(i);
+                    double range = isochrone.getValue();
 
-                if (!polygons.containsKey(range)) {
-                    polygons.put(range, isochrone.getGeometry());
-                } else {
-                    Geometry geometry = polygons.get(range);
-                    Geometry union = geometry.union(isochrone.getGeometry());
-                    Geometry geom = new PolygonHullSimplifier(union, false).getResult();
-                    polygons.put(range, geom);
+                    if (!polygons.containsKey(range)) {
+                        polygons.put(range, isochrone.getGeometry());
+                    } else {
+                        Geometry geometry = polygons.get(range);
+                        Geometry union = geometry.union(isochrone.getGeometry());
+                        Geometry geom = new PolygonHullSimplifier(union, false).getResult();
+                        polygons.put(range, geom);
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                has_failed = true;
             }
         }
 
-        Set<Integer> visited = new HashSet<Integer>(10000);
-        for (int i = 0; i < ranges.size(); i++) {
-            double range = ranges.get(i);
-            Geometry iso = polygons.get(range);
-
-            Envelope env = iso.getEnvelopeInternal();
-            Iterable<Integer> points = demand.getPointsInEnvelop(env);
-
-            Geometry geom = new PolygonHullSimplifier(iso, false).getResult();
-
-            for (int index : points) {
-                if (visited.contains(index)) {
-                    continue;
-                }
-                Coordinate p = demand.getCoordinate(index);
-                int location = SimplePointInAreaLocator.locate(p, geom);
-                if (location == Location.INTERIOR) {
-                    visited.add(index);
-                    nearest_table[index] = -1;
-                    ranges_table[index] = (float) range;
-                }
-            }
+        if (has_failed) {
+            return null;
         }
 
+        try {
+            Set<Integer> visited = new HashSet<Integer>(10000);
+            for (int i = 0; i < ranges.size(); i++) {
+                double range = ranges.get(i);
+                Geometry iso = polygons.get(range);
+
+                Envelope env = iso.getEnvelopeInternal();
+                Iterable<Integer> points = demand.getPointsInEnvelop(env);
+
+                Geometry geom = new PolygonHullSimplifier(iso, false).getResult();
+
+                for (int index : points) {
+                    if (visited.contains(index)) {
+                        continue;
+                    }
+                    Coordinate p = demand.getCoordinate(index);
+                    int location = SimplePointInAreaLocator.locate(p, geom);
+                    if (location == Location.INTERIOR) {
+                        visited.add(index);
+                        nearest_table[index] = -1;
+                        ranges_table[index] = (float) range;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            has_failed = true;
+        }
+
+        if (has_failed) {
+            return null;
+        }
         return new NNTable(nearest_table, ranges_table);
     }
 
@@ -318,6 +348,7 @@ public class ORSProvider implements IRoutingProvider {
         }
 
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
+        boolean has_failed = false;
         for (int j = 0; j < supply.pointCount(); j++) {
             IsochroneCollection isochrones;
             try {
@@ -326,61 +357,69 @@ public class ORSProvider implements IRoutingProvider {
                 e.printStackTrace();
                 continue;
             }
-            if (isochrones.isNull()) {
+            if (has_failed || isochrones.isNull()) {
+                has_failed = true;
                 continue;
             }
+            try {
+                int facility_index = isochrones.getID();
+                Set<Integer> visited = new HashSet<Integer>(10000);
 
-            int facility_index = isochrones.getID();
-            Set<Integer> visited = new HashSet<Integer>(10000);
-
-            for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
-                Isochrone isochrone = isochrones.getIsochrone(i);
-                double range = isochrone.getValue();
-                Geometry iso;
-                Geometry outer = isochrone.getGeometry();
-                if (i == 0) {
-                    iso = outer;
-                } else {
-                    Geometry inner = isochrones.getIsochrone(i - 1).getGeometry();
-                    iso = outer.difference(inner);
-                }
-
-                Envelope env = iso.getEnvelopeInternal();
-                Iterable<Integer> points = demand.getPointsInEnvelop(env);
-
-                for (int index : points) {
-                    if (visited.contains(index)) {
-                        continue;
+                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
+                    Isochrone isochrone = isochrones.getIsochrone(i);
+                    double range = isochrone.getValue();
+                    Geometry iso;
+                    Geometry outer = isochrone.getGeometry();
+                    if (i == 0) {
+                        iso = outer;
+                    } else {
+                        Geometry inner = isochrones.getIsochrone(i - 1).getGeometry();
+                        iso = outer.difference(inner);
                     }
-                    Coordinate p = demand.getCoordinate(index);
-                    int location = SimplePointInAreaLocator.locate(p, iso);
-                    if (location == Location.INTERIOR) {
-                        visited.add(index);
-                        // insert new range while keeping array-dimension sorted
-                        float last_range = ranges_table[index][n - 1];
-                        if (last_range > range || last_range == -1) {
-                            nearest_table[index][n - 1] = facility_index;
-                            ranges_table[index][n - 1] = (float) range;
-                            for (int k = n - 2; k >= 0; k--) {
-                                float curr_range = ranges_table[index][k];
-                                int curr_index = nearest_table[index][k];
-                                float prev_range = ranges_table[index][k + 1];
-                                int prev_index = nearest_table[index][k + 1];
-                                if (curr_range > prev_range || curr_range == -1) {
-                                    nearest_table[index][k] = prev_index;
-                                    nearest_table[index][k + 1] = curr_index;
-                                    ranges_table[index][k] = prev_range;
-                                    ranges_table[index][k + 1] = curr_range;
-                                } else {
-                                    break;
+
+                    Envelope env = iso.getEnvelopeInternal();
+                    Iterable<Integer> points = demand.getPointsInEnvelop(env);
+
+                    for (int index : points) {
+                        if (visited.contains(index)) {
+                            continue;
+                        }
+                        Coordinate p = demand.getCoordinate(index);
+                        int location = SimplePointInAreaLocator.locate(p, iso);
+                        if (location == Location.INTERIOR) {
+                            visited.add(index);
+                            // insert new range while keeping array-dimension sorted
+                            float last_range = ranges_table[index][n - 1];
+                            if (last_range > range || last_range == -1) {
+                                nearest_table[index][n - 1] = facility_index;
+                                ranges_table[index][n - 1] = (float) range;
+                                for (int k = n - 2; k >= 0; k--) {
+                                    float curr_range = ranges_table[index][k];
+                                    int curr_index = nearest_table[index][k];
+                                    float prev_range = ranges_table[index][k + 1];
+                                    int prev_index = nearest_table[index][k + 1];
+                                    if (curr_range > prev_range || curr_range == -1) {
+                                        nearest_table[index][k] = prev_index;
+                                        nearest_table[index][k + 1] = curr_index;
+                                        ranges_table[index][k] = prev_range;
+                                        ranges_table[index][k + 1] = curr_range;
+                                    } else {
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                has_failed = true;
             }
         }
 
+        if (has_failed) {
+            return null;
+        }
         return new KNNTable(nearest_table, ranges_table);
     }
 
@@ -398,6 +437,7 @@ public class ORSProvider implements IRoutingProvider {
         }
 
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
+        boolean has_failed = false;
         for (int f = 0; f < supply.pointCount(); f++) {
             IsochroneCollection isochrones;
             try {
@@ -406,32 +446,41 @@ public class ORSProvider implements IRoutingProvider {
                 e.printStackTrace();
                 continue;
             }
-            if (isochrones.isNull()) {
+            if (has_failed || isochrones.isNull()) {
+                has_failed = true;
                 continue;
             }
-            int facility_index = isochrones.getID();
+            try {
+                int facility_index = isochrones.getID();
 
-            Isochrone isochrone = isochrones.getIsochrone(0);
-            Geometry iso = isochrone.getGeometry();
+                Isochrone isochrone = isochrones.getIsochrone(0);
+                Geometry iso = isochrone.getGeometry();
 
-            Envelope env = iso.getEnvelopeInternal();
-            Iterable<Integer> points = demand.getPointsInEnvelop(env);
-            for (int index : points) {
-                Coordinate p = demand.getCoordinate(index);
-                int location = SimplePointInAreaLocator.locate(p, iso);
-                if (location == Location.INTERIOR) {
-                    List<Integer> access;
-                    if (accessibilities[index] == null) {
-                        access = new ArrayList<Integer>();
-                        accessibilities[index] = access;
-                    } else {
-                        access = accessibilities[index];
+                Envelope env = iso.getEnvelopeInternal();
+                Iterable<Integer> points = demand.getPointsInEnvelop(env);
+                for (int index : points) {
+                    Coordinate p = demand.getCoordinate(index);
+                    int location = SimplePointInAreaLocator.locate(p, iso);
+                    if (location == Location.INTERIOR) {
+                        List<Integer> access;
+                        if (accessibilities[index] == null) {
+                            access = new ArrayList<Integer>();
+                            accessibilities[index] = access;
+                        } else {
+                            access = accessibilities[index];
+                        }
+                        accessibilities[index].add(facility_index);
                     }
-                    accessibilities[index].add(facility_index);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                has_failed = true;
             }
         }
 
+        if (has_failed) {
+            return null;
+        }
         return new Catchment(accessibilities);
     }
 
@@ -524,7 +573,11 @@ public class ORSProvider implements IRoutingProvider {
                     IsochroneCollection iso_coll = new IsochroneCollection(index, envelope, isochrones, center);
                     iso_colls.put(iso_coll);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    try {
+                        iso_colls.put(new IsochroneCollection(index, null, null, null));
+                    } catch (Exception e_) {
+                        e_.printStackTrace();
+                    }
                 }
             });
         }
