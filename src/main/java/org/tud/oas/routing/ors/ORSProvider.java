@@ -22,24 +22,9 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Location;
-import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.simplify.PolygonHullSimplifier;
 import org.locationtech.jts.geom.Envelope;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpRequest.BodyPublisher;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpRequest.Builder;
-import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,10 +35,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.ArrayList;
-import java.util.Dictionary;
 
 public class ORSProvider implements IRoutingProvider {
-    private static ExecutorService executor = Executors.newFixedThreadPool(10);
+    // private static ExecutorService executor = Executors.newFixedThreadPool(10);
+    private static ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     private final String url;
 
