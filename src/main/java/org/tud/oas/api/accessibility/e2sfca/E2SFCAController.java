@@ -88,9 +88,12 @@ public class E2SFCAController {
         }
 
         // compute accessibility result
-        float[] weights = Enhanced2SFCA.calc2SFCA(demand_view, supply_view, decay, provider, options);
-
-        // build response
-        return new AccessResponse(weights, demand_view, request.response_params);
+        try {
+            float[] weights = Enhanced2SFCA.calc2SFCA(demand_view, supply_view, decay, provider, options);
+            // build response
+            return new AccessResponse(weights, demand_view, request.response_params);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 }
