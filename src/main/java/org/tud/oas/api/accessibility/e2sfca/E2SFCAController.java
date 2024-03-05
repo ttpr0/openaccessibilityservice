@@ -73,7 +73,11 @@ public class E2SFCAController {
         }
         RoutingOptions options;
         if (decay.getDistances() == null) {
-            options = new RoutingOptions("matrix", (double) decay.getMaxDistance());
+            if (request.distance_decay.decay_type.equals("binary")) {
+                options = new RoutingOptions("isochrones", (double) decay.getMaxDistance());
+            } else {
+                options = new RoutingOptions("matrix", (double) decay.getMaxDistance());
+            }
         } else {
             float[] distances = decay.getDistances();
             List<Double> ranges = new ArrayList(distances.length);

@@ -2,7 +2,7 @@ routing:
   providers:
     - ors-api
     - distance
-  default_provider: distance
+  default_provider: ors-api
   provider_options:
     ors-api:
       url: http://172.26.62.41:8080/ors

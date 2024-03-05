@@ -1,6 +1,7 @@
 package org.tud.oas.routing;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class RoutingOptions {
     private String mode = "isochrones";
@@ -29,6 +30,8 @@ public class RoutingOptions {
     public RoutingOptions(String mode, Double max_range) {
         this.mode = mode;
         this.max_range = max_range;
+        this.ranges = new ArrayList<Double>();
+        this.ranges.add(max_range);
     }
 
     public String getMode() {

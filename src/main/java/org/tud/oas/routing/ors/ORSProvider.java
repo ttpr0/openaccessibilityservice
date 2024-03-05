@@ -37,8 +37,8 @@ import java.util.concurrent.Executors;
 import java.util.ArrayList;
 
 public class ORSProvider implements IRoutingProvider {
-    // private static ExecutorService executor = Executors.newFixedThreadPool(10);
-    private static ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+     private static ExecutorService executor = Executors.newFixedThreadPool(10);
+    //  private static ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     private final String url;
 
