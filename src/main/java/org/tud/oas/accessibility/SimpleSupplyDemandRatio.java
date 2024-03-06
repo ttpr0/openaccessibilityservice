@@ -27,15 +27,17 @@ public class SimpleSupplyDemandRatio {
      * @return Supply-Demand Ratio for every demand point.
      */
     public static float[] calcAccessibility(IDemandView demand, ISupplyView supply, double max_range,
-            IRoutingProvider provider, RoutingOptions options) {
+            IRoutingProvider provider, RoutingOptions options) throws Exception {
         float[] accessibilities = new float[demand.pointCount()];
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
+        ITDMatrix matrix;
         try {
-            if (matrix == null) {
-                return accessibilities;
-            }
+            matrix = provider.requestTDMatrix(demand, supply, options);
+        } catch (Exception e) {
+            throw new Exception("failed to compute travel-time-matrix:" + e.getMessage());
+        }
 
+        try {
             for (int f = 0; f < supply.pointCount(); f++) {
                 for (int p = 0; p < demand.pointCount(); p++) {
                     float range = matrix.getRange(f, p);
@@ -57,7 +59,7 @@ public class SimpleSupplyDemandRatio {
             return accessibilities;
         } catch (Exception e) {
             e.printStackTrace();
-            return new float[0];
+            throw new Exception("failed to compute accessibility");
         }
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
+import org.tud.oas.accessibility.fca.Enhanced2SFCA;
 import org.tud.oas.accessibility.fca.Modified2SFCA;
 import org.tud.oas.api.accessibility.AccessResponse;
 import org.tud.oas.demand.IDemandView;
@@ -87,10 +88,14 @@ public class M2SFCAController {
                     "response parameters are invalid");
         }
 
-        // compute accessibility result
-        float[] weights = Modified2SFCA.calc2SFCA(demand_view, supply_view, decay, provider, options);
+        try {
+            // compute accessibility result
+            float[] weights = Modified2SFCA.calc2SFCA(demand_view, supply_view, decay, provider, options);
 
-        // build response
-        return new AccessResponse(weights, demand_view, request.response_params);
+            // build response
+            return new AccessResponse(weights, demand_view, request.response_params);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 }

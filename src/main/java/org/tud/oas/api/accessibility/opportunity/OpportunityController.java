@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.tud.oas.accessibility.SimpleOpportunity;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
+import org.tud.oas.accessibility.fca.Enhanced2SFCA;
 import org.tud.oas.api.accessibility.AccessResponse;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.demand.IDemandView;
@@ -90,10 +91,14 @@ public class OpportunityController {
                     "response parameters are invalid");
         }
 
-        logger.debug("start calculation gravity accessibility");
-        float[] access = SimpleOpportunity.calcAccessibility(demand_view, supply_view, decay, provider, options);
+        try {
+            logger.debug("start calculation gravity accessibility");
+            float[] access = SimpleOpportunity.calcAccessibility(demand_view, supply_view, decay, provider, options);
 
-        logger.debug("start building response");
-        return new AccessResponse(access, demand_view, request.response_params);
+            logger.debug("start building response");
+            return new AccessResponse(access, demand_view, request.response_params);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 }

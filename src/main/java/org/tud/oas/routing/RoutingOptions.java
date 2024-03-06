@@ -21,17 +21,15 @@ public class RoutingOptions {
         this.ranges = ranges;
     }
 
-    public RoutingOptions(String mode, Double max_range, Integer range_steps) {
+    public RoutingOptions(String mode, double max_range, int range_steps) {
         this.mode = mode;
         this.max_range = max_range;
         this.range_steps = range_steps;
     }
 
-    public RoutingOptions(String mode, Double max_range) {
+    public RoutingOptions(String mode, double max_range) {
         this.mode = mode;
         this.max_range = max_range;
-        this.ranges = new ArrayList<Double>();
-        this.ranges.add(max_range);
     }
 
     public String getMode() {
@@ -39,26 +37,26 @@ public class RoutingOptions {
     }
 
     public List<Double> getRanges() {
-        return ranges;
-    }
-
-    public boolean hasRanges() {
-        return this.ranges != null;
+        if (this.ranges != null) {
+            return ranges;
+        } else if (this.range_steps != null) {
+            var ranges = new ArrayList<Double>();
+            for (int i = 0; i < this.range_steps; i++) {
+                ranges.add(max_range / this.range_steps * (i + 1));
+            }
+            return ranges;
+        } else {
+            var ranges = new ArrayList<Double>();
+            ranges.add(max_range);
+            return ranges;
+        }
     }
 
     public Double getMaxRange() {
-        return max_range;
-    }
-
-    public boolean hasMaxRange() {
-        return this.max_range != null;
-    }
-
-    public Integer getRangeSteps() {
-        return range_steps;
-    }
-
-    public boolean hasRangeSteps() {
-        return this.range_steps != null;
+        if (this.max_range != null) {
+            return this.max_range;
+        } else {
+            return this.ranges.get(this.ranges.size() - 1);
+        }
     }
 }

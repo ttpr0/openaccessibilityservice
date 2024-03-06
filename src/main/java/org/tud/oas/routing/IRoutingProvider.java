@@ -23,7 +23,7 @@ public interface IRoutingProvider {
      * @param options
      * @return
      */
-    ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, RoutingOptions options);
+    ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, RoutingOptions options) throws Exception;
 
     /**
      * Computes the nearest supply to the demand points.
@@ -33,7 +33,7 @@ public interface IRoutingProvider {
      * @param options
      * @return
      */
-    INNTable requestNearest(IDemandView demand, ISupplyView supply, RoutingOptions options);
+    INNTable requestNearest(IDemandView demand, ISupplyView supply, RoutingOptions options) throws Exception;
 
     /**
      * Computes the k-nearest supplies to the demand points.
@@ -44,7 +44,7 @@ public interface IRoutingProvider {
      * @param options
      * @return
      */
-    IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int k, RoutingOptions options);
+    IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int k, RoutingOptions options) throws Exception;
 
     /**
      * Computes all supplies that lie within a given range to the demand
@@ -56,5 +56,6 @@ public interface IRoutingProvider {
      * @param options
      * @return
      */
-    ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, RoutingOptions options);
+    ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, RoutingOptions options)
+            throws Exception;
 }

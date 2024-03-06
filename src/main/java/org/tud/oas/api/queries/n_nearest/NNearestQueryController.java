@@ -60,8 +60,12 @@ public class NNearestQueryController {
         }
 
         IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
-        table = provider.requestKNearest(demand_view, supply_view, request.facility_count,
-                new RoutingOptions("isochrones", request.ranges));
+        try {
+            table = provider.requestKNearest(demand_view, supply_view, request.facility_count,
+                    new RoutingOptions("isochrones", request.ranges));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
 
         float[] results = NNearestQuery.computeQuery(supply_view, table, request.compute_type,
                 request.facility_count);

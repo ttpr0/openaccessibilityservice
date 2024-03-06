@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.accessibility.fca.DE2SFCA;
+import org.tud.oas.accessibility.fca.Dynamic2SFCA;
 import org.tud.oas.api.accessibility.AccessResponse;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.requests.DecayRequestParams;
@@ -97,11 +98,15 @@ public class DE2SFCAController {
                     "response parameters are invalid");
         }
 
-        // compute accessibility result
-        float[] weights = DE2SFCA.calc2SFCA(demand_view, supply_view, decays, decay_indices, provider,
-                options);
+        try {
+            // compute accessibility result
+            float[] weights = DE2SFCA.calc2SFCA(demand_view, supply_view, decays, decay_indices, provider,
+                    options);
 
-        // build response
-        return new AccessResponse(weights, demand_view, request.response_params);
+            // build response
+            return new AccessResponse(weights, demand_view, request.response_params);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 }

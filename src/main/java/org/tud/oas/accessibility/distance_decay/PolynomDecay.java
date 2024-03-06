@@ -11,7 +11,7 @@ public class PolynomDecay implements IDistanceDecay {
     }
 
     public float getDistanceWeight(float distance) {
-        if (distance >= max_distance) {
+        if (distance > max_distance) {
             return 0;
         }
         int degree = factors.length - 1;

@@ -39,10 +39,13 @@ public class Enhanced2SFCA {
 
         Map<Integer, List<FacilityReference>> invertedMapping = new HashMap<>();
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
-        if (matrix == null) {
-            throw new Exception("failed to compute travel-time-matrix.");
+        ITDMatrix matrix;
+        try {
+            matrix = provider.requestTDMatrix(demand, supply, options);
+        } catch (Exception e) {
+            throw new Exception("failed to compute travel-time-matrix:" + e.getMessage());
         }
+
         try {
             for (int f = 0; f < supply.pointCount(); f++) {
                 float weight = 0;

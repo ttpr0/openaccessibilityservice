@@ -4,6 +4,7 @@ import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.routing.IKNNTable;
 import org.tud.oas.routing.IRoutingProvider;
+import org.tud.oas.routing.ITDMatrix;
 import org.tud.oas.routing.RoutingOptions;
 import org.tud.oas.supply.ISupplyView;
 
@@ -29,16 +30,18 @@ public class NNM2SFCA {
      * @return two-step-floating-catchment-area value for every demand point.
      */
     public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, int n, IDistanceDecay decay,
-            IRoutingProvider provider, RoutingOptions options) {
+            IRoutingProvider provider, RoutingOptions options) throws Exception {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 
-        IKNNTable table = provider.requestKNearest(demand, supply, n, options);
+        IKNNTable table;
         try {
-            if (table == null) {
-                return populationWeights;
-            }
+            table = provider.requestKNearest(demand, supply, n, options);
+        } catch (Exception e) {
+            throw new Exception("failed to compute k-nearest-neighbours:" + e.getMessage());
+        }
 
+        try {
             // accumulate demand
             for (int p = 0; p < demand.pointCount(); p++) {
                 for (int k = 0; k < n; k++) {
@@ -81,7 +84,7 @@ public class NNM2SFCA {
             return populationWeights;
         } catch (Exception e) {
             e.printStackTrace();
-            return new float[0];
+            throw new Exception("failed to compute accessibility");
         }
     }
 }

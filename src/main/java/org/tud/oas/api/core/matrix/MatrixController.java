@@ -60,7 +60,13 @@ public class MatrixController {
 
         RoutingOptions options = new RoutingOptions("matrix", request.range_max);
 
-        ITDMatrix table = provider.requestTDMatrix(demand_view, supply_view, options);
+        ITDMatrix table;
+        try {
+            table = provider.requestTDMatrix(demand_view, supply_view, options);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "failed to compute travel-time-matrix: " + e.getMessage());
+        }
 
         float[][] matrix = new float[demand_view.pointCount()][supply_view.pointCount()];
         for (int i = 0; i < demand_view.pointCount(); i++) {

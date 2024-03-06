@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.tud.oas.accessibility.fca.Enhanced2SFCA;
 import org.tud.oas.accessibility.fca.Simple2SFCA;
 import org.tud.oas.api.accessibility.AccessResponse;
 import org.tud.oas.demand.IDemandView;
@@ -73,8 +74,12 @@ public class S2SFCAController {
 					"response parameters are invalid");
 		}
 
-		float[] weights = Simple2SFCA.calc2SFCA(demand_view, supply_view, catchment, provider, options);
+		try {
+			float[] weights = Simple2SFCA.calc2SFCA(demand_view, supply_view, catchment, provider, options);
 
-		return new AccessResponse(weights, demand_view, request.response_params);
+			return new AccessResponse(weights, demand_view, request.response_params);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+		}
 	}
 }

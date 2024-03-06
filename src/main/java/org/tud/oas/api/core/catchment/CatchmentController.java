@@ -63,7 +63,13 @@ public class CatchmentController {
 
         RoutingOptions options = new RoutingOptions("isochrones", request.range_max);
 
-        ICatchment table = provider.requestCatchment(demand_view, supply_view, request.range_max, options);
+        ICatchment table;
+        try {
+            table = provider.requestCatchment(demand_view, supply_view, request.range_max, options);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "failed to compute catchments: " + e.getMessage());
+        }
 
         List<Integer>[] catchment = new List[demand_view.pointCount()];
         for (int i = 0; i < demand_view.pointCount(); i++) {

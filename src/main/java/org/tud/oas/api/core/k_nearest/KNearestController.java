@@ -63,7 +63,13 @@ public class KNearestController {
 
         RoutingOptions options = new RoutingOptions("matrix", request.range_max);
 
-        IKNNTable table = provider.requestKNearest(demand_view, supply_view, request.count, options);
+        IKNNTable table;
+        try {
+            table = provider.requestKNearest(demand_view, supply_view, request.count, options);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "failed to compute k-nearest-neighbours: " + e.getMessage());
+        }
 
         List<NearestItem>[] k_nearest = new List[demand_view.pointCount()];
         for (int i = 0; i < demand_view.pointCount(); i++) {

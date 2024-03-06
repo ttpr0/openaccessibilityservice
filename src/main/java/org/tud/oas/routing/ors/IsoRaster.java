@@ -39,7 +39,18 @@ public class IsoRaster {
 
     private KdTree index;
 
-    public IsoRaster() {
+    private String error;
+
+    public IsoRaster(String error) {
+        this.error = error;
+    }
+
+    public boolean isNull() {
+        return error != null;
+    }
+
+    public String getError() {
+        return error;
     }
 
     public int getID() {

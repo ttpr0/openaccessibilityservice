@@ -30,17 +30,20 @@ public class Simple2SFCA {
      * @return two-step-floating-catchment-area value for every demand point.
      */
     public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, double range, IRoutingProvider provider,
-            RoutingOptions options) {
+            RoutingOptions options) throws Exception {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 
         Map<Integer, List<Integer>> invertedMapping = new HashMap<>();
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
+        ITDMatrix matrix;
         try {
-            if (matrix == null) {
-                return populationWeights;
-            }
+            matrix = provider.requestTDMatrix(demand, supply, options);
+        } catch (Exception e) {
+            throw new Exception("failed to compute travel-time-matrix:" + e.getMessage());
+        }
+
+        try {
             for (int f = 0; f < supply.pointCount(); f++) {
                 float weight = 0;
                 for (int p = 0; p < demand.pointCount(); p++) {
@@ -79,7 +82,7 @@ public class Simple2SFCA {
             return populationWeights;
         } catch (Exception e) {
             e.printStackTrace();
-            return new float[0];
+            throw new Exception("Failed to compute 2SFCA");
         }
     }
 }

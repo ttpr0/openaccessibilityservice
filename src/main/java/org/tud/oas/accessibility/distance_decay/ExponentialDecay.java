@@ -10,7 +10,7 @@ public class ExponentialDecay implements IDistanceDecay {
     }
 
     public float getDistanceWeight(float distance) {
-        if (distance >= max_distance) {
+        if (distance > max_distance) {
             return 0;
         } else {
             return (float) Math.exp(-distance * impedance);

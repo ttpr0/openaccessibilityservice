@@ -82,12 +82,7 @@ public class GoRoutingProvider implements IRoutingProvider {
         Map<String, Object> request = new HashMap();
         request.put("sources", sources);
         request.put("destinations", destinations);
-        if (options.hasMaxRange()) {
-            request.put("max_range", options.getMaxRange());
-        } else if (options.hasRanges()) {
-            var ranges = options.getRanges();
-            request.put("max_range", ranges.get(ranges.size() -1));
-        }
+        request.put("max_range", options.getMaxRange());
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();

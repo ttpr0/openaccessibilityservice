@@ -35,18 +35,20 @@ public class Enhanced3SFCA {
      * @return three-step-floating-catchment-area value for every demand point.
      */
     public static float[] calc2SFCA(IDemandView demand, ISupplyView supply, float[] attraction, IDistanceDecay decay,
-            IRoutingProvider provider, RoutingOptions options) {
+            IRoutingProvider provider, RoutingOptions options) throws Exception {
         float[] populationWeights = new float[demand.pointCount()];
         float[] facilityWeights = new float[supply.pointCount()];
 
         Map<Integer, List<FacilityReference>> invertedMapping = new HashMap<>();
 
-        ITDMatrix matrix = provider.requestTDMatrix(demand, supply, options);
+        ITDMatrix matrix;
         try {
-            if (matrix == null) {
-                return populationWeights;
-            }
+            matrix = provider.requestTDMatrix(demand, supply, options);
+        } catch (Exception e) {
+            throw new Exception("failed to compute travel-time-matrix:" + e.getMessage());
+        }
 
+        try {
             // compute propabilities
             float[][] selection_weights = new float[demand.pointCount()][supply.pointCount()];
             for (int p = 0; p < demand.pointCount(); p++) {
@@ -106,7 +108,7 @@ public class Enhanced3SFCA {
             return populationWeights;
         } catch (Exception e) {
             e.printStackTrace();
-            return new float[0];
+            throw new Exception("failed to compute 3SFCA");
         }
     }
 }

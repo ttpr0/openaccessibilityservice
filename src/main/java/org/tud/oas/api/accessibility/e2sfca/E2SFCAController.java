@@ -91,8 +91,8 @@ public class E2SFCAController {
                     "response parameters are invalid");
         }
 
-        // compute accessibility result
         try {
+            // compute accessibility result
             float[] weights = Enhanced2SFCA.calc2SFCA(demand_view, supply_view, decay, provider, options);
             // build response
             return new AccessResponse(weights, demand_view, request.response_params);

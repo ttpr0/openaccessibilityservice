@@ -60,7 +60,13 @@ public class NearestController {
 
         RoutingOptions options = new RoutingOptions("matrix", request.range_max);
 
-        INNTable table = provider.requestNearest(demand_view, supply_view, options);
+        INNTable table;
+        try {
+            table = provider.requestNearest(demand_view, supply_view, options);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "failed to compute nearest-neighbours: " + e.getMessage());
+        }
 
         NearestItem[] nearest = new NearestItem[demand_view.pointCount()];
         for (int i = 0; i < demand_view.pointCount(); i++) {

@@ -37,8 +37,9 @@ import java.util.concurrent.Executors;
 import java.util.ArrayList;
 
 public class ORSProvider implements IRoutingProvider {
-     private static ExecutorService executor = Executors.newFixedThreadPool(10);
-    //  private static ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+    private static ExecutorService executor = Executors.newFixedThreadPool(10);
+    // private static ExecutorService executor =
+    // Executors.newVirtualThreadPerTaskExecutor();
 
     private final String url;
 
@@ -77,20 +78,21 @@ public class ORSProvider implements IRoutingProvider {
         }
     }
 
-    public ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, RoutingOptions options) {
+    public ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, RoutingOptions options) throws Exception {
         switch (options.getMode()) {
             case "isochrones":
                 return this.requestMatrixIsochrones(demand, supply, options.getRanges());
             case "matrix":
-                return this.requestMatrixMatrix(demand, supply, options.getRanges());
+                return this.requestMatrixMatrix(demand, supply, options.getMaxRange());
             case "isoraster":
-                return this.requestMatrixIsoraster(demand, supply, options.getRanges());
+                return this.requestMatrixIsoraster(demand, supply, options.getMaxRange());
             default:
-                return this.requestMatrixMatrix(demand, supply, options.getRanges());
+                return this.requestMatrixMatrix(demand, supply, options.getMaxRange());
         }
     }
 
-    private ITDMatrix requestMatrixIsochrones(IDemandView demand, ISupplyView supply, List<Double> ranges) {
+    private ITDMatrix requestMatrixIsochrones(IDemandView demand, ISupplyView supply, List<Double> ranges)
+            throws Exception {
         double[][] matrix = new double[supply.pointCount()][demand.pointCount()];
         for (int i = 0; i < supply.pointCount(); i++) {
             for (int j = 0; j < demand.pointCount(); j++) {
@@ -107,6 +109,7 @@ public class ORSProvider implements IRoutingProvider {
 
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
         boolean has_failed = false;
+        String error = "";
         for (int f = 0; f < supply.pointCount(); f++) {
             IsochroneCollection isochrones;
             try {
@@ -115,8 +118,12 @@ public class ORSProvider implements IRoutingProvider {
                 e.printStackTrace();
                 continue;
             }
-            if (has_failed || isochrones.isNull()) {
+            if (has_failed) {
+                continue;
+            }
+            if (isochrones.isNull()) {
                 has_failed = true;
+                error = isochrones.getError();
                 continue;
             }
 
@@ -148,16 +155,17 @@ public class ORSProvider implements IRoutingProvider {
             } catch (Exception e) {
                 e.printStackTrace();
                 has_failed = true;
+                error = "Unexpected error during matrix computation";
             }
         }
 
         if (has_failed) {
-            return null;
+            throw new Exception(error);
         }
         return new TDMatrix(matrix);
     }
 
-    private ITDMatrix requestMatrixMatrix(IDemandView demand, ISupplyView supply, List<Double> ranges) {
+    private ITDMatrix requestMatrixMatrix(IDemandView demand, ISupplyView supply, double max_range) throws Exception {
         int point_count = supply.pointCount();
         double[][] sources = new double[point_count][];
         for (int i = 0; i < point_count; i++) {
@@ -173,14 +181,25 @@ public class ORSProvider implements IRoutingProvider {
             destinations[i] = new double[] { p.x, p.y };
         }
         Matrix matrix = this.requestMatrix(sources, destinations);
-        if (matrix == null || matrix.durations == null) {
-            return null;
+        if (matrix.isNull()) {
+            throw new Exception(matrix.getError());
         }
 
-        return new TDMatrix(matrix.durations);
+        if (this.range_type.equals("time")) {
+            if (!matrix.hasDurations()) {
+                throw new Exception("durations are null");
+            }
+            return new TDMatrix(matrix.getDurations());
+        } else {
+            if (!matrix.hasDistances()) {
+                throw new Exception("distances are null");
+            }
+            return new TDMatrix(matrix.getDistances());
+        }
     }
 
-    private ITDMatrix requestMatrixIsoraster(IDemandView demand, ISupplyView supply, List<Double> ranges) {
+    private ITDMatrix requestMatrixIsoraster(IDemandView demand, ISupplyView supply, double max_range)
+            throws Exception {
         double[][] matrix = new double[supply.pointCount()][demand.pointCount()];
         for (int i = 0; i < supply.pointCount(); i++) {
             for (int j = 0; j < demand.pointCount(); j++) {
@@ -195,10 +214,9 @@ public class ORSProvider implements IRoutingProvider {
             facilities[i] = new double[] { p.x, p.y };
         }
 
-        double max_range = ranges.get(ranges.size() - 1);
         IsoRaster isoraster = this.requestIsoRaster(facilities, max_range);
-        if (isoraster == null) {
-            return null;
+        if (isoraster.isNull()) {
+            throw new Exception(isoraster.getError());
         }
 
         double[][] extend = isoraster.getEnvelope();
@@ -221,7 +239,7 @@ public class ORSProvider implements IRoutingProvider {
         return new TDMatrix(matrix);
     }
 
-    public INNTable requestNearest(IDemandView demand, ISupplyView supply, RoutingOptions options) {
+    public INNTable requestNearest(IDemandView demand, ISupplyView supply, RoutingOptions options) throws Exception {
         int[] nearest_table = new int[demand.pointCount()];
         float[] ranges_table = new float[demand.pointCount()];
         for (int j = 0; j < demand.pointCount(); j++) {
@@ -241,6 +259,7 @@ public class ORSProvider implements IRoutingProvider {
         Map<Double, Geometry> polygons = new HashMap<Double, Geometry>(ranges.size());
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
         boolean has_failed = false;
+        String error = "";
         for (int j = 0; j < supply.pointCount(); j++) {
             IsochroneCollection isochrones;
             try {
@@ -249,8 +268,12 @@ public class ORSProvider implements IRoutingProvider {
                 e.printStackTrace();
                 continue;
             }
-            if (has_failed || isochrones.isNull()) {
+            if (has_failed) {
+                continue;
+            }
+            if (isochrones.isNull()) {
                 has_failed = true;
+                error = isochrones.getError();
                 continue;
             }
 
@@ -275,7 +298,7 @@ public class ORSProvider implements IRoutingProvider {
         }
 
         if (has_failed) {
-            return null;
+            throw new Exception(error);
         }
 
         try {
@@ -305,15 +328,17 @@ public class ORSProvider implements IRoutingProvider {
         } catch (Exception e) {
             e.printStackTrace();
             has_failed = true;
+            error = "Unexpected error during computation of nearest-neighbours.";
         }
 
         if (has_failed) {
-            return null;
+            throw new Exception(error);
         }
         return new NNTable(nearest_table, ranges_table);
     }
 
-    public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int n, RoutingOptions options) {
+    public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int n, RoutingOptions options)
+            throws Exception {
         int[][] nearest_table = new int[demand.pointCount()][n];
         float[][] ranges_table = new float[demand.pointCount()][n];
         for (int j = 0; j < demand.pointCount(); j++) {
@@ -334,6 +359,7 @@ public class ORSProvider implements IRoutingProvider {
 
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
         boolean has_failed = false;
+        String error = "";
         for (int j = 0; j < supply.pointCount(); j++) {
             IsochroneCollection isochrones;
             try {
@@ -342,8 +368,12 @@ public class ORSProvider implements IRoutingProvider {
                 e.printStackTrace();
                 continue;
             }
-            if (has_failed || isochrones.isNull()) {
+            if (has_failed) {
+                continue;
+            }
+            if (isochrones.isNull()) {
                 has_failed = true;
+                error = isochrones.getError();
                 continue;
             }
             try {
@@ -399,16 +429,18 @@ public class ORSProvider implements IRoutingProvider {
             } catch (Exception e) {
                 e.printStackTrace();
                 has_failed = true;
+                error = "Unexpected error during computation of k-nearest-neighbours.";
             }
         }
 
         if (has_failed) {
-            return null;
+            throw new Exception(error);
         }
         return new KNNTable(nearest_table, ranges_table);
     }
 
-    public ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, RoutingOptions options) {
+    public ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, RoutingOptions options)
+            throws Exception {
         List<Integer>[] accessibilities = new List[demand.pointCount()];
 
         List<Double> ranges = new ArrayList<>();
@@ -423,6 +455,7 @@ public class ORSProvider implements IRoutingProvider {
 
         BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
         boolean has_failed = false;
+        String error = "";
         for (int f = 0; f < supply.pointCount(); f++) {
             IsochroneCollection isochrones;
             try {
@@ -431,8 +464,12 @@ public class ORSProvider implements IRoutingProvider {
                 e.printStackTrace();
                 continue;
             }
-            if (has_failed || isochrones.isNull()) {
+            if (has_failed) {
+                continue;
+            }
+            if (isochrones.isNull()) {
                 has_failed = true;
+                error = isochrones.getError();
                 continue;
             }
             try {
@@ -460,67 +497,74 @@ public class ORSProvider implements IRoutingProvider {
             } catch (Exception e) {
                 e.printStackTrace();
                 has_failed = true;
+                error = "Unexpected error during computation of catchments.";
             }
         }
 
         if (has_failed) {
-            return null;
+            throw new Exception(error);
         }
         return new Catchment(accessibilities);
     }
 
-    public List<IsochroneCollection> requestIsochrones(double[][] locations, List<Double> ranges) {
-        Map<String, Object> request = new HashMap();
-        request.put("locations", locations);
-        request.put("location_type", this.location_type);
-        request.put("range", ranges);
-        request.put("range_type", this.range_type);
-        request.put("units", "m");
-        request.put("smoothing", this.isochrone_smoothing);
+    // private List<IsochroneCollection> requestIsochrones(double[][] locations,
+    // List<Double> ranges) {
+    // Map<String, Object> request = new HashMap();
+    // request.put("locations", locations);
+    // request.put("location_type", this.location_type);
+    // request.put("range", ranges);
+    // request.put("range_type", this.range_type);
+    // request.put("units", "m");
+    // request.put("smoothing", this.isochrone_smoothing);
 
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String req = objectMapper.writeValueAsString(request);
-            String response = Util.sendPOST(this.url + "/v2/isochrones/" + this.profile + "/geojson", req);
+    // try {
+    // ObjectMapper objectMapper = new ObjectMapper();
+    // String req = objectMapper.writeValueAsString(request);
+    // String response = Util.sendPOST(this.url + "/v2/isochrones/" + this.profile +
+    // "/geojson", req);
 
-            List<IsochroneCollection> iso_colls = new ArrayList<IsochroneCollection>(locations.length);
+    // List<IsochroneCollection> iso_colls = new
+    // ArrayList<IsochroneCollection>(locations.length);
 
-            JsonNode tree = objectMapper.readTree(response);
-            JsonNode features = tree.get("features");
-            List<Isochrone> isochrones = new ArrayList<Isochrone>();
-            Envelope envelope = null;
-            Coordinate center = new Coordinate(0, 0);
-            GeometryFactory geom_factory = new GeometryFactory();
-            for (JsonNode feature : features) {
-                JsonNode coords = feature.get("geometry").get("coordinates");
-                double[][] polygon = objectMapper.readValue(coords.toString(), double[][][].class)[0];
-                Coordinate[] coordinates = new Coordinate[polygon.length];
-                for (int i = 0; i < polygon.length; i++) {
-                    coordinates[i] = new Coordinate(polygon[i][0], polygon[i][1]);
-                }
-                Geometry geometry = geom_factory.createPolygon(coordinates);
-                Isochrone isochrone = new Isochrone(geometry, feature.get("properties").get("value").asDouble());
-                isochrones.add(isochrone);
-            }
-            IsochroneCollection iso_coll = new IsochroneCollection(0, envelope, isochrones, center);
-            iso_colls.add(iso_coll);
+    // JsonNode tree = objectMapper.readTree(response);
+    // JsonNode features = tree.get("features");
+    // List<Isochrone> isochrones = new ArrayList<Isochrone>();
+    // Envelope envelope = null;
+    // Coordinate center = new Coordinate(0, 0);
+    // GeometryFactory geom_factory = new GeometryFactory();
+    // for (JsonNode feature : features) {
+    // JsonNode coords = feature.get("geometry").get("coordinates");
+    // double[][] polygon = objectMapper.readValue(coords.toString(),
+    // double[][][].class)[0];
+    // Coordinate[] coordinates = new Coordinate[polygon.length];
+    // for (int i = 0; i < polygon.length; i++) {
+    // coordinates[i] = new Coordinate(polygon[i][0], polygon[i][1]);
+    // }
+    // Geometry geometry = geom_factory.createPolygon(coordinates);
+    // Isochrone isochrone = new Isochrone(geometry,
+    // feature.get("properties").get("value").asDouble());
+    // isochrones.add(isochrone);
+    // }
+    // IsochroneCollection iso_coll = new IsochroneCollection(0, envelope,
+    // isochrones, center);
+    // iso_colls.add(iso_coll);
 
-            return iso_colls;
-        } catch (Exception e) {
-            return null;
-        }
-    }
+    // return iso_colls;
+    // } catch (Exception e) {
+    // return null;
+    // }
+    // }
 
-    public BlockingQueue<IsochroneCollection> requestIsochronesStream(double[][] locations, List<Double> ranges) {
+    private BlockingQueue<IsochroneCollection> requestIsochronesStream(double[][] locations, List<Double> ranges) {
 
         BlockingQueue<IsochroneCollection> iso_colls = new ArrayBlockingQueue(10);
 
         for (int i = 0; i < locations.length; i++) {
             final int index = i;
             executor.submit(() -> {
+                ObjectMapper objectMapper = new ObjectMapper();
+                String response;
                 try {
-                    ObjectMapper objectMapper = new ObjectMapper();
-
                     Map<String, Object> request = new HashMap();
                     request.put("location_type", this.location_type);
                     request.put("range", ranges);
@@ -531,35 +575,68 @@ public class ORSProvider implements IRoutingProvider {
                     request.put("locations", locs);
                     String req = objectMapper.writeValueAsString(request);
 
-                    String response = Util.sendPOST(this.url + "/v2/isochrones/" + this.profile + "/geojson", req);
-
+                    response = Util.sendPOST(this.url + "/v2/isochrones/" + this.profile + "/geojson", req);
+                } catch (Exception e) {
+                    var iso = new IsochroneCollection("Request to ORS-failed. Make sure the server is running");
+                    try {
+                        iso_colls.put(iso);
+                    } catch (Exception e_) {
+                        e_.printStackTrace();
+                    }
+                    return;
+                }
+                try {
                     JsonNode tree = objectMapper.readTree(response);
                     JsonNode features = tree.get("features");
-                    if (features == null) {
-                        iso_colls.put(new IsochroneCollection(index, null, null, null));
+                    if (features != null) {
+                        List<Isochrone> isochrones = new ArrayList<Isochrone>();
+                        Envelope envelope = null;
+                        Coordinate center = new Coordinate(0, 0);
+                        GeometryFactory geom_factory = new GeometryFactory();
+                        for (JsonNode feature : features) {
+                            JsonNode coords = feature.get("geometry").get("coordinates");
+                            double[][] polygon = objectMapper.readValue(coords.toString(), double[][][].class)[0];
+                            Coordinate[] coordinates = new Coordinate[polygon.length];
+                            for (int j = 0; j < polygon.length; j++) {
+                                coordinates[j] = new Coordinate(polygon[j][0], polygon[j][1]);
+                            }
+                            Geometry geometry = geom_factory.createPolygon(coordinates);
+                            Isochrone isochrone = new Isochrone(geometry,
+                                    feature.get("properties").get("value").asDouble());
+                            isochrones.add(isochrone);
+                        }
+                        IsochroneCollection iso_coll = new IsochroneCollection(index, envelope, isochrones, center);
+                        try {
+                            iso_colls.put(iso_coll);
+                        } catch (Exception e_) {
+                            e_.printStackTrace();
+                        }
+                        return;
+                    } else {
+                        JsonNode error = tree.get("error");
+                        IsochroneCollection iso_coll;
+                        if (error == null) {
+                            iso_coll = new IsochroneCollection("Unknonwn response format from ORS.");
+                        } else {
+                            JsonNode message = error.get("message");
+                            if (message == null) {
+                                iso_coll = new IsochroneCollection("Unknonwn response format from ORS.");
+                            } else {
+                                iso_coll = new IsochroneCollection("Error at location {lon: "
+                                        + locations[index][0] + ", lat: " + locations[index][1] + "}: "
+                                        + message.asText());
+                            }
+                        }
+                        try {
+                            iso_colls.put(iso_coll);
+                        } catch (Exception e_) {
+                            e_.printStackTrace();
+                        }
                         return;
                     }
-                    List<Isochrone> isochrones = new ArrayList<Isochrone>();
-                    Envelope envelope = null;
-                    Coordinate center = new Coordinate(0, 0);
-                    GeometryFactory geom_factory = new GeometryFactory();
-                    for (JsonNode feature : features) {
-                        JsonNode coords = feature.get("geometry").get("coordinates");
-                        double[][] polygon = objectMapper.readValue(coords.toString(), double[][][].class)[0];
-                        Coordinate[] coordinates = new Coordinate[polygon.length];
-                        for (int j = 0; j < polygon.length; j++) {
-                            coordinates[j] = new Coordinate(polygon[j][0], polygon[j][1]);
-                        }
-                        Geometry geometry = geom_factory.createPolygon(coordinates);
-                        Isochrone isochrone = new Isochrone(geometry,
-                                feature.get("properties").get("value").asDouble());
-                        isochrones.add(isochrone);
-                    }
-                    IsochroneCollection iso_coll = new IsochroneCollection(index, envelope, isochrones, center);
-                    iso_colls.put(iso_coll);
                 } catch (Exception e) {
                     try {
-                        iso_colls.put(new IsochroneCollection(index, null, null, null));
+                        iso_colls.put(new IsochroneCollection("Something unexpected happened:" + e.getMessage()));
                     } catch (Exception e_) {
                         e_.printStackTrace();
                     }
@@ -570,7 +647,7 @@ public class ORSProvider implements IRoutingProvider {
         return iso_colls;
     }
 
-    public IsoRaster requestIsoRaster(double[][] locations, double max_range) {
+    private IsoRaster requestIsoRaster(double[][] locations, double max_range) {
         Map<String, Object> request = new HashMap();
         request.put("location_type", this.location_type);
         double[] ranges = { max_range };
@@ -582,23 +659,38 @@ public class ORSProvider implements IRoutingProvider {
         request.put("precession", 1000);
         request.put("locations", locations);
 
+        ObjectMapper objectMapper = new ObjectMapper();
+        String response;
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             String req = objectMapper.writeValueAsString(request);
 
-            String response = Util.sendPOST(this.url + "/v2/isoraster/" + this.profile, req);
-
+            response = Util.sendPOST(this.url + "/v2/isoraster/" + this.profile, req);
+        } catch (Exception e) {
+            return new IsoRaster("Request to ORS-failed. Make sure the server is running");
+        }
+        try {
             IsoRaster raster = objectMapper.readValue(response, IsoRaster.class);
             raster.constructIndex();
-
             return raster;
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            try {
+                JsonNode tree = objectMapper.readTree(response);
+                JsonNode error = tree.get("error");
+                if (error == null) {
+                    return new IsoRaster("Unknonwn response format from ORS.");
+                }
+                JsonNode message = error.get("message");
+                if (message == null) {
+                    return new IsoRaster("Unknonwn response format from ORS.");
+                }
+                return new IsoRaster(message.asText());
+            } catch (Exception e1) {
+                return new IsoRaster("Something unexpected happened:" + e1.getMessage());
+            }
         }
     }
 
-    public BlockingQueue<IsoRaster> requestIsoRasterStream(double[][] locations, double max_range) {
+    private BlockingQueue<IsoRaster> requestIsoRasterStream(double[][] locations, double max_range) {
 
         BlockingQueue<IsoRaster> iso_rasters = new ArrayBlockingQueue(10);
 
@@ -615,24 +707,67 @@ public class ORSProvider implements IRoutingProvider {
                 request.put("crs", "25832");
                 request.put("precession", 1000);
 
+                ObjectMapper objectMapper = new ObjectMapper();
+                String response;
                 try {
-                    ObjectMapper objectMapper = new ObjectMapper();
-
                     double[][] locs = { { 0, 0 } };
                     locs[0][0] = locations[index][0];
                     locs[0][1] = locations[index][1];
                     request.put("locations", locs);
                     String req = objectMapper.writeValueAsString(request);
 
-                    String response = Util.sendPOST(this.url + "/v2/isoraster/" + this.profile, req);
-
+                    response = Util.sendPOST(this.url + "/v2/isoraster/" + this.profile, req);
+                } catch (Exception e) {
+                    IsoRaster iso = new IsoRaster("Request to ORS-failed. Make sure the server is running");
+                    try {
+                        iso_rasters.put(iso);
+                    } catch (Exception e_) {
+                        e_.printStackTrace();
+                    }
+                    return;
+                }
+                try {
                     IsoRaster raster = objectMapper.readValue(response, IsoRaster.class);
                     raster.constructIndex();
                     raster.setID(index);
-
-                    iso_rasters.put(raster);
+                    try {
+                        iso_rasters.put(raster);
+                    } catch (Exception e_) {
+                        e_.printStackTrace();
+                    }
+                    return;
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    try {
+                        JsonNode tree = objectMapper.readTree(response);
+                        JsonNode error = tree.get("error");
+                        IsoRaster iso;
+                        if (error == null) {
+                            iso = new IsoRaster("Unknonwn response format from ORS.");
+                        } else {
+                            JsonNode message = error.get("message");
+                            if (message == null) {
+                                iso = new IsoRaster("Unknonwn response format from ORS.");
+                            } else {
+                                iso = new IsoRaster("Error at location {lon: "
+                                        + locations[index][0] + ", lat: " + locations[index][1] + "}: "
+                                        + message.asText());
+                            }
+                        }
+                        try {
+                            iso_rasters.put(iso);
+                        } catch (Exception e_) {
+                            e_.printStackTrace();
+                        }
+                        return;
+                    } catch (Exception e1) {
+                        var iso = new IsoRaster("Something unexpected happened:" + e1.getMessage());
+                        try {
+                            iso_rasters.put(iso);
+                        } catch (Exception e_) {
+                            e_.printStackTrace();
+                        }
+                        return;
+                    }
                 }
             });
         }
@@ -663,24 +798,34 @@ public class ORSProvider implements IRoutingProvider {
         request.put("units", "m");
         request.put("metrics", new String[] { this.range_type.equals("time") ? "duration" : "distance" });
 
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        String response;
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
             String req = objectMapper.writeValueAsString(request);
 
-            String response = Util.sendPOST(this.url + "/v2/matrix/" + this.profile, req);
-
+            response = Util.sendPOST(this.url + "/v2/matrix/" + this.profile, req);
+        } catch (Exception e) {
+            return new Matrix("Request to ORS-failed. Make sure the server is running");
+        }
+        try {
             Matrix matrix = objectMapper.readValue(response, Matrix.class);
-
-            if (!this.range_type.equals("time")) {
-                matrix.durations = matrix.distances;
-            }
-
             return matrix;
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            try {
+                JsonNode tree = objectMapper.readTree(response);
+                JsonNode error = tree.get("error");
+                if (error == null) {
+                    return new Matrix("Unknonwn response format from ORS.");
+                }
+                JsonNode message = error.get("message");
+                if (message == null) {
+                    return new Matrix("Unknonwn response format from ORS.");
+                }
+                return new Matrix(message.asText());
+            } catch (Exception e1) {
+                return new Matrix("Something unexpected happened:" + e1.getMessage());
+            }
         }
     }
 }

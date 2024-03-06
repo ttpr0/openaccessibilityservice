@@ -59,8 +59,12 @@ public class AggregateQueryController {
 		}
 
 		IRoutingProvider provider = routing_service.getRoutingProvider(request.routing);
-		catchment = provider.requestCatchment(demand_view, supply_view, request.range,
-				new RoutingOptions("isochrones"));
+		try {
+			catchment = provider.requestCatchment(demand_view, supply_view, request.range,
+					new RoutingOptions("isochrones"));
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+		}
 
 		float[] results = AggregateQuery.computeQuery(supply_view, catchment, request.compute_type);
 

@@ -9,16 +9,26 @@ public class IsochroneCollection {
     private Envelope envelope;
     private List<Isochrone> isochrones;
     private Coordinate center;
+    private String error;
 
     public IsochroneCollection(int id, Envelope envelope, List<Isochrone> isochrones, Coordinate center) {
         this.id = id;
         this.envelope = envelope;
         this.isochrones = isochrones;
         this.center = center;
+        this.error = null;
+    }
+
+    public IsochroneCollection(String error) {
+        this.error = error;
     }
 
     public boolean isNull() {
-        return this.isochrones == null;
+        return this.error != null;
+    }
+
+    public String getError() {
+        return this.error;
     }
 
     public int getID() {
