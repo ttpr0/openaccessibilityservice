@@ -18,7 +18,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.locationtech.jts.geom.Coordinate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,7 +41,14 @@ public class GoRoutingProvider implements IRoutingProvider {
     }
 
     public void setProfile(String profile) {
-        this.profile = profile;
+        if (profile == null) {
+            return;
+        }
+        if (profile.equals("public-transit")) {
+            this.profile = "transit-foot";
+        } else {
+            this.profile = profile;
+        }
     }
 
     public void setRangeType(String range_type) {
@@ -63,7 +72,106 @@ public class GoRoutingProvider implements IRoutingProvider {
         }
     }
 
-    public ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, RoutingOptions options) {
+    public ITDMatrix requestTDMatrix(IDemandView demand, ISupplyView supply, RoutingOptions options) throws Exception {
+        Matrix matrix = this.requestTDMatrix(demand, supply, options.getMaxRange());
+        if (matrix == null) {
+            throw new Exception("failed to request matrix");
+        }
+        return new TDMatrix(matrix.distances);
+    }
+
+    public INNTable requestNearest(IDemandView demand, ISupplyView supply, RoutingOptions options) throws Exception {
+        Matrix matrix = this.requestTDMatrix(demand, supply, options.getMaxRange());
+        if (matrix == null) {
+            throw new Exception("failed to request matrix");
+        }
+        int[] nearest_table = new int[demand.pointCount()];
+        float[] ranges_table = new float[demand.pointCount()];
+        for (int j = 0; j < demand.pointCount(); j++) {
+            double min_dist = Double.MAX_VALUE;
+            int min_index = -1;
+            for (int i = 0; i < supply.pointCount(); i++) {
+                double dist = matrix.distances[i][j];
+                if (dist == -1) {
+                    continue;
+                }
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    min_index = i;
+                }
+            }
+            nearest_table[j] = min_index;
+            ranges_table[j] = (float) min_dist;
+        }
+
+        return new NNTable(nearest_table, ranges_table);
+    }
+
+    public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int n, RoutingOptions options)
+            throws Exception {
+        Matrix matrix = this.requestTDMatrix(demand, supply, options.getMaxRange());
+        if (matrix == null) {
+            throw new Exception("failed to request matrix");
+        }
+        int[][] nearest_table = new int[demand.pointCount()][n];
+        float[][] ranges_table = new float[demand.pointCount()][n];
+        for (int j = 0; j < demand.pointCount(); j++) {
+            int index = j;
+            for (int i = 0; i < supply.pointCount(); i++) {
+                double range = matrix.distances[i][j];
+                int facility_index = i;
+                if (range == -1) {
+                    continue;
+                }
+                float last_range = ranges_table[index][n - 1];
+                if (last_range > range || last_range == -1) {
+                    nearest_table[index][n - 1] = facility_index;
+                    ranges_table[index][n - 1] = (float) range;
+                    for (int k = n - 2; k >= 0; k--) {
+                        float curr_range = ranges_table[index][k];
+                        int curr_index = nearest_table[index][k];
+                        float prev_range = ranges_table[index][k + 1];
+                        int prev_index = nearest_table[index][k + 1];
+                        if (curr_range > prev_range || curr_range == -1) {
+                            nearest_table[index][k] = prev_index;
+                            nearest_table[index][k + 1] = curr_index;
+                            ranges_table[index][k] = prev_range;
+                            ranges_table[index][k + 1] = curr_range;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return new KNNTable(nearest_table, ranges_table);
+    }
+
+    public ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, RoutingOptions options)
+            throws Exception {
+        Matrix matrix = this.requestTDMatrix(demand, supply, options.getMaxRange());
+        if (matrix == null) {
+            throw new Exception("failed to request matrix");
+        }
+        List<Integer>[] accessibilities = new List[demand.pointCount()];
+        for (int i = 0; i < demand.pointCount(); i++) {
+            accessibilities[i] = new ArrayList<>();
+        }
+        for (int i = 0; i < supply.pointCount(); i++) {
+            int index = i;
+            for (int j = 0; j < demand.pointCount(); j++) {
+                double dist = matrix.distances[i][j];
+                if (dist != -1 && dist <= range) {
+                    accessibilities[j].add(index);
+                }
+            }
+        }
+
+        return new Catchment(accessibilities);
+    }
+
+    private Matrix requestTDMatrix(IDemandView demand, ISupplyView supply, double max_range) {
         int point_count = supply.pointCount();
         double[][] sources = new double[point_count][];
         for (int i = 0; i < point_count; i++) {
@@ -82,7 +190,11 @@ public class GoRoutingProvider implements IRoutingProvider {
         Map<String, Object> request = new HashMap();
         request.put("sources", sources);
         request.put("destinations", destinations);
-        request.put("max_range", options.getMaxRange());
+        request.put("max_range", (Integer) (int) max_range);
+        request.put("profile", this.profile);
+        request.put("metric", this.range_type);
+        request.put("time_window", new int[] { 28800, 36000 });
+        request.put("schedule_day", "monday");
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -94,22 +206,10 @@ public class GoRoutingProvider implements IRoutingProvider {
 
             Matrix matrix = objectMapper.readValue(response, Matrix.class);
 
-            return new TDMatrix(matrix.durations);
+            return matrix;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
-    }
-
-    public INNTable requestNearest(IDemandView demand, ISupplyView supply, RoutingOptions options) {
-        return null;
-    }
-
-    public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int n, RoutingOptions options) {
-        return null;
-    }
-
-    public ICatchment requestCatchment(IDemandView demand, ISupplyView supply, double range, RoutingOptions options) {
-        return null;
     }
 }
