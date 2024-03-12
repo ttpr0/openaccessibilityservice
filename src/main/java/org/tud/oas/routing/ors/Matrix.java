@@ -1,5 +1,6 @@
 package org.tud.oas.routing.ors;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Matrix {
@@ -9,7 +10,8 @@ public class Matrix {
     private double[][] distances;
     private String error;
 
-    public Matrix(double[][] durations, double[][] distances) {
+    @JsonCreator
+    public Matrix(@JsonProperty("durations") double[][] durations, @JsonProperty("distances") double[][] distances) {
         this.durations = durations;
         this.distances = distances;
         this.error = null;
