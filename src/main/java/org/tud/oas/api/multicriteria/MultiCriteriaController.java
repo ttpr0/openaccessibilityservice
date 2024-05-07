@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.tud.oas.accessibility.SimpleReachability;
 import org.tud.oas.accessibility.distance_decay.IDistanceDecay;
+import org.tud.oas.api.accessibility.AccessResponse;
 import org.tud.oas.api.queries.aggregate.AggregateQueryController;
 import org.tud.oas.demand.IDemandView;
 import org.tud.oas.requests.AccessResponseParams;
@@ -67,6 +68,10 @@ public class MultiCriteriaController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "failed to get population-view, parameters are invalid");
         }
+        if (!AccessResponse.checkParams(request.response_params)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "response parameters are invalid");
+        }
 
         logger.debug("Creating GravityAccessibility");
         SimpleReachability gravity = new SimpleReachability();
@@ -78,7 +83,15 @@ public class MultiCriteriaController {
             String name = entry.getKey();
             InfrastructureParams value = entry.getValue();
             ISupplyView supply_view = supply_service.getSupplyView(value.supply);
+            if (supply_view == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "failed to get supply-view for " + name + ", parameters are invalid");
+            }
             IDistanceDecay decay = decay_service.getDistanceDecay(value.decay);
+            if (decay == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "failed to get distance-decay for " + name + ", parameters are invalid");
+            }
             RoutingOptions options;
             if (decay.getDistances() == null) {
                 options = new RoutingOptions("matrix", (double) decay.getMaxDistance());
@@ -95,8 +108,7 @@ public class MultiCriteriaController {
             try {
                 accessibility = gravity.calcAccessibility(demand_view, supply_view, decay, provider, options);
             } catch (Exception e) {
-                e.printStackTrace();
-                continue;
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
             }
             if (request.return_all) {
                 accessibilities.put(name, accessibility);
@@ -112,14 +124,13 @@ public class MultiCriteriaController {
         logger.debug("Finished Adding Accessibilities");
 
         logger.debug("Building Response");
-        Map<String, float[]> response = this.buildResponse(demand_view, accessibilities, request.return_weighted,
-                request.response_params);
+        Map<String, float[]> response = this.buildResponse(demand_view, accessibilities, request.response_params);
         logger.debug("Finished Building Response Grid");
         return new MultiCriteriaResponse(response);
     }
 
     Map<String, float[]> buildResponse(IDemandView demand, Map<String, float[]> accessibilities,
-            boolean build_weighted, AccessResponseParams params) {
+            AccessResponseParams params) {
         boolean scale = false;
         int[] scale_range = { 0, 100 };
         float no_data_value = -9999;
@@ -139,12 +150,6 @@ public class MultiCriteriaController {
         for (Map.Entry<String, float[]> entry : accessibilities.entrySet()) {
             String name = entry.getKey();
             float[] access = entry.getValue();
-            float[] access_weighted;
-            if (build_weighted) {
-                access_weighted = new float[access.length];
-            } else {
-                access_weighted = new float[0];
-            }
 
             float max = -1000000000;
             float min = 1000000000;
@@ -161,29 +166,17 @@ public class MultiCriteriaController {
 
             for (int i = 0; i < access.length; i++) {
                 float val = access[i];
-                float val_weighted = 0;
-                int dem = demand.getDemand(i);
                 if (val != 0) {
                     if (scale) {
                         val = (val + scale_range[0] - min)
                                 * ((scale_range[1] - scale_range[0]) / (max - min));
-                        val_weighted = val / dem;
-                    } else {
-                        val_weighted = val / dem;
                     }
                 } else {
                     val = no_data_value;
-                    val_weighted = no_data_value;
                 }
                 access[i] = val;
-                if (build_weighted) {
-                    access_weighted[i] = val_weighted;
-                }
             }
             new_map.put(name, access);
-            if (build_weighted) {
-                new_map.put(name, access_weighted);
-            }
         }
         return new_map;
     }

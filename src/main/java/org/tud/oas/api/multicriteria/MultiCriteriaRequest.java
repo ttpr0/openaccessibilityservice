@@ -32,11 +32,6 @@ public class MultiCriteriaRequest {
                         """)
         public Boolean return_all;
 
-        @Schema(name = "return_weighted", description = """
-                        If true all access weighted by demand-count will be computed ("{name}_weighted").
-                        """)
-        public Boolean return_weighted;
-
         @JsonProperty("response")
         public AccessResponseParams response_params;
 }
