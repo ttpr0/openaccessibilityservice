@@ -240,202 +240,64 @@ public class ORSProvider implements IRoutingProvider {
     }
 
     public INNTable requestNearest(IDemandView demand, ISupplyView supply, RoutingOptions options) throws Exception {
+        ITDMatrix matrix = this.requestTDMatrix(demand, supply, options);
         int[] nearest_table = new int[demand.pointCount()];
         float[] ranges_table = new float[demand.pointCount()];
         for (int j = 0; j < demand.pointCount(); j++) {
-            nearest_table[j] = -1;
-            ranges_table[j] = -1;
-        }
-
-        List<Double> ranges = options.getRanges();
-
-        int point_count = supply.pointCount();
-        double[][] facilities = new double[point_count][];
-        for (int i = 0; i < point_count; i++) {
-            Coordinate p = supply.getCoordinate(i);
-            facilities[i] = new double[] { p.x, p.y };
-        }
-
-        Map<Double, Geometry> polygons = new HashMap<Double, Geometry>(ranges.size());
-        BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
-        boolean has_failed = false;
-        String error = "";
-        for (int j = 0; j < supply.pointCount(); j++) {
-            IsochroneCollection isochrones;
-            try {
-                isochrones = collection.take();
-            } catch (Exception e) {
-                e.printStackTrace();
-                continue;
-            }
-            if (has_failed) {
-                continue;
-            }
-            if (isochrones.isNull()) {
-                has_failed = true;
-                error = isochrones.getError();
-                continue;
-            }
-
-            try {
-                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
-                    Isochrone isochrone = isochrones.getIsochrone(i);
-                    double range = isochrone.getValue();
-
-                    if (!polygons.containsKey(range)) {
-                        polygons.put(range, isochrone.getGeometry());
-                    } else {
-                        Geometry geometry = polygons.get(range);
-                        Geometry union = geometry.union(isochrone.getGeometry());
-                        Geometry geom = new PolygonHullSimplifier(union, false).getResult();
-                        polygons.put(range, geom);
-                    }
+            double min_dist = Double.MAX_VALUE;
+            int min_index = -1;
+            for (int i = 0; i < supply.pointCount(); i++) {
+                double dist = matrix.getRange(i, j);
+                if (dist == -1) {
+                    continue;
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                has_failed = true;
-            }
-        }
-
-        if (has_failed) {
-            throw new Exception(error);
-        }
-
-        try {
-            Set<Integer> visited = new HashSet<Integer>(10000);
-            for (int i = 0; i < ranges.size(); i++) {
-                double range = ranges.get(i);
-                Geometry iso = polygons.get(range);
-
-                Envelope env = iso.getEnvelopeInternal();
-                Iterable<Integer> points = demand.getPointsInEnvelop(env);
-
-                Geometry geom = new PolygonHullSimplifier(iso, false).getResult();
-
-                for (int index : points) {
-                    if (visited.contains(index)) {
-                        continue;
-                    }
-                    Coordinate p = demand.getCoordinate(index);
-                    int location = SimplePointInAreaLocator.locate(p, geom);
-                    if (location == Location.INTERIOR) {
-                        visited.add(index);
-                        nearest_table[index] = -1;
-                        ranges_table[index] = (float) range;
-                    }
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    min_index = i;
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            has_failed = true;
-            error = "Unexpected error during computation of nearest-neighbours.";
+            nearest_table[j] = min_index;
+            ranges_table[j] = (float) min_dist;
         }
 
-        if (has_failed) {
-            throw new Exception(error);
-        }
         return new NNTable(nearest_table, ranges_table);
     }
 
     public IKNNTable requestKNearest(IDemandView demand, ISupplyView supply, int n, RoutingOptions options)
             throws Exception {
+        ITDMatrix matrix = this.requestTDMatrix(demand, supply, options);
         int[][] nearest_table = new int[demand.pointCount()][n];
         float[][] ranges_table = new float[demand.pointCount()][n];
         for (int j = 0; j < demand.pointCount(); j++) {
-            for (int i = 0; i < n; i++) {
-                nearest_table[j][i] = -1;
-                ranges_table[j][i] = -1;
-            }
-        }
-
-        List<Double> ranges = options.getRanges();
-
-        int point_count = supply.pointCount();
-        double[][] facilities = new double[point_count][];
-        for (int i = 0; i < point_count; i++) {
-            Coordinate p = supply.getCoordinate(i);
-            facilities[i] = new double[] { p.x, p.y };
-        }
-
-        BlockingQueue<IsochroneCollection> collection = this.requestIsochronesStream(facilities, ranges);
-        boolean has_failed = false;
-        String error = "";
-        for (int j = 0; j < supply.pointCount(); j++) {
-            IsochroneCollection isochrones;
-            try {
-                isochrones = collection.take();
-            } catch (Exception e) {
-                e.printStackTrace();
-                continue;
-            }
-            if (has_failed) {
-                continue;
-            }
-            if (isochrones.isNull()) {
-                has_failed = true;
-                error = isochrones.getError();
-                continue;
-            }
-            try {
-                int facility_index = isochrones.getID();
-                Set<Integer> visited = new HashSet<Integer>(10000);
-
-                for (int i = 0; i < isochrones.getIsochronesCount(); i++) {
-                    Isochrone isochrone = isochrones.getIsochrone(i);
-                    double range = isochrone.getValue();
-                    Geometry iso;
-                    Geometry outer = isochrone.getGeometry();
-                    if (i == 0) {
-                        iso = outer;
-                    } else {
-                        Geometry inner = isochrones.getIsochrone(i - 1).getGeometry();
-                        iso = outer.difference(inner);
-                    }
-
-                    Envelope env = iso.getEnvelopeInternal();
-                    Iterable<Integer> points = demand.getPointsInEnvelop(env);
-
-                    for (int index : points) {
-                        if (visited.contains(index)) {
-                            continue;
-                        }
-                        Coordinate p = demand.getCoordinate(index);
-                        int location = SimplePointInAreaLocator.locate(p, iso);
-                        if (location == Location.INTERIOR) {
-                            visited.add(index);
-                            // insert new range while keeping array-dimension sorted
-                            float last_range = ranges_table[index][n - 1];
-                            if (last_range > range || last_range == -1) {
-                                nearest_table[index][n - 1] = facility_index;
-                                ranges_table[index][n - 1] = (float) range;
-                                for (int k = n - 2; k >= 0; k--) {
-                                    float curr_range = ranges_table[index][k];
-                                    int curr_index = nearest_table[index][k];
-                                    float prev_range = ranges_table[index][k + 1];
-                                    int prev_index = nearest_table[index][k + 1];
-                                    if (curr_range > prev_range || curr_range == -1) {
-                                        nearest_table[index][k] = prev_index;
-                                        nearest_table[index][k + 1] = curr_index;
-                                        ranges_table[index][k] = prev_range;
-                                        ranges_table[index][k + 1] = curr_range;
-                                    } else {
-                                        break;
-                                    }
-                                }
-                            }
+            int index = j;
+            for (int i = 0; i < supply.pointCount(); i++) {
+                double range = matrix.getRange(i, j);
+                int facility_index = i;
+                if (range == -1) {
+                    continue;
+                }
+                float last_range = ranges_table[index][n - 1];
+                if (last_range > range || last_range == -1) {
+                    nearest_table[index][n - 1] = facility_index;
+                    ranges_table[index][n - 1] = (float) range;
+                    for (int k = n - 2; k >= 0; k--) {
+                        float curr_range = ranges_table[index][k];
+                        int curr_index = nearest_table[index][k];
+                        float prev_range = ranges_table[index][k + 1];
+                        int prev_index = nearest_table[index][k + 1];
+                        if (curr_range > prev_range || curr_range == -1) {
+                            nearest_table[index][k] = prev_index;
+                            nearest_table[index][k + 1] = curr_index;
+                            ranges_table[index][k] = prev_range;
+                            ranges_table[index][k + 1] = curr_range;
+                        } else {
+                            break;
                         }
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                has_failed = true;
-                error = "Unexpected error during computation of k-nearest-neighbours.";
             }
         }
 
-        if (has_failed) {
-            throw new Exception(error);
-        }
         return new KNNTable(nearest_table, ranges_table);
     }
 
