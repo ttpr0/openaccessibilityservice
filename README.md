@@ -121,21 +121,19 @@ To be added...
 
 */v1/accessibility/reachability*
 
-Computes a simple reachability measure. For every demand point the closest reachable supply (multiplied by distance decay) is computed.
+Computes a simple reachability measure. For every demand point the closest reachable supply (represented by distance decay) is computed.
 
-$$ A_i = S_j * f(d_{ij}) $$
+$$ A_i = f(d_{ij}) $$
 
-$S_j$ denotes the closest supply point $j$ to the demand point $i$. $d_{ij}$ the distance between them.
+$j$ denotes the closest supply point to the demand point $i$. $d_{ij}$ the distance between them.
 
 ```js
 {
   "demand": {
     "demand_locations": [[lon, lat], ...],
-    "demand_weights": [w, ...],
   },
   "supply": {
     "supply_locations": [[lon, lat], ...],
-    "supply_weights": [w, ...],
   },
   "decay": decay_parameters,
   "routing": routing_parameters,

@@ -10,6 +10,7 @@ import org.tud.oas.accessibility.distance_decay.InversePowerDecay;
 import org.tud.oas.accessibility.distance_decay.KernelDensityDecay;
 import org.tud.oas.accessibility.distance_decay.LinearDecay;
 import org.tud.oas.accessibility.distance_decay.PolynomDecay;
+import org.tud.oas.accessibility.distance_decay.PiecewiseLinearDecay;
 import org.tud.oas.requests.DecayRequestParams;
 
 @Service
@@ -80,6 +81,14 @@ public class DecayService {
                     return null;
                 }
                 return new PolynomDecay(param.max_range, param.range_factors);
+            case "piecewise-linear":
+                if (param.ranges == null || param.range_factors == null) {
+                    return null;
+                }
+                if (param.ranges.length == 0 || param.range_factors.length != param.ranges.length) {
+                    return null;
+                }
+                return new PiecewiseLinearDecay(param.ranges, param.range_factors);
             default:
                 return null;
         }
