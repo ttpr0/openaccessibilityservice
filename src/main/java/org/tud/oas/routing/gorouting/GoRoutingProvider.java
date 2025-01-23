@@ -13,6 +13,7 @@ import org.tud.oas.routing.Catchment;
 import org.tud.oas.routing.ICatchment;
 import org.tud.oas.routing.IKNNTable;
 import org.tud.oas.util.Util;
+import org.tud.oas.util.context.RequestContext;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -187,6 +188,11 @@ public class GoRoutingProvider implements IRoutingProvider {
             destinations[i] = new double[] { p.x, p.y };
         }
 
+        Map<String, String> headers = new HashMap<String, String>();
+        String tenancy = RequestContext.getTenancy();
+        if (tenancy != null) {
+            headers.put("X-Tenancy", tenancy);
+        }
         Map<String, Object> request = new HashMap();
         request.put("sources", sources);
         request.put("destinations", destinations);
@@ -202,7 +208,7 @@ public class GoRoutingProvider implements IRoutingProvider {
 
             String req = objectMapper.writeValueAsString(request);
 
-            String response = Util.sendPOST(this.url + "/v1/matrix", req);
+            String response = Util.sendPOST(this.url + "/v1/matrix", req, headers);
 
             Matrix matrix = objectMapper.readValue(response, Matrix.class);
 

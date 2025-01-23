@@ -1,9 +1,17 @@
 version: '2.4'
 services:
-  oas-app:
-    container_name: oas-app
+  oas:
+    build: ./
+    container_name: oas
+    networks:
+      - node_network
     ports:
       - "5001:5001"
     user: "${UID:-0}:${GID:-0}"
-    build:
-      context: ./
+    environment:
+      - SERVICE_NAME=oas
+      - SERVICE_TAGS=tenancy=dev|prod
+
+networks:
+  node_network:
+    external: true

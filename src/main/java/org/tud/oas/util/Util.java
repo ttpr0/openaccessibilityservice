@@ -1,5 +1,6 @@
 package org.tud.oas.util;
 
+import java.util.Map;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -10,10 +11,13 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 
 public class Util {
-    public static String sendPOST(String url, String request_body) throws Exception {
+    public static String sendPOST(String url, String request_body, Map<String, String> headers) throws Exception {
         Builder builder = HttpRequest.newBuilder();
         builder.uri(new URI(url));
         builder.header("Content-Type", "application/json");
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            builder.header(entry.getKey(), entry.getValue());
+        }
         builder.POST(BodyPublishers.ofString(request_body));
         HttpRequest request = builder.build();
 

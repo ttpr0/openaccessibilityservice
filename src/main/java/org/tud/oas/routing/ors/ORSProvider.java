@@ -13,6 +13,7 @@ import org.tud.oas.routing.Catchment;
 import org.tud.oas.routing.ICatchment;
 import org.tud.oas.routing.IKNNTable;
 import org.tud.oas.util.Util;
+import org.tud.oas.util.context.RequestContext;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -556,7 +557,11 @@ public class ORSProvider implements IRoutingProvider {
     // }
 
     private BlockingQueue<IsochroneCollection> requestIsochronesStream(double[][] locations, List<Double> ranges) {
-
+        HashMap<String, String> headers = new HashMap<String, String>();
+        String tenancy = RequestContext.getTenancy();
+        if (tenancy != null) {
+            headers.put("X-Tenancy", tenancy);
+        }
         BlockingQueue<IsochroneCollection> iso_colls = new ArrayBlockingQueue(10);
 
         for (int i = 0; i < locations.length; i++) {
@@ -575,7 +580,7 @@ public class ORSProvider implements IRoutingProvider {
                     request.put("locations", locs);
                     String req = objectMapper.writeValueAsString(request);
 
-                    response = Util.sendPOST(this.url + "/v2/isochrones/" + this.profile + "/geojson", req);
+                    response = Util.sendPOST(this.url + "/v2/isochrones/" + this.profile + "/geojson", req, headers);
                 } catch (Exception e) {
                     var iso = new IsochroneCollection("Request to ORS-failed. Make sure the server is running");
                     try {
@@ -648,6 +653,11 @@ public class ORSProvider implements IRoutingProvider {
     }
 
     private IsoRaster requestIsoRaster(double[][] locations, double max_range) {
+        Map<String, String> headers = new HashMap<String, String>();
+        String tenancy = RequestContext.getTenancy();
+        if (tenancy != null) {
+            headers.put("X-Tenancy", tenancy);
+        }
         Map<String, Object> request = new HashMap();
         request.put("location_type", this.location_type);
         double[] ranges = { max_range };
@@ -664,7 +674,7 @@ public class ORSProvider implements IRoutingProvider {
         try {
             String req = objectMapper.writeValueAsString(request);
 
-            response = Util.sendPOST(this.url + "/v2/isoraster/" + this.profile, req);
+            response = Util.sendPOST(this.url + "/v2/isoraster/" + this.profile, req, headers);
         } catch (Exception e) {
             return new IsoRaster("Request to ORS-failed. Make sure the server is running");
         }
@@ -691,7 +701,11 @@ public class ORSProvider implements IRoutingProvider {
     }
 
     private BlockingQueue<IsoRaster> requestIsoRasterStream(double[][] locations, double max_range) {
-
+        Map<String, String> headers = new HashMap<String, String>();
+        String tenancy = RequestContext.getTenancy();
+        if (tenancy != null) {
+            headers.put("X-Tenancy", tenancy);
+        }
         BlockingQueue<IsoRaster> iso_rasters = new ArrayBlockingQueue(10);
 
         for (int i = 0; i < locations.length; i++) {
@@ -716,7 +730,7 @@ public class ORSProvider implements IRoutingProvider {
                     request.put("locations", locs);
                     String req = objectMapper.writeValueAsString(request);
 
-                    response = Util.sendPOST(this.url + "/v2/isoraster/" + this.profile, req);
+                    response = Util.sendPOST(this.url + "/v2/isoraster/" + this.profile, req, headers);
                 } catch (Exception e) {
                     IsoRaster iso = new IsoRaster("Request to ORS-failed. Make sure the server is running");
                     try {
@@ -791,6 +805,11 @@ public class ORSProvider implements IRoutingProvider {
             c += 1;
         }
 
+        Map<String, String> headers = new HashMap<String, String>();
+        String tenancy = RequestContext.getTenancy();
+        if (tenancy != null) {
+            headers.put("X-Tenancy", tenancy);
+        }
         Map<String, Object> request = new HashMap();
         request.put("locations", locations);
         request.put("sources", source);
@@ -804,7 +823,7 @@ public class ORSProvider implements IRoutingProvider {
         try {
             String req = objectMapper.writeValueAsString(request);
 
-            response = Util.sendPOST(this.url + "/v2/matrix/" + this.profile, req);
+            response = Util.sendPOST(this.url + "/v2/matrix/" + this.profile, req, headers);
         } catch (Exception e) {
             return new Matrix("Request to ORS-failed. Make sure the server is running");
         }
