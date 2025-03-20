@@ -27,5 +27,8 @@ src/main/files/*.pbf
 # vs-code
 .vscode
 
+# intellij
+.idea
+
 # python
 __pycache__

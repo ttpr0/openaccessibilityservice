@@ -3,6 +3,7 @@ services:
   oas:
     build: ./
     container_name: oas
+    restart: always
     networks:
       - node_network
     ports:
